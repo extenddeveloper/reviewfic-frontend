@@ -25,7 +25,18 @@ import {
     IconCheck,
     IconShieldCheck,
     IconSearch,
+    IconDownload,
+    IconUpload,
+    IconDatabase,
+    IconFileText,
 } from "./ui/icons"
+import {
+    reviewsToCSVString,
+    downloadCSV,
+    generateSampleCSV,
+    parseCSVToReviews,
+} from "./core/csv-service"
+import { syncReviewsToFramerCMS } from "./framer/cms-sync-service"
 import {
     searchGooglePlaces,
     parseGoogleMapsInput,
@@ -67,6 +78,14 @@ export function App() {
     const [newText, setNewText] = useState("")
     const [newRating, setNewRating] = useState(5)
     const [newVerified, setNewVerified] = useState(true)
+
+    // Phase 2: CSV Import/Export & Framer CMS Collection Sync states
+    const [isSyncingCMS, setIsSyncingCMS] = useState(false)
+    const [cmsSyncMsg, setCmsSyncMsg] = useState<{ text: string; ok: boolean } | null>(null)
+    const [csvError, setCsvError] = useState<string | null>(null)
+    const [csvSuccess, setCsvSuccess] = useState<string | null>(null)
+    const [showCsvPaste, setShowCsvPaste] = useState(false)
+    const [csvPasteText, setCsvPasteText] = useState("")
 
     // Load initial config and check canvas instances
     useEffect(() => {
@@ -167,6 +186,96 @@ export function App() {
             customReviews: prev.customReviews.filter((r) => r.id !== id),
         }))
     }
+
+    // CSV Bulk Export Handler
+    const handleExportCSV = useCallback(() => {
+        if (activeReviews.length === 0) {
+            setNotice("No reviews available to export.")
+            setTimeout(() => setNotice(null), 3000)
+            return
+        }
+        const csv = reviewsToCSVString(activeReviews)
+        downloadCSV(`reviewfic-reviews-${Date.now()}.csv`, csv)
+        setNotice(`Exported ${activeReviews.length} reviews to CSV!`)
+        setTimeout(() => setNotice(null), 3000)
+    }, [activeReviews])
+
+    // CSV Sample Download Handler
+    const handleDownloadSampleCSV = useCallback(() => {
+        const sample = generateSampleCSV()
+        downloadCSV("reviewfic-sample-template.csv", sample)
+        setNotice("Downloaded sample CSV template!")
+        setTimeout(() => setNotice(null), 3000)
+    }, [])
+
+    // CSV File Upload Handler
+    const handleFileUploadCSV = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+        setCsvError(null)
+        setCsvSuccess(null)
+        const reader = new FileReader()
+        reader.onload = (event) => {
+            const text = event.target?.result as string
+            if (!text) return
+            const result = parseCSVToReviews(text)
+            if (!result.success || result.reviews.length === 0) {
+                setCsvError(result.errors.join(" ") || "No valid review rows found in CSV.")
+                return
+            }
+            updateConfig((prev) => ({
+                ...prev,
+                customReviews: [...result.reviews, ...prev.customReviews],
+            }))
+            setCsvSuccess(`Successfully imported ${result.reviews.length} reviews from CSV!`)
+            setTimeout(() => setCsvSuccess(null), 4000)
+        }
+        reader.onerror = () => {
+            setCsvError("Failed to read CSV file.")
+        }
+        reader.readAsText(file)
+        e.target.value = ""
+    }, [updateConfig])
+
+    // CSV Paste Text Submit Handler
+    const handlePasteCSVSubmit = useCallback(() => {
+        if (!csvPasteText.trim()) return
+        setCsvError(null)
+        setCsvSuccess(null)
+        const result = parseCSVToReviews(csvPasteText)
+        if (!result.success || result.reviews.length === 0) {
+            setCsvError(result.errors.join(" ") || "No valid review rows found in pasted CSV data.")
+            return
+        }
+        updateConfig((prev) => ({
+            ...prev,
+            customReviews: [...result.reviews, ...prev.customReviews],
+        }))
+        setCsvSuccess(`Imported ${result.reviews.length} reviews from pasted data!`)
+        setCsvPasteText("")
+        setShowCsvPaste(false)
+        setTimeout(() => setCsvSuccess(null), 4000)
+    }, [csvPasteText, updateConfig])
+
+    // Framer CMS Sync Handler
+    const handleSyncCMS = useCallback(async () => {
+        if (activeReviews.length === 0) {
+            setCmsSyncMsg({ text: "No reviews to sync. Please enable a source or add testimonials first.", ok: false })
+            setTimeout(() => setCmsSyncMsg(null), 4000)
+            return
+        }
+        setIsSyncingCMS(true)
+        setCmsSyncMsg(null)
+        try {
+            const res = await syncReviewsToFramerCMS(activeReviews)
+            setCmsSyncMsg({ text: res.message, ok: res.success })
+        } catch (err: any) {
+            setCmsSyncMsg({ text: err?.message || "Failed to sync to Framer CMS.", ok: false })
+        } finally {
+            setIsSyncingCMS(false)
+            setTimeout(() => setCmsSyncMsg(null), 5000)
+        }
+    }, [activeReviews])
 
     const handleGoogleSearchInput = (val: string) => {
         setGoogleQuery(val)
@@ -1027,6 +1136,157 @@ export function App() {
                                 <IconPlus size={13} />
                                 <span>Add Testimonial</span>
                             </button>
+                        </Section>
+
+                        {/* CSV Import & Export */}
+                        <Section
+                            title="CSV Import & Export"
+                            subtitle="Bulk import client testimonials or export active reviews"
+                            icon={<IconFileText size={15} />}
+                        >
+                            {/* Feedback messages */}
+                            {csvSuccess && (
+                                <div className="cf-alert-msg success">
+                                    <IconCheck size={14} />
+                                    <span>{csvSuccess}</span>
+                                </div>
+                            )}
+                            {csvError && (
+                                <div className="cf-alert-msg error">
+                                    <IconTrash size={14} />
+                                    <span>{csvError}</span>
+                                </div>
+                            )}
+
+                            {/* Export and Sample Buttons */}
+                            <div className="cf-csv-grid">
+                                <button
+                                    type="button"
+                                    className="cf-btn-csv-action"
+                                    onClick={handleExportCSV}
+                                    title="Export active reviews to CSV file"
+                                >
+                                    <IconDownload size={13} />
+                                    <span>Export Reviews (.csv)</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    className="cf-btn-csv-action"
+                                    onClick={handleDownloadSampleCSV}
+                                    title="Download CSV format template"
+                                >
+                                    <IconFileText size={13} />
+                                    <span>Download Template</span>
+                                </button>
+                            </div>
+
+                            {/* Upload Drop Target */}
+                            <label className="cf-csv-upload-box">
+                                <input
+                                    type="file"
+                                    accept=".csv"
+                                    className="cf-csv-file-input"
+                                    onChange={handleFileUploadCSV}
+                                />
+                                <IconUpload size={20} />
+                                <span className="cf-csv-upload-title">Click to browse or drop CSV file</span>
+                                <span className="cf-csv-upload-hint">Supports columns: Author, Rating, Review Text, Date, Source, Verified, Avatar</span>
+                            </label>
+
+                            {/* Paste text toggle */}
+                            <button
+                                type="button"
+                                className="cf-btn-text-action"
+                                onClick={() => setShowCsvPaste((prev) => !prev)}
+                            >
+                                {showCsvPaste ? "Hide Raw Paste Area ▲" : "Paste CSV / Spreadsheet rows directly ▼"}
+                            </button>
+
+                            {showCsvPaste && (
+                                <div className="cf-csv-paste-wrap">
+                                    <textarea
+                                        className="cf-input"
+                                        rows={4}
+                                        placeholder={`Author,Rating,Review Text\n"John Doe",5,"Fantastic product!"\n"Jane Smith",5,"Super responsive team!"`}
+                                        value={csvPasteText}
+                                        onChange={(e) => setCsvPasteText(e.target.value)}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="secondary-cta"
+                                        onClick={handlePasteCSVSubmit}
+                                        disabled={!csvPasteText.trim()}
+                                    >
+                                        <IconPlus size={13} />
+                                        <span>Import Pasted Reviews</span>
+                                    </button>
+                                </div>
+                            )}
+                        </Section>
+
+                        {/* Framer CMS Collection Sync */}
+                        <Section
+                            title="Framer CMS Collection Sync"
+                            subtitle="Sync reviews into Framer CMS for static, crawlable SEO pages"
+                            icon={<IconDatabase size={15} />}
+                        >
+                            <div className="cf-cms-card">
+                                <div className="cf-cms-card-header">
+                                    <span className="cf-cms-badge">
+                                        <IconDatabase size={11} />
+                                        <span>Framer CMS Sync</span>
+                                    </span>
+                                    <span className="cf-cms-count-pill">
+                                        {activeReviews.length} Reviews Active
+                                    </span>
+                                </div>
+
+                                <h4 className="cf-cms-title">Reviewfic Reviews Collection</h4>
+                                <p className="cf-cms-desc">
+                                    Sync your active Google, Trustpilot, and custom testimonials directly into a native Framer CMS Collection. Build static review lists, detail pages, and gain 100% crawlable SEO social proof.
+                                </p>
+
+                                <div className="cf-cms-features-list">
+                                    <div className="cf-cms-feature-item">
+                                        <IconCheck size={12} />
+                                        <span>Server-rendered &amp; indexable for Google SEO</span>
+                                    </div>
+                                    <div className="cf-cms-feature-item">
+                                        <IconCheck size={12} />
+                                        <span>Full design freedom with native Framer CMS Collection Lists</span>
+                                    </div>
+                                    <div className="cf-cms-feature-item">
+                                        <IconCheck size={12} />
+                                        <span>Auto-generates Author, Rating, Date, Avatar, and Verified fields</span>
+                                    </div>
+                                </div>
+
+                                {cmsSyncMsg && (
+                                    <div className={`cf-alert-msg ${cmsSyncMsg.ok ? "success" : "error"}`}>
+                                        {cmsSyncMsg.ok ? <IconCheck size={14} /> : <IconTrash size={14} />}
+                                        <span>{cmsSyncMsg.text}</span>
+                                    </div>
+                                )}
+
+                                <button
+                                    type="button"
+                                    className="cf-btn-cms-sync"
+                                    onClick={handleSyncCMS}
+                                    disabled={isSyncingCMS || activeReviews.length === 0}
+                                >
+                                    {isSyncingCMS ? (
+                                        <>
+                                            <IconRefresh size={14} />
+                                            <span>Syncing to Framer CMS...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <IconDatabase size={14} />
+                                            <span>Sync to Framer CMS Collection</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
                         </Section>
                     </>
                 )}
