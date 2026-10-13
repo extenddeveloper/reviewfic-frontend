@@ -30,6 +30,7 @@ import { Field } from "./ui/components/Field"
 import { Section } from "./ui/components/Section"
 import { ProfilePage } from "./ui/components/ProfilePage"
 import { ReviewCardPreview } from "./ui/components/ReviewCardPreview"
+import { CustomColorPicker } from "./ui/components/CustomColorPicker"
 import "./ui/styles.css"
 
 type TabId = "overview" | "builder" | "sources" | "settings"
@@ -400,22 +401,31 @@ export function App() {
                                 ))}
                             </div>
 
-                            <Field label="Star Accent Color">
+                            <Field label="Star Accent Color" hint="Pick any custom hex or choose a platform preset">
+                                <CustomColorPicker
+                                    value={config.starColor || "#FBBC05"}
+                                    fallback="#FBBC05"
+                                    onChange={(color) => updateConfig((prev) => ({ ...prev, starColor: color }))}
+                                    ariaLabel="Star Accent Color"
+                                />
                                 <div className="cf-color-swatches-row">
                                     {[
-                                        { label: "Google Gold", color: "#FBBC05", class: "gold" },
-                                        { label: "Trustpilot Green", color: "#00B67A", class: "green" },
-                                        { label: "Vibrant Orange", color: "#FF9900", class: "orange" },
-                                        { label: "Brand Blue", color: "#0099FF", class: "blue" },
+                                        { label: "Google Gold", color: "#FBBC05" },
+                                        { label: "Trustpilot Green", color: "#00B67A" },
+                                        { label: "Vibrant Orange", color: "#FF9900" },
+                                        { label: "Brand Blue", color: "#0099FF" },
                                     ].map((c) => (
                                         <button
                                             key={c.color}
                                             type="button"
-                                            className={`cf-color-swatch-btn ${config.starColor === c.color ? "selected" : ""}`}
+                                            className={`cf-color-chip-btn ${config.starColor?.toLowerCase() === c.color.toLowerCase() ? "active" : ""}`}
                                             onClick={() => updateConfig((prev) => ({ ...prev, starColor: c.color }))}
-                                            title={c.label}
+                                            title={`Set to ${c.label}`}
                                         >
-                                            <span className={`cf-swatch-circle ${c.class}`} />
+                                            <svg width="10" height="10" viewBox="0 0 10 10">
+                                                <circle cx="5" cy="5" r="5" fill={c.color} />
+                                            </svg>
+                                            <span>{c.label}</span>
                                         </button>
                                     ))}
                                 </div>

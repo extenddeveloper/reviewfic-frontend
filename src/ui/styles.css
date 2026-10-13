@@ -46,6 +46,17 @@ body,
     --cf-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
     --cf-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
     --cf-shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
+
+    /* CustomColorPicker compatibility tokens - Dark */
+    --beaf-color-1: var(--cf-accent);
+    --beaf-surface: var(--cf-bg-secondary);
+    --beaf-surface-2: var(--cf-bg-tertiary);
+    --beaf-surface-3: var(--cf-bg-hover);
+    --beaf-surface-border: var(--cf-border);
+    --beaf-heading: var(--cf-text-primary);
+    --beaf-text-muted: var(--cf-text-muted);
+    --beaf-input-text: var(--cf-text-primary);
+    --beaf-shadow: var(--cf-shadow-md);
 }
 
 .app.light,
@@ -73,6 +84,17 @@ body,
     --cf-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
     --cf-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
     --cf-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+    /* CustomColorPicker compatibility tokens - Light */
+    --beaf-color-1: var(--cf-accent);
+    --beaf-surface: var(--cf-bg-secondary);
+    --beaf-surface-2: var(--cf-bg-tertiary);
+    --beaf-surface-3: var(--cf-bg-hover);
+    --beaf-surface-border: var(--cf-border);
+    --beaf-heading: var(--cf-text-primary);
+    --beaf-text-muted: var(--cf-text-muted);
+    --beaf-input-text: var(--cf-text-primary);
+    --beaf-shadow: var(--cf-shadow-md);
 }
 
 * {
@@ -403,23 +425,83 @@ body, html {
     margin: 0;
 }
 
+/* Universal Form Controls - Overrides Framer CSS Defaults */
 .cf-input,
+input.cf-input,
+select.cf-input,
+select.cf-select,
+.cf-select,
+textarea.cf-input,
+textarea.cf-textarea {
+    all: unset !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    background-color: var(--cf-bg-tertiary) !important;
+    color: var(--cf-text-primary) !important;
+    border: 1px solid var(--cf-border) !important;
+    border-radius: var(--cf-radius-sm) !important;
+    font-family: inherit !important;
+    font-size: 12.5px !important;
+    line-height: 1.4 !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+input.cf-input,
+.cf-input:not(textarea),
+select.cf-input,
+select.cf-select,
 .cf-select {
-    width: 100%;
-    padding: 9px 12px;
-    background: var(--cf-bg-tertiary);
-    border: 1px solid var(--cf-border);
-    border-radius: var(--cf-radius-sm);
-    color: var(--cf-text-primary);
-    font-family: inherit;
-    font-size: 12.5px;
-    outline: none;
-    transition: border-color 0.2s;
+    height: 36px !important;
+    padding: 0 12px !important;
+    border-radius: var(--cf-radius-sm) !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+textarea.cf-input,
+textarea.cf-textarea {
+    min-height: 68px !important;
+    height: auto !important;
+    padding: 8px 12px !important;
+    border-radius: var(--cf-radius-sm) !important;
+    white-space: pre-wrap !important;
+}
+
+select.cf-input,
+select.cf-select,
+.cf-select {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-color: var(--cf-bg-tertiary) !important;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230099FF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 10px center !important;
+    background-size: 14px 14px !important;
+    padding-right: 32px !important;
+    cursor: pointer !important;
+}
+
+select option {
+    background-color: var(--cf-bg-secondary) !important;
+    color: var(--cf-text-primary) !important;
+    padding: 8px 12px !important;
 }
 
 .cf-input:focus,
-.cf-select:focus {
-    border-color: var(--cf-border-focus);
+input.cf-input:focus,
+select.cf-input:focus,
+select.cf-select:focus,
+.cf-select:focus,
+textarea.cf-input:focus,
+textarea.cf-textarea:focus {
+    border-color: var(--cf-border-focus) !important;
+    box-shadow: 0 0 0 2px var(--cf-accent-glow) !important;
+}
+
+.cf-input::placeholder,
+textarea.cf-input::placeholder {
+    color: var(--cf-text-muted) !important;
 }
 
 /* Switch */
@@ -1054,37 +1136,40 @@ body, html {
     align-self: center;
 }
 
-/* Swatches */
+/* Swatches & Color Chips */
 .cf-color-swatches-row {
     display: flex;
+    flex-wrap: wrap;
     gap: 8px;
     align-items: center;
+    margin-top: 8px;
 }
 
-.cf-color-swatch-btn {
-    padding: 6px;
-    background: transparent;
-    border: 1px solid var(--cf-border);
-    border-radius: var(--cf-radius-md);
-    cursor: pointer;
-    display: flex;
+.cf-color-chip-btn {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
+    gap: 6px;
+    padding: 5px 10px;
+    background: var(--cf-bg-tertiary);
+    border: 1px solid var(--cf-border);
+    border-radius: var(--cf-radius-full);
+    color: var(--cf-text-secondary);
+    font-size: 11.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
 }
 
-.cf-color-swatch-btn.selected {
+.cf-color-chip-btn:hover {
     background: var(--cf-bg-hover);
+    color: var(--cf-text-primary);
+    border-color: var(--cf-border-hover);
+}
+
+.cf-color-chip-btn.active {
+    background: var(--cf-bg-secondary);
+    color: var(--cf-accent);
     border-color: var(--cf-accent);
+    box-shadow: 0 0 0 1px var(--cf-accent);
 }
-
-.cf-swatch-circle {
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-}
-
-.cf-swatch-circle.gold { background: #FBBC05; }
-.cf-swatch-circle.green { background: #00B67A; }
-.cf-swatch-circle.orange { background: #FF9900; }
-.cf-swatch-circle.blue { background: #0099FF; }
 
