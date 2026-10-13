@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { framer } from "@framer/plugin"
-import { ReviewConfig, ReviewItem, ReviewLayout, CardStyle, ThemeMode } from "./core/types"
+import { ReviewConfig, ReviewItem, ReviewLayout, CardStyle, ThemeMode, CardFamily } from "./core/types"
 import { DEFAULT_CONFIG, calculateBlendedStats, getActiveReviews } from "./core/config"
+import { ALL_LAYOUTS, LAYOUT_GROUPS, ALL_CARD_PRESETS, CARD_FAMILIES } from "./core/catalogue"
 import { loadReviewConfig, saveReviewConfig } from "./core/storage"
 import { insertCanvasComponent, getCanvasInstancesCount } from "./framer/canvas-component-service"
 import {
@@ -23,13 +24,14 @@ import {
     IconSliders,
     IconCheck,
     IconShieldCheck,
+    IconSearch,
 } from "./ui/icons"
 import { HeroCard } from "./ui/components/HeroCard"
 import { Switch } from "./ui/components/Switch"
 import { Field } from "./ui/components/Field"
 import { Section } from "./ui/components/Section"
 import { ProfilePage } from "./ui/components/ProfilePage"
-import { ReviewCardPreview } from "./ui/components/ReviewCardPreview"
+import { LiveStudioPreview } from "./ui/components/LiveStudioPreview"
 import { CustomColorPicker } from "./ui/components/CustomColorPicker"
 import "./ui/styles.css"
 
@@ -42,6 +44,12 @@ export function App() {
     const [canvasCount, setCanvasCount] = useState<number>(0)
     const [inserting, setInserting] = useState<boolean>(false)
     const [notice, setNotice] = useState<string | null>(null)
+
+    // Phase 2 Studio & Live Search states
+    const [searchQuery, setSearchQuery] = useState("")
+    const [stageTheme, setStageTheme] = useState<"soft" | "dark" | "light">("soft")
+    const [selectedLayoutGroup, setSelectedLayoutGroup] = useState<string>("all")
+    const [selectedCardFamily, setSelectedCardFamily] = useState<CardFamily>("modern")
 
     // New custom review form state
     const [newAuthor, setNewAuthor] = useState("")
@@ -85,6 +93,25 @@ export function App() {
 
     const activeReviews = useMemo(() => getActiveReviews(config), [config])
     const stats = useMemo(() => calculateBlendedStats(config, activeReviews), [config, activeReviews])
+
+    const searchedReviews = useMemo(() => {
+        if (!searchQuery.trim()) return activeReviews
+        const q = searchQuery.toLowerCase().trim()
+        return activeReviews.filter((r) =>
+            r.authorName.toLowerCase().includes(q) ||
+            r.text.toLowerCase().includes(q) ||
+            r.source.toLowerCase().includes(q)
+        )
+    }, [activeReviews, searchQuery])
+
+    const filteredLayouts = useMemo(() => {
+        if (selectedLayoutGroup === "all") return ALL_LAYOUTS
+        return ALL_LAYOUTS.filter((l) => l.group === selectedLayoutGroup)
+    }, [selectedLayoutGroup])
+
+    const filteredPresets = useMemo(() => {
+        return ALL_CARD_PRESETS.filter((p) => p.family === selectedCardFamily)
+    }, [selectedCardFamily])
 
     const handleInsert = async () => {
         setInserting(true)
@@ -281,7 +308,7 @@ export function App() {
                         {/* Quick Layout Selection */}
                         <Section title="Quick Layout Preset" subtitle="Select how reviews render on your page" icon={<IconLayoutGrid size={15} />}>
                             <div className="cf-segmented-grid">
-                                {(["carousel", "grid", "masonry", "marquee", "badge", "list"] as ReviewLayout[]).map((l) => (
+                                {(["grid", "masonry", "carousel", "ticker", "highlight", "badge"] as ReviewLayout[]).map((l) => (
                                     <button
                                         key={l}
                                         type="button"
@@ -291,9 +318,9 @@ export function App() {
                                         {l === "carousel" && <IconLayoutCarousel size={16} />}
                                         {l === "grid" && <IconLayoutGrid size={16} />}
                                         {l === "masonry" && <IconLayoutMasonry size={16} />}
-                                        {l === "marquee" && <IconLayoutMarquee size={16} />}
+                                        {l === "ticker" && <IconLayoutMarquee size={16} />}
                                         {l === "badge" && <IconBadge size={16} />}
-                                        {l === "list" && <IconStar size={16} />}
+                                        {l === "highlight" && <IconStar size={16} />}
                                         <span>{l.charAt(0).toUpperCase() + l.slice(1)}</span>
                                     </button>
                                 ))}
@@ -305,39 +332,141 @@ export function App() {
                 {/* TAB 2: BUILDER / CUSTOMIZER */}
                 {tab === "builder" && (
                     <>
-                        {/* Live Preview Container */}
-                        <div className="cf-preview-container">
-                            <div className="cf-preview-header">
-                                <span className="cf-preview-title">Live Preview ({config.layout})</span>
-                                <span className="cf-badge cf-badge-brand">{activeReviews.length} Reviews</span>
-                            </div>
-
-                            {activeReviews.length > 0 ? (
-                                <ReviewCardPreview review={activeReviews[0]} config={config} />
-                            ) : (
-                                <p className="cf-field-hint">No reviews match current filters.</p>
+                        {/* Live Search & Filter Bar */}
+                        <div className="cf-search-box">
+                            <span className="cf-search-icon">
+                                <IconSearch size={14} />
+                            </span>
+                            <input
+                                type="text"
+                                className="cf-search-input"
+                                placeholder="Live search reviews by reviewer name or text..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            {searchQuery && (
+                                <button
+                                    type="button"
+                                    className="cf-search-clear"
+                                    onClick={() => setSearchQuery("")}
+                                    title="Clear search"
+                                >
+                                    ✕
+                                </button>
                             )}
                         </div>
 
-                        {/* Layout Selector */}
-                        <Section title="Display Layout" subtitle="Configure widget layout engine" icon={<IconLayoutCarousel size={15} />}>
-                            <div className="cf-segmented-grid">
-                                {(["carousel", "grid", "masonry", "marquee", "badge", "list"] as ReviewLayout[]).map((l) => (
+                        <div className="cf-search-meta">
+                            <span>
+                                Showing <strong>{searchedReviews.length}</strong> of {activeReviews.length} reviews
+                                {searchQuery && ` (matching "${searchQuery}")`}
+                            </span>
+                            <button
+                                type="button"
+                                className="cf-color-chip-btn"
+                                onClick={() => updateConfig((prev) => ({ ...prev, isDemoMode: !prev.isDemoMode }))}
+                                title="Toggle Demo Mode"
+                            >
+                                <span>Demo Mode: <strong>{config.isDemoMode ? "ON" : "OFF"}</strong></span>
+                            </button>
+                        </div>
+
+                        {/* Live Studio Stage with Backdrop Switcher */}
+                        <div className="cf-studio-wrap">
+                            <div className="cf-stage-header">
+                                <div className="cf-stage-title-wrap">
+                                    <span className="cf-preview-title">Live Studio Preview ({config.layout})</span>
+                                    <span className="cf-badge cf-badge-brand">{config.cardStyle}</span>
+                                </div>
+                                <div className="cf-stage-backdrop-btns">
                                     <button
-                                        key={l}
                                         type="button"
-                                        className={`cf-seg-btn ${config.layout === l ? "active" : ""}`}
-                                        onClick={() => updateConfig((prev) => ({ ...prev, layout: l }))}
+                                        className={`cf-stage-btn ${stageTheme === "soft" ? "active" : ""}`}
+                                        onClick={() => setStageTheme("soft")}
+                                        title="Soft Canvas backdrop"
                                     >
-                                        {l === "carousel" && <IconLayoutCarousel size={16} />}
-                                        {l === "grid" && <IconLayoutGrid size={16} />}
-                                        {l === "masonry" && <IconLayoutMasonry size={16} />}
-                                        {l === "marquee" && <IconLayoutMarquee size={16} />}
-                                        {l === "badge" && <IconBadge size={16} />}
-                                        {l === "list" && <IconStar size={16} />}
-                                        <span>{l.charAt(0).toUpperCase() + l.slice(1)}</span>
+                                        Soft
                                     </button>
-                                ))}
+                                    <button
+                                        type="button"
+                                        className={`cf-stage-btn ${stageTheme === "dark" ? "active" : ""}`}
+                                        onClick={() => setStageTheme("dark")}
+                                        title="Midnight Dark backdrop"
+                                    >
+                                        Dark
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className={`cf-stage-btn ${stageTheme === "light" ? "active" : ""}`}
+                                        onClick={() => setStageTheme("light")}
+                                        title="Pure Light backdrop"
+                                    >
+                                        Light
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className={`cf-preview-stage backdrop-${stageTheme}`}>
+                                <LiveStudioPreview
+                                    layout={config.layout}
+                                    cardStyle={config.cardStyle}
+                                    reviews={searchedReviews}
+                                    stats={stats}
+                                    config={config}
+                                    stageTheme={stageTheme === "dark" ? "dark" : stageTheme === "light" ? "light" : "auto"}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Display Layouts (25 Presets) */}
+                        <Section
+                            title="Display Layouts (25 Presets)"
+                            subtitle="Categorized layout engines matching Vanssay reviews studio"
+                            icon={<IconLayoutCarousel size={15} />}
+                        >
+                            <div className="cf-chip-tabs">
+                                <button
+                                    type="button"
+                                    className={`cf-chip-tab ${selectedLayoutGroup === "all" ? "active" : ""}`}
+                                    onClick={() => setSelectedLayoutGroup("all")}
+                                >
+                                    <span>All Layouts</span>
+                                    <span className="cf-chip-tab-count">25</span>
+                                </button>
+                                {LAYOUT_GROUPS.map((g) => {
+                                    const count = ALL_LAYOUTS.filter((l) => l.group === g.id).length
+                                    return (
+                                        <button
+                                            key={g.id}
+                                            type="button"
+                                            className={`cf-chip-tab ${selectedLayoutGroup === g.id ? "active" : ""}`}
+                                            onClick={() => setSelectedLayoutGroup(g.id)}
+                                        >
+                                            <span>{g.name}</span>
+                                            <span className="cf-chip-tab-count">{count}</span>
+                                        </button>
+                                    )
+                                })}
+                            </div>
+
+                            <div className="cf-catalog-grid">
+                                {filteredLayouts.map((l) => {
+                                    const isActive = config.layout === l.key
+                                    return (
+                                        <button
+                                            key={l.key}
+                                            type="button"
+                                            className={`cf-catalog-item ${isActive ? "active" : ""}`}
+                                            onClick={() => updateConfig((prev) => ({ ...prev, layout: l.key }))}
+                                        >
+                                            <div className="cf-catalog-item-top">
+                                                <span className="cf-catalog-item-name">{l.name}</span>
+                                                <span className={`cf-catalog-item-tier ${l.tier}`}>{l.tier}</span>
+                                            </div>
+                                            <span className="cf-catalog-item-desc">{l.desc}</span>
+                                        </button>
+                                    )
+                                })}
                             </div>
 
                             {config.layout === "carousel" && (
@@ -371,7 +500,7 @@ export function App() {
                                 </Field>
                             )}
 
-                            {config.layout === "marquee" && (
+                            {(config.layout === "ticker" || config.layout === "marquee") && (
                                 <Field label="Ticker Scroll Speed">
                                     <select
                                         className="cf-select"
@@ -386,22 +515,60 @@ export function App() {
                             )}
                         </Section>
 
-                        {/* Card Style Presets */}
-                        <Section title="Card Style & Aesthetics" subtitle="Choose card container design" icon={<IconSparkles size={15} />}>
-                            <div className="cf-segmented-grid">
-                                {(["elevated", "minimal", "glass", "bento"] as CardStyle[]).map((s) => (
-                                    <button
-                                        key={s}
-                                        type="button"
-                                        className={`cf-seg-btn ${config.cardStyle === s ? "active" : ""}`}
-                                        onClick={() => updateConfig((prev) => ({ ...prev, cardStyle: s }))}
-                                    >
-                                        <span>{s.charAt(0).toUpperCase() + s.slice(1)}</span>
-                                    </button>
-                                ))}
+                        {/* Card Style & Aesthetics (57 Presets) */}
+                        <Section
+                            title="Card Style & Aesthetics (57 Presets)"
+                            subtitle="7 style families across 57 handcrafted card presets"
+                            icon={<IconSparkles size={15} />}
+                        >
+                            <div className="cf-chip-tabs">
+                                {CARD_FAMILIES.map((f) => {
+                                    const count = ALL_CARD_PRESETS.filter((p) => p.family === f.id).length
+                                    return (
+                                        <button
+                                            key={f.id}
+                                            type="button"
+                                            className={`cf-chip-tab ${selectedCardFamily === f.id ? "active" : ""}`}
+                                            onClick={() => setSelectedCardFamily(f.id)}
+                                        >
+                                            <span>{f.name}</span>
+                                            <span className="cf-chip-tab-count">{count}</span>
+                                        </button>
+                                    )
+                                })}
                             </div>
 
-                            <Field label="Star Accent Color" hint="Pick any custom hex or choose a platform preset">
+                            <div className="cf-presets-grid">
+                                {filteredPresets.map((p) => {
+                                    const isActive = config.cardStyle === p.id
+                                    return (
+                                        <button
+                                            key={p.id}
+                                            type="button"
+                                            className={`cf-preset-item ${isActive ? "active" : ""}`}
+                                            onClick={() => updateConfig((prev) => ({ ...prev, cardStyle: p.id }))}
+                                        >
+                                            <div className="cf-preset-top">
+                                                <span className="cf-preset-name">{p.name}</span>
+                                                {p.platform === "google" && (
+                                                    <span className="cf-preset-platform" title="Google preset">
+                                                        <IconGoogle size={12} />
+                                                    </span>
+                                                )}
+                                                {p.platform === "trustpilot" && (
+                                                    <span className="cf-preset-platform" title="Trustpilot preset">
+                                                        <IconTrustpilot size={12} />
+                                                    </span>
+                                                )}
+                                                <span className={`cf-catalog-item-tier ${p.tier}`}>{p.tier}</span>
+                                            </div>
+                                            <span className="cf-preset-note">{p.note}</span>
+                                        </button>
+                                    )
+                                })}
+                            </div>
+
+                            <Field label="Star Accent Color" hint="Pick any custom hex or choose a brand preset">
                                 <CustomColorPicker
                                     value={config.starColor || "#FBBC05"}
                                     fallback="#FBBC05"
@@ -414,6 +581,8 @@ export function App() {
                                         { label: "Trustpilot Green", color: "#00B67A" },
                                         { label: "Vibrant Orange", color: "#FF9900" },
                                         { label: "Brand Blue", color: "#0099FF" },
+                                        { label: "Deep Indigo", color: "#6366F1" },
+                                        { label: "Pure Rose", color: "#F43F5E" },
                                     ].map((c) => (
                                         <button
                                             key={c.color}
@@ -443,7 +612,7 @@ export function App() {
                         </Section>
 
                         {/* Card Content Toggles */}
-                        <Section title="Card Elements" subtitle="Toggle reviewer metadata" icon={<IconCheck size={15} />}>
+                        <Section title="Card Elements & Metadata" subtitle="Toggle reviewer metadata" icon={<IconCheck size={15} />}>
                             <Switch
                                 label="Show Star Rating"
                                 checked={config.showStars}

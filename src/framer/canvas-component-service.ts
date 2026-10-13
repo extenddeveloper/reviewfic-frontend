@@ -1,6 +1,7 @@
 import { framer } from "@framer/plugin"
 import { ReviewConfig } from "../core/types"
 import { calculateBlendedStats, getActiveReviews } from "../core/config"
+import { WIDGET_BUNDLE_CSS } from "./widget-styles-const"
 
 export function generateReviewficComponentCode(config: ReviewConfig): string {
     const activeReviews = getActiveReviews(config)
@@ -12,13 +13,31 @@ export function generateReviewficComponentCode(config: ReviewConfig): string {
         stats,
     })
 
+    const serializedCSS = JSON.stringify(WIDGET_BUNDLE_CSS)
+
     return `import * as React from "react"
 import { addPropertyControls, ControlType } from "framer"
 
+export type ReviewLayout =
+    | "grid" | "masonry" | "highlight" | "list"
+    | "pinboard" | "duo" | "feature" | "band" | "spotlightgrid"
+    | "carousel" | "ticker" | "wall" | "spotlight"
+    | "compact" | "orbit" | "breakdown" | "ribbon" | "gallery" | "flow" | "split"
+    | "badge" | "avatars" | "ratingcard" | "gbadge" | "trustpilot"
+
+export type CardStyle =
+    | "elevated" | "outline" | "gradient" | "glass" | "bento" | "spotlight" | "aurora" | "frame"
+    | "google" | "gcompact" | "gdark" | "tp" | "tpstrip" | "tpc" | "verified" | "plain"
+    | "quote" | "pull" | "mag" | "news" | "press" | "museum" | "ruled" | "broad"
+    | "reveal" | "unfold" | "tilt" | "shine" | "trace" | "pop" | "unblur" | "liquid"
+    | "brutal" | "neon" | "duo" | "sticker" | "neu" | "sheen" | "pearl" | "term" | "memphis"
+    | "clay" | "linen" | "eink" | "sage" | "pebble" | "kraft" | "sunbaked" | "ceramic"
+    | "noir" | "gilt" | "hotel" | "couture" | "onyx" | "platinum" | "velvet" | "atelier"
+
 interface ReviewficProps {
     style?: React.CSSProperties
-    layout?: "carousel" | "grid" | "masonry" | "marquee" | "list" | "badge"
-    cardStyle?: "elevated" | "minimal" | "glass" | "bento"
+    layout?: ReviewLayout
+    cardStyle?: CardStyle
     themeMode?: "auto" | "light" | "dark"
     starColor?: string
     gridColumns?: number
@@ -39,6 +58,7 @@ interface ReviewficProps {
 }
 
 const DEFAULT_DATA = ${serializedConfig}
+const WIDGET_BUNDLE_CSS = ${serializedCSS}
 
 export default function Reviewfic(props: ReviewficProps) {
     const {
@@ -84,6 +104,10 @@ export default function Reviewfic(props: ReviewficProps) {
     }
 
     const [carouselIndex, setCarouselIndex] = React.useState(0)
+    const [spotlightIndex, setSpotlightIndex] = React.useState(0)
+    const [galleryIndex, setGalleryIndex] = React.useState(0)
+    const [orbitIndex, setOrbitIndex] = React.useState(0)
+    const [ribbonIndex, setRibbonIndex] = React.useState(0)
     const [isHovered, setIsHovered] = React.useState(false)
     const [expandedCards, setExpandedCards] = React.useState<Record<string, boolean>>({})
 
@@ -91,7 +115,7 @@ export default function Reviewfic(props: ReviewficProps) {
         setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }))
     }, [])
 
-    // Carousel autoplay timer
+    // Carousel autoplay
     React.useEffect(() => {
         if (layout !== "carousel" || !carouselAutoplay || isHovered || reviews.length <= 1) return
         const timer = setInterval(() => {
@@ -100,24 +124,43 @@ export default function Reviewfic(props: ReviewficProps) {
         return () => clearInterval(timer)
     }, [layout, carouselAutoplay, carouselSpeed, isHovered, reviews.length])
 
-    const handlePrev = React.useCallback(() => {
-        setCarouselIndex((prev) => (prev - 1 + reviews.length) % reviews.length)
-    }, [reviews.length])
+    // Spotlight autoplay
+    React.useEffect(() => {
+        if (layout !== "spotlight" || isHovered || reviews.length <= 1) return
+        const timer = setInterval(() => {
+            setSpotlightIndex((prev) => (prev + 1) % reviews.length)
+        }, 4500)
+        return () => clearInterval(timer)
+    }, [layout, isHovered, reviews.length])
 
-    const handleNext = React.useCallback(() => {
-        setCarouselIndex((prev) => (prev + 1) % reviews.length)
-    }, [reviews.length])
+    // Ribbon autoplay
+    React.useEffect(() => {
+        if (layout !== "ribbon" || isHovered || reviews.length <= 1) return
+        const timer = setInterval(() => {
+            setRibbonIndex((prev) => (prev + 1) % reviews.length)
+        }, 4200)
+        return () => clearInterval(timer)
+    }, [layout, isHovered, reviews.length])
 
-    const renderStars = (rating: number) => {
+    const breakdownRows = React.useMemo(() => {
+        const total = reviews.length || 1
+        return [5, 4, 3, 2, 1].map((s) => {
+            const count = reviews.filter((r: any) => Math.round(r.rating) === s).length
+            const pc = Math.round((count / total) * 100)
+            return { stars: s, count, pc }
+        })
+    }, [reviews])
+
+    const renderStars = (rating: number, size = 14) => {
         return (
-            <div className="rf-stars-row">
+            <div className="vr-stars">
                 {[1, 2, 3, 4, 5].map((s) => (
                     <svg
                         key={s}
-                        width="14"
-                        height="14"
+                        width={size}
+                        height={size}
                         viewBox="0 0 24 24"
-                        fill={s <= rating ? starColor : "none"}
+                        fill={s <= Math.round(rating) ? starColor : "none"}
                         stroke={starColor}
                         strokeWidth="1.5"
                     >
@@ -132,66 +175,61 @@ export default function Reviewfic(props: ReviewficProps) {
         )
     }
 
-    const renderCard = (r: any, idx: number) => {
-        const cardInlineStyle = { borderRadius: cornerRadius + "px" }
+    const renderCard = (r: any, idx: number, extraClass = "") => {
         const cardId = String(r.id || idx)
         const isExpanded = Boolean(expandedCards[cardId])
-        const isLongText = Boolean(r.text && r.text.length > 120)
+        const isLongText = Boolean(r.text && r.text.length > 130)
         const shouldClamp = textClamp && !isExpanded && isLongText
-        const displayText = shouldClamp ? r.text.slice(0, 115) + "..." : r.text
+        const displayText = shouldClamp ? r.text.slice(0, 125) + "..." : r.text
 
         return (
             <div
                 key={cardId}
-                className={"rf-card " + cardStyle}
-                style={cardInlineStyle}
+                className={"vr-card vrp-" + cardStyle + (extraClass ? " " + extraClass : "")}
             >
-                <div className="rf-card-top">
-                    <div className="rf-card-author">
+                <div className="vr-card-head">
+                    <div className="vr-card-author-wrap">
                         {showAvatar && (
-                            <div className="rf-avatar">
+                            <div className="vr-avatar">
                                 {r.authorAvatar ? (
-                                    <img src={r.authorAvatar} alt={r.authorName} className="rf-avatar-img" />
+                                    <img src={r.authorAvatar} alt={r.authorName} />
                                 ) : (
-                                    <div className="rf-avatar-fallback">
+                                    <div className="vr-avatar-fallback">
                                         {(r.authorName || "C").charAt(0).toUpperCase()}
                                     </div>
                                 )}
                             </div>
                         )}
-                        <div className="rf-author-meta">
-                            <div className="rf-author-name-row">
-                                <span className="rf-author-name">{r.authorName}</span>
-                                {showVerifiedBadge && r.verified && (
-                                    <span className="rf-verified-pill" title="Verified Customer">
-                                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                            <path d="M20 6 9 17l-5-5" />
-                                        </svg>
-                                    </span>
-                                )}
-                            </div>
-                            {showDate && <span className="rf-date">{r.date}</span>}
+                        <div className="vr-card-author-meta">
+                            <span className="vr-name">{r.authorName}</span>
+                            {showVerifiedBadge && r.verified && (
+                                <span className="vr-verified-pill" title="Verified Customer">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6 9 17l-5-5"/></svg>
+                                    <span>Verified</span>
+                                </span>
+                            )}
+                            {showDate && <span className="vr-date">{r.date}</span>}
                         </div>
                     </div>
 
                     {showSourceIcon && (
-                        <div className="rf-source-icon">
+                        <div className="vr-card-source">
                             {r.source === "google" && (
                                 <svg width="15" height="15" viewBox="0 0 24 24">
-                                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05" />
-                                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335" />
+                                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
                                 </svg>
                             )}
                             {r.source === "trustpilot" && (
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                                    <rect width="24" height="24" rx="4" fill="#00B67A" />
-                                    <path d="M12 4.5l2.3 7.1h7.4l-6 4.4 2.3 7.1-6-4.4-6 4.4 2.3-7.1-6-4.4h7.4z" fill="#FFFFFF" />
+                                    <rect width="24" height="24" rx="4" fill="#00B67A"/>
+                                    <path d="M12 4.5l2.3 7.1h7.4l-6 4.4 2.3 7.1-6-4.4-6 4.4 2.3-7.1-6-4.4h7.4z" fill="#FFFFFF"/>
                                 </svg>
                             )}
                             {r.source === "custom" && (
-                                <span className="rf-custom-pill">Customer testimonial</span>
+                                <span className="vr-custom-pill">Customer testimonial</span>
                             )}
                         </div>
                     )}
@@ -199,14 +237,10 @@ export default function Reviewfic(props: ReviewficProps) {
 
                 {showStars && renderStars(r.rating)}
 
-                <p className={"rf-card-text" + (shouldClamp ? " clamped" : "")}>{displayText}</p>
+                <p className={"vr-body" + (shouldClamp ? " vr-clamped" : " vr-expanded")}>{displayText}</p>
 
                 {textClamp && isLongText && (
-                    <button
-                        type="button"
-                        className="rf-read-more-btn"
-                        onClick={() => toggleExpand(cardId)}
-                    >
+                    <button type="button" className="vr-more" onClick={() => toggleExpand(cardId)}>
                         {isExpanded ? "Show less" : "Read more"}
                     </button>
                 )}
@@ -216,444 +250,74 @@ export default function Reviewfic(props: ReviewficProps) {
                         href={r.originalUrl || DEFAULT_DATA.googleMapsUrl || "https://google.com"}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="rf-platform-link"
-                        title="Read on Google"
+                        className="vr-stamp"
                     >
-                        <span>Read on Google</span>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+                        <span>Read on Google ↗</span>
                     </a>
                 )}
-
                 {r.source === "trustpilot" && (
                     <a
                         href={r.originalUrl || (DEFAULT_DATA.trustpilotDomain ? ("https://trustpilot.com/review/" + DEFAULT_DATA.trustpilotDomain) : "https://trustpilot.com")}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="rf-platform-link"
-                        title="Read on Trustpilot"
+                        className="vr-stamp"
                     >
-                        <span>Read on Trustpilot</span>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+                        <span>Read on Trustpilot ↗</span>
                     </a>
                 )}
             </div>
         )
     }
 
-    const gridStyleObj = { ["--rf-cols" as any]: gridColumns }
-    const carouselTrackStyleObj = { transform: "translateX(-" + (carouselIndex * 100) + "%)" }
-    const marqueeTrackStyleObj = {
-        ["--rf-marquee-dur" as any]: marqueeSpeed === "slow" ? "50s" : marqueeSpeed === "fast" ? "22s" : "34s",
+    const rootStyleObj = {
+        ["--vr-star" as any]: starColor,
+        ["--vr-radius" as any]: cornerRadius + "px",
     }
-    const badgeStyleObj = { borderRadius: cornerRadius + "px" }
+
+    const carouselTrackStyle = {
+        transform: "translateX(-" + (carouselIndex * 100) + "%)",
+    }
+
+    if (reviews.length === 0) {
+        return (
+            <div className={"vr-root vr-empty-box " + themeMode} style={rootStyleObj}>
+                <style>{WIDGET_BUNDLE_CSS}</style>
+                <p>No reviews match filters.</p>
+            </div>
+        )
+    }
 
     return (
-        <div className={"rf-widget " + themeMode} onMouseEnter={() => setIsHovered(true)} onMouseLeave={() => setIsHovered(false)}>
-            <style>{\`
-                .rf-widget {
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-                    width: 100%;
-                    box-sizing: border-box;
-                    color: #111827;
-                    --rf-bg: #FFFFFF;
-                    --rf-card-bg: #FFFFFF;
-                    --rf-border: rgba(0, 0, 0, 0.08);
-                    --rf-text-muted: #6B7280;
-                    --rf-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06);
-                }
-                .rf-widget.dark {
-                    color: #F9FAFB;
-                    --rf-bg: #111827;
-                    --rf-card-bg: #1F2937;
-                    --rf-border: rgba(255, 255, 255, 0.1);
-                    --rf-text-muted: #9CA3AF;
-                    --rf-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.35);
-                }
-                @media (prefers-color-scheme: dark) {
-                    .rf-widget.auto {
-                        color: #F9FAFB;
-                        --rf-bg: #111827;
-                        --rf-card-bg: #1F2937;
-                        --rf-border: rgba(255, 255, 255, 0.1);
-                        --rf-text-muted: #9CA3AF;
-                        --rf-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.35);
-                    }
-                }
+        <div
+            className={"vr-root vrp-" + cardStyle + " " + themeMode}
+            style={rootStyleObj}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+        >
+            <style>{WIDGET_BUNDLE_CSS}</style>
 
-                .rf-header {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    flex-wrap: wrap;
-                    gap: 12px;
-                    margin-bottom: 20px;
-                    padding-bottom: 16px;
-                    border-bottom: 1px solid var(--rf-border);
-                }
-                .rf-header-left {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                }
-                .rf-rating-score {
-                    font-size: 26px;
-                    font-weight: 700;
-                    line-height: 1;
-                }
-                .rf-header-meta {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 4px;
-                }
-                .rf-review-count {
-                    font-size: 13px;
-                    color: var(--rf-text-muted);
-                }
-                .rf-sources-pill {
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                    font-size: 11px;
-                    font-weight: 600;
-                    padding: 3px 8px;
-                    background: rgba(0, 0, 0, 0.04);
-                    border-radius: 999px;
-                    color: var(--rf-text-muted);
-                }
-                .rf-widget.dark .rf-sources-pill,
-                .rf-widget.auto .rf-sources-pill {
-                    background: rgba(255, 255, 255, 0.08);
-                }
-
-                .rf-btn-write {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 6px;
-                    padding: 8px 14px;
-                    background: #0077E6;
-                    color: #FFFFFF;
-                    font-size: 13px;
-                    font-weight: 600;
-                    border-radius: 8px;
-                    text-decoration: none;
-                    transition: opacity 0.2s;
-                }
-                .rf-btn-write:hover {
-                    opacity: 0.9;
-                }
-
-                .rf-card {
-                    box-sizing: border-box;
-                    padding: 20px;
-                    background: var(--rf-card-bg);
-                    border: 1px solid var(--rf-border);
-                    display: flex;
-                    flex-direction: column;
-                    gap: 12px;
-                    min-height: 140px;
-                }
-                .rf-card.elevated {
-                    box-shadow: var(--rf-shadow);
-                }
-                .rf-card.glass {
-                    backdrop-filter: blur(12px);
-                    background: rgba(255, 255, 255, 0.05);
-                }
-                .rf-card.bento {
-                    border: 1px solid var(--rf-border);
-                    background: linear-gradient(180deg, var(--rf-card-bg) 0%, rgba(0, 119, 230, 0.03) 100%);
-                }
-                .rf-card-top {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                }
-                .rf-card-author {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                }
-                .rf-avatar {
-                    width: 38px;
-                    height: 38px;
-                    border-radius: 50%;
-                    overflow: hidden;
-                    flex-shrink: 0;
-                }
-                .rf-avatar-img {
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                }
-                .rf-avatar-fallback {
-                    width: 100%;
-                    height: 100%;
-                    background: linear-gradient(135deg, #0099FF, #0055B3);
-                    color: #FFFFFF;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-weight: 700;
-                    font-size: 14px;
-                }
-                .rf-author-meta {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 2px;
-                }
-                .rf-author-name-row {
-                    display: flex;
-                    align-items: center;
-                    gap: 6px;
-                }
-                .rf-author-name {
-                    font-size: 14px;
-                    font-weight: 600;
-                }
-                .rf-verified-pill {
-                    color: #10B981;
-                    display: flex;
-                    align-items: center;
-                }
-                .rf-date {
-                    font-size: 12px;
-                    color: var(--rf-text-muted);
-                }
-                .rf-stars-row {
-                    display: flex;
-                    align-items: center;
-                    gap: 3px;
-                }
-                .rf-card-text {
-                    font-size: 13.5px;
-                    line-height: 1.55;
-                    margin: 0;
-                    color: inherit;
-                }
-                .rf-card-text.clamped {
-                    display: -webkit-box;
-                    -webkit-line-clamp: 3;
-                    -webkit-box-orient: vertical;
-                    overflow: hidden;
-                }
-                .rf-read-more-btn {
-                    background: none;
-                    border: none;
-                    padding: 0;
-                    color: #0077E6;
-                    font-size: 12px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    text-align: left;
-                    margin-top: 2px;
-                    align-self: flex-start;
-                }
-                .rf-read-more-btn:hover {
-                    text-decoration: underline;
-                }
-                .rf-platform-link {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 4px;
-                    font-size: 11px;
-                    font-weight: 500;
-                    color: var(--rf-text-muted);
-                    text-decoration: none;
-                    margin-top: auto;
-                    padding-top: 6px;
-                    transition: color 0.15s ease;
-                }
-                .rf-platform-link:hover {
-                    color: #0077E6;
-                    text-decoration: underline;
-                }
-                .rf-custom-pill {
-                    display: inline-flex;
-                    align-items: center;
-                    padding: 2px 7px;
-                    border-radius: 999px;
-                    font-size: 10px;
-                    font-weight: 600;
-                    background: rgba(0, 119, 230, 0.08);
-                    color: #0077E6;
-                }
-                .rf-badge-brand-link {
-                    color: inherit;
-                    font-weight: 600;
-                    text-decoration: none;
-                }
-                .rf-badge-brand-link:hover {
-                    text-decoration: underline;
-                }
-                @media (prefers-reduced-motion: reduce) {
-                    .rf-marquee-track {
-                        animation: none !important;
-                    }
-                    .rf-carousel-track {
-                        transition: none !important;
-                    }
-                }
-
-                /* Layout: Grid */
-                .rf-grid {
-                    display: grid;
-                    grid-template-columns: repeat(var(--rf-cols, 3), 1fr);
-                    gap: 16px;
-                }
-                @media (max-width: 900px) {
-                    .rf-grid { grid-template-columns: repeat(2, 1fr) !important; }
-                }
-                @media (max-width: 600px) {
-                    .rf-grid { grid-template-columns: 1fr !important; }
-                }
-
-                /* Layout: Masonry */
-                .rf-masonry {
-                    column-count: var(--rf-cols, 3);
-                    column-gap: 16px;
-                }
-                .rf-masonry .rf-card {
-                    break-inside: avoid;
-                    margin-bottom: 16px;
-                }
-                @media (max-width: 900px) {
-                    .rf-masonry { column-count: 2 !important; }
-                }
-                @media (max-width: 600px) {
-                    .rf-masonry { column-count: 1 !important; }
-                }
-
-                /* Layout: Carousel */
-                .rf-carousel-wrap {
-                    position: relative;
-                }
-                .rf-carousel-viewport {
-                    overflow: hidden;
-                    width: 100%;
-                }
-                .rf-carousel-track {
-                    display: flex;
-                    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-                }
-                .rf-carousel-slide {
-                    flex: 0 0 100%;
-                    max-width: 100%;
-                    box-sizing: border-box;
-                    padding: 0 4px;
-                }
-                .rf-carousel-nav {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 12px;
-                    margin-top: 14px;
-                }
-                .rf-carousel-btn {
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 50%;
-                    border: 1px solid var(--rf-border);
-                    background: var(--rf-card-bg);
-                    color: inherit;
-                    cursor: pointer;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    transition: opacity 0.2s;
-                }
-                .rf-carousel-btn:hover { opacity: 0.7; }
-                .rf-carousel-dots {
-                    display: flex;
-                    gap: 6px;
-                }
-                .rf-carousel-dot {
-                    width: 7px;
-                    height: 7px;
-                    border-radius: 50%;
-                    background: var(--rf-border);
-                    cursor: pointer;
-                    transition: all 0.2s;
-                }
-                .rf-carousel-dot.active {
-                    background: #0077E6;
-                    width: 18px;
-                    border-radius: 4px;
-                }
-
-                /* Layout: Marquee */
-                .rf-marquee-container {
-                    overflow: hidden;
-                    width: 100%;
-                    position: relative;
-                }
-                .rf-marquee-track {
-                    display: flex;
-                    gap: 16px;
-                    width: max-content;
-                    animation: rfMarqueeScroll var(--rf-marquee-dur, 35s) linear infinite;
-                }
-                .rf-marquee-track:hover {
-                    animation-play-state: paused;
-                }
-                .rf-marquee-container .rf-card {
-                    width: 300px;
-                    flex-shrink: 0;
-                }
-                @keyframes rfMarqueeScroll {
-                    0% { transform: translateX(0); }
-                    100% { transform: translateX(-50%); }
-                }
-
-                /* Layout: Badge */
-                .rf-badge-mode {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 12px;
-                    padding: 10px 18px;
-                    border-radius: 999px;
-                    background: var(--rf-card-bg);
-                    border: 1px solid var(--rf-border);
-                    box-shadow: var(--rf-shadow);
-                }
-                .rf-badge-score {
-                    font-size: 16px;
-                    font-weight: 700;
-                }
-                .rf-badge-text {
-                    font-size: 12px;
-                    color: var(--rf-text-muted);
-                }
-
-                .rf-list {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 16px;
-                }
-
-                /* Footer */
-                .rf-footer {
-                    margin-top: 18px;
-                    font-size: 11px;
-                    color: var(--rf-text-muted);
-                    text-align: center;
-                    opacity: 0.7;
-                }
-            \`}</style>
-
-            {layout !== "badge" && (
-                <div className="rf-header">
-                    <div className="rf-header-left">
-                        <span className="rf-rating-score">{stats.averageRating}</span>
-                        <div className="rf-header-meta">
-                            {renderStars(Math.round(stats.averageRating))}
-                            <span className="rf-review-count">Based on {stats.totalReviews}+ verified reviews</span>
+            {/* Header for non-badge layouts */}
+            {![
+                "badge",
+                "avatars",
+                "ratingcard",
+                "gbadge",
+                "trustpilot",
+                "ribbon",
+                "breakdown",
+            ].includes(layout) && (
+                <div className="vr-header">
+                    <div className="vr-header-left">
+                        <span className="vr-rating">{stats.averageRating}</span>
+                        <div className="vr-header-meta">
+                            {renderStars(stats.averageRating, 15)}
+                            <span className="vr-count">Based on {stats.totalReviews}+ verified reviews</span>
                         </div>
                     </div>
 
-                    <div className="rf-sources-pill">
-                        <span>Google ({stats.googleCount})</span>
-                        <span>•</span>
-                        <span>Trustpilot ({stats.trustpilotCount})</span>
+                    <div className="vr-chips">
+                        <span className="vr-chip">Google ({stats.googleCount})</span>
+                        <span className="vr-chip">Trustpilot ({stats.trustpilotCount})</span>
                     </div>
 
                     {showWriteReview && (
@@ -661,55 +325,119 @@ export default function Reviewfic(props: ReviewficProps) {
                             href={DEFAULT_DATA.writeReviewGoogleUrl || DEFAULT_DATA.writeReviewTrustpilotUrl || "https://google.com"}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="rf-btn-write"
+                            className="vr-cta"
                         >
-                            <span>Write a Review</span>
+                            <span>Write a Review ↗</span>
                         </a>
                     )}
                 </div>
             )}
 
+            {/* 1. Card Blocks */}
             {layout === "grid" && (
-                <div className="rf-grid" style={gridStyleObj}>
-                    {reviews.map((r: any, idx: number) => renderCard(r, idx))}
+                <div className="vr-grid">
+                    {reviews.map((r: any, i: number) => renderCard(r, i))}
                 </div>
             )}
 
             {layout === "masonry" && (
-                <div className="rf-masonry" style={gridStyleObj}>
-                    {reviews.map((r: any, idx: number) => renderCard(r, idx))}
+                <div className="vr-masonry">
+                    {reviews.map((r: any, i: number) => renderCard(r, i))}
                 </div>
             )}
 
+            {layout === "highlight" && (
+                <div className="vr-hl">
+                    <div className="vr-hl-big">
+                        {renderCard(reviews[0], 0, "hero-card")}
+                    </div>
+                    <div className="vr-hl-side">
+                        {reviews.slice(1, 4).map((r: any, i: number) => renderCard(r, i + 1))}
+                    </div>
+                </div>
+            )}
+
+            {layout === "list" && (
+                <div className="vr-list">
+                    {reviews.map((r: any, i: number) => renderCard(r, i))}
+                </div>
+            )}
+
+            {/* 2. Shapes & Arrangements */}
+            {layout === "pinboard" && (
+                <div className="vr-pin">
+                    {reviews.map((r: any, i: number) => renderCard(r, i))}
+                </div>
+            )}
+
+            {layout === "duo" && (
+                <div className="vr-duo2">
+                    {reviews.map((r: any, i: number) => renderCard(r, i))}
+                </div>
+            )}
+
+            {layout === "feature" && (
+                <div className="vr-feature">
+                    {reviews.map((r: any, i: number) => renderCard(r, i, i === 0 ? "feature-lead" : ""))}
+                </div>
+            )}
+
+            {layout === "band" && (
+                <div className="vr-band">
+                    {reviews.slice(0, 4).map((r: any, i: number) => renderCard(r, i))}
+                </div>
+            )}
+
+            {layout === "spotlightgrid" && (
+                <div className="vr-spotgrid">
+                    <div className="vr-spotgrid-hero">
+                        {renderCard(reviews[0], 0)}
+                    </div>
+                    <div className="vr-spotgrid-rest">
+                        {reviews.slice(1, 5).map((r: any, i: number) => renderCard(r, i + 1))}
+                    </div>
+                </div>
+            )}
+
+            {/* 3. In Motion */}
             {layout === "carousel" && (
-                <div className="rf-carousel-wrap">
-                    <div className="rf-carousel-viewport">
-                        <div
-                            className="rf-carousel-track"
-                            style={carouselTrackStyleObj}
-                        >
-                            {reviews.map((r: any, idx: number) => (
-                                <div key={r.id || idx} className="rf-carousel-slide">
-                                    {renderCard(r, idx)}
+                <div className="vr-carousel-container">
+                    <div className="vr-carousel-viewport">
+                        <div className="vr-carousel-slider" style={carouselTrackStyle}>
+                            {reviews.map((r: any, i: number) => (
+                                <div key={r.id || i} className="vr-carousel-slide">
+                                    {renderCard(r, i)}
                                 </div>
                             ))}
                         </div>
                     </div>
                     {reviews.length > 1 && (
-                        <div className="rf-carousel-nav">
-                            <button type="button" className="rf-carousel-btn" onClick={handlePrev} aria-label="Previous review">
+                        <div className="vr-carousel-controls">
+                            <button
+                                type="button"
+                                className="vr-carousel-arrow"
+                                onClick={() => setCarouselIndex((p) => (p - 1 + reviews.length) % reviews.length)}
+                                aria-label="Previous review"
+                            >
                                 ‹
                             </button>
-                            <div className="rf-carousel-dots">
-                                {reviews.map((_: any, dotIdx: number) => (
-                                    <span
-                                        key={dotIdx}
-                                        className={"rf-carousel-dot " + (dotIdx === carouselIndex ? "active" : "")}
-                                        onClick={() => setCarouselIndex(dotIdx)}
+                            <div className="vr-carousel-indicators">
+                                {reviews.map((_: any, i: number) => (
+                                    <button
+                                        key={i}
+                                        type="button"
+                                        className={"vr-carousel-dot" + (i === carouselIndex ? " active" : "")}
+                                        onClick={() => setCarouselIndex(i)}
+                                        aria-label={"Slide " + (i + 1)}
                                     />
                                 ))}
                             </div>
-                            <button type="button" className="rf-carousel-btn" onClick={handleNext} aria-label="Next review">
+                            <button
+                                type="button"
+                                className="vr-carousel-arrow"
+                                onClick={() => setCarouselIndex((p) => (p + 1) % reviews.length)}
+                                aria-label="Next review"
+                            >
                                 ›
                             </button>
                         </div>
@@ -717,35 +445,303 @@ export default function Reviewfic(props: ReviewficProps) {
                 </div>
             )}
 
-            {layout === "marquee" && (
-                <div className="rf-marquee-container">
-                    <div
-                        className="rf-marquee-track"
-                        style={marqueeTrackStyleObj}
-                    >
-                        {[...reviews, ...reviews].map((r: any, idx: number) => renderCard(r, idx))}
+            {layout === "ticker" && (
+                <div className="vr-ticker">
+                    <div className="vr-ticker-row">
+                        {[...reviews, ...reviews].map((r: any, i: number) => renderCard(r, i))}
                     </div>
                 </div>
             )}
 
-            {layout === "list" && (
-                <div className="rf-list">
-                    {reviews.map((r: any, idx: number) => renderCard(r, idx))}
+            {layout === "wall" && (
+                <div className="vr-wall">
+                    <div className="vr-wall-col">
+                        {reviews.filter((_: any, i: number) => i % 3 === 0).map((r: any, i: number) => renderCard(r, i))}
+                    </div>
+                    <div className="vr-wall-col">
+                        {reviews.filter((_: any, i: number) => i % 3 === 1).map((r: any, i: number) => renderCard(r, i))}
+                    </div>
+                    <div className="vr-wall-col">
+                        {reviews.filter((_: any, i: number) => i % 3 === 2).map((r: any, i: number) => renderCard(r, i))}
+                    </div>
                 </div>
             )}
 
+            {layout === "spotlight" && (
+                <div className="vr-spot">
+                    <div className="vr-spot-slot">
+                        {renderCard(reviews[spotlightIndex] || reviews[0], spotlightIndex)}
+                    </div>
+                    {reviews.length > 1 && (
+                        <div className="vr-dots">
+                            {reviews.map((_: any, i: number) => (
+                                <button
+                                    key={i}
+                                    type="button"
+                                    className={"vr-dot" + (i === spotlightIndex ? " vr-on" : "")}
+                                    onClick={() => setSpotlightIndex(i)}
+                                    aria-label={"Spotlight " + (i + 1)}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* 4. Reading & Dedicated */}
+            {layout === "compact" && (
+                <div className="vr-compact">
+                    {reviews.map((r: any, i: number) => (
+                        <div key={r.id || i} className="vr-crow">
+                            <div className="vr-avatar">
+                                <div className="vr-avatar-fallback">{r.authorName.charAt(0)}</div>
+                            </div>
+                            <div className="vr-cwho">
+                                <span className="vr-name">{r.authorName}</span>
+                                <span className="vr-cq">{r.text}</span>
+                            </div>
+                            <div className="vr-cmeta">
+                                {renderStars(r.rating, 11)}
+                                <span className="vr-date">{r.date}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {layout === "split" && (
+                <div className="vr-split">
+                    {reviews.map((r: any, i: number) => (
+                        <div key={r.id || i} className="vr-split-row">
+                            <div className="vr-split-who">
+                                <div className="vr-avatar">
+                                    <div className="vr-avatar-fallback">{r.authorName.charAt(0)}</div>
+                                </div>
+                                <span className="vr-name">{r.authorName}</span>
+                                {renderStars(r.rating, 12)}
+                                <span className="vr-date">{r.date}</span>
+                            </div>
+                            <p className="vr-split-b">{r.text}</p>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {layout === "flow" && (
+                <div className="vr-flow">
+                    <div className="vr-flow-row">
+                        {[...reviews.slice(0, 4), ...reviews.slice(0, 4)].map((r: any, i: number) => (
+                            <span key={i} className="vr-flow-item">
+                                <span className="vr-flow-t">{r.text}</span>
+                                <span className="vr-flow-w">
+                                    <span className="vr-name">{r.authorName}</span>
+                                    {renderStars(r.rating, 11)}
+                                </span>
+                            </span>
+                        ))}
+                    </div>
+                    <div className="vr-flow-row r2">
+                        {[...reviews.slice(4), ...reviews.slice(4)].map((r: any, i: number) => (
+                            <span key={i} className="vr-flow-item">
+                                <span className="vr-flow-t">{r.text}</span>
+                                <span className="vr-flow-w">
+                                    <span className="vr-name">{r.authorName}</span>
+                                    {renderStars(r.rating, 11)}
+                                </span>
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {layout === "breakdown" && (
+                <div className="vr-break">
+                    <div className="vr-break-head">
+                        <span className="vr-break-n">{stats.averageRating}</span>
+                        {renderStars(stats.averageRating, 18)}
+                        <span className="vr-break-c">Based on {stats.totalReviews}+ reviews</span>
+                    </div>
+                    <div className="vr-break-bars">
+                        {breakdownRows.map((b: any) => {
+                            const barFillStyle = { width: b.pc + "%" }
+                            return (
+                                <div key={b.stars} className="vr-break-row">
+                                    <span>{b.stars} star</span>
+                                    <span className="vr-break-track">
+                                        <span className="vr-break-fill" style={barFillStyle} />
+                                    </span>
+                                    <span className="vr-break-pc">{b.pc}%</span>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {layout === "ribbon" && (
+                <div className="vr-ribbon">
+                    <div className="vr-ribbon-score">
+                        <span className="vr-ribbon-n">{stats.averageRating}</span>
+                        {renderStars(stats.averageRating, 13)}
+                        <span className="vr-ribbon-c">{stats.totalReviews} reviews</span>
+                    </div>
+                    <div className="vr-ribbon-slot">
+                        {reviews[ribbonIndex] && (
+                            <div className="vr-ribbon-q">
+                                <span className="vr-ribbon-t">{reviews[ribbonIndex].text}</span>
+                                <span className="vr-ribbon-w">— {reviews[ribbonIndex].authorName}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {layout === "gallery" && (
+                <div className="vr-gal">
+                    <div className="vr-gal-slot">
+                        {reviews[galleryIndex] && (
+                            <div className="vr-gal-card">
+                                <p className="vr-gal-q">"{reviews[galleryIndex].text}"</p>
+                                <div className="vr-gal-who">
+                                    <span className="vr-name">{reviews[galleryIndex].authorName}</span>
+                                    {renderStars(reviews[galleryIndex].rating, 13)}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <div className="vr-gal-faces">
+                        {reviews.slice(0, 8).map((r: any, i: number) => (
+                            <button
+                                key={r.id || i}
+                                type="button"
+                                className={"vr-gal-face" + (i === galleryIndex ? " on" : "")}
+                                onClick={() => setGalleryIndex(i)}
+                                title={r.authorName}
+                            >
+                                <div className="vr-avatar">
+                                    {r.authorAvatar ? (
+                                        <img src={r.authorAvatar} alt={r.authorName} />
+                                    ) : (
+                                        <div className="vr-avatar-fallback">{r.authorName.charAt(0)}</div>
+                                    )}
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {layout === "orbit" && (
+                <div className="vr-orbit">
+                    <div className="vr-orbit-ring" />
+                    <div className="vr-orbit-mid">
+                        <span className="vr-orbit-n">{stats.averageRating}</span>
+                        {renderStars(stats.averageRating, 15)}
+                        {reviews[orbitIndex] && (
+                            <div className="vr-orbit-slot">
+                                <p className="vr-orbit-q">"{reviews[orbitIndex].text}"</p>
+                                <span className="vr-orbit-who">— {reviews[orbitIndex].authorName}</span>
+                            </div>
+                        )}
+                    </div>
+                    <div className="vr-orbit-faces-row">
+                        {reviews.slice(0, 8).map((r: any, i: number) => (
+                            <button
+                                key={r.id || i}
+                                type="button"
+                                className={"vr-orbit-face" + (i === orbitIndex ? " on" : "")}
+                                onClick={() => setOrbitIndex(i)}
+                                title={r.authorName}
+                            >
+                                <div className="vr-avatar">
+                                    {r.authorAvatar ? (
+                                        <img src={r.authorAvatar} alt={r.authorName} />
+                                    ) : (
+                                        <div className="vr-avatar-fallback">{r.authorName.charAt(0)}</div>
+                                    )}
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* 5. Badges & Social Proof */}
             {layout === "badge" && (
-                <div className="rf-badge-mode" style={badgeStyleObj}>
-                    {renderStars(Math.round(stats.averageRating))}
-                    <span className="rf-badge-score">{stats.averageRating}</span>
-                    <span className="rf-badge-text">Rated {stats.averageRating}/5 on Google & Trustpilot ({stats.totalReviews}+ reviews)</span>
+                <div className="vr-badge">
+                    {renderStars(stats.averageRating, 14)}
+                    <span className="vr-badge-score">{stats.averageRating}</span>
+                    <span className="vr-badge-text">
+                        Rated {stats.averageRating}/5 on Google &amp; Trustpilot ({stats.totalReviews}+ reviews)
+                    </span>
+                </div>
+            )}
+
+            {layout === "avatars" && (
+                <div className="vr-trustedby">
+                    <div className="vr-tb-avatars">
+                        {reviews.slice(0, 5).map((r: any, i: number) => (
+                            <div key={r.id || i} className="vr-tb-av">
+                                <div className="vr-avatar-fallback">{r.authorName.charAt(0)}</div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="vr-tb-info">
+                        <div className="vr-tb-top">
+                            {renderStars(stats.averageRating, 13)}
+                            <span className="vr-tb-rating">{stats.averageRating} / 5</span>
+                        </div>
+                        <span className="vr-tb-count">Trusted by {stats.totalReviews}+ customers</span>
+                    </div>
+                </div>
+            )}
+
+            {layout === "ratingcard" && (
+                <div className="vr-rc">
+                    <span className="vr-rc-n">{stats.averageRating}</span>
+                    {renderStars(stats.averageRating, 16)}
+                    <span className="vr-rc-c">Based on {stats.totalReviews} reviews</span>
+                    <div className="vr-rc-src">
+                        <svg width="14" height="14" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/></svg>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="4" fill="#00B67A"/><path d="M12 4.5l2.3 7.1h7.4l-6 4.4 2.3 7.1-6-4.4-6 4.4 2.3-7.1-6-4.4h7.4z" fill="#FFFFFF"/></svg>
+                    </div>
+                </div>
+            )}
+
+            {layout === "gbadge" && (
+                <div className="vr-gb">
+                    <span className="vr-gb-n">{stats.averageRating}</span>
+                    <div className="vr-gb-mid">
+                        {renderStars(stats.averageRating, 15)}
+                        <span className="vr-gb-c">Based on {stats.googleCount || stats.totalReviews} Google reviews</span>
+                    </div>
+                    <div className="vr-gb-mark">
+                        <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/></svg>
+                        <span>Google</span>
+                    </div>
+                </div>
+            )}
+
+            {layout === "trustpilot" && (
+                <div className="vr-tp-badge">
+                    <span className="vr-tp-rating">{stats.averageRating}</span>
+                    <div className="vr-tp-mid">
+                        {renderStars(stats.averageRating, 15)}
+                        <span className="vr-tp-c">Based on {stats.trustpilotCount || stats.totalReviews} Trustpilot reviews</span>
+                    </div>
+                    <div className="vr-tp-mark">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="4" fill="#00B67A"/><path d="M12 4.5l2.3 7.1h7.4l-6 4.4 2.3 7.1-6-4.4-6 4.4 2.3-7.1-6-4.4h7.4z" fill="#FFFFFF"/></svg>
+                        <span>Trustpilot</span>
+                    </div>
                 </div>
             )}
 
             {showBrandingBadge && (
-                <div className="rf-footer">
+                <div className="vr-powered">
                     <span>Verified reviews via Google &amp; Trustpilot · </span>
-                    <a href="https://reviewfic.com" target="_blank" rel="noopener noreferrer" className="rf-badge-brand-link">Reviews by Reviewfic</a>
+                    <a href="https://reviewfic.com" target="_blank" rel="noopener noreferrer">
+                        <b>Reviewfic</b>
+                    </a>
                 </div>
             )}
         </div>
@@ -778,15 +774,43 @@ addPropertyControls(Reviewfic, {
     layout: {
         type: ControlType.Enum,
         title: "Layout",
-        options: ["carousel", "grid", "masonry", "marquee", "list", "badge"],
-        optionTitles: ["Carousel", "Grid", "Masonry", "Marquee Ticker", "List", "Trust Badge"],
+        options: [
+            "grid", "masonry", "highlight", "list",
+            "pinboard", "duo", "feature", "band", "spotlightgrid",
+            "carousel", "ticker", "wall", "spotlight",
+            "compact", "orbit", "breakdown", "ribbon", "gallery", "flow", "split",
+            "badge", "avatars", "ratingcard", "gbadge", "trustpilot"
+        ],
+        optionTitles: [
+            "Grid (Cards)", "Masonry (Cards)", "Highlight Hero (Cards)", "Editorial List (Cards)",
+            "Pinboard (Shapes)", "Two Columns (Shapes)", "Feature Wide (Shapes)", "Band Row (Shapes)", "Hero + Grid (Shapes)",
+            "Carousel (Motion)", "Ticker Marquee (Motion)", "Wall 3-Col (Motion)", "Spotlight (Motion)",
+            "Compact Feed (Reading)", "Orbit Ring (Reading)", "Breakdown Bars (Reading)", "Ribbon Quote (Reading)", "Gallery Faces (Reading)", "Stream Flow (Reading)", "Split Editorial (Reading)",
+            "Trust Badge (Badges)", "Trusted Avatars (Badges)", "Rating Card (Badges)", "Google Badge (Badges)", "Trustpilot Badge (Badges)"
+        ],
         defaultValue: "carousel",
     },
     cardStyle: {
         type: ControlType.Enum,
         title: "Card Style",
-        options: ["elevated", "minimal", "glass", "bento"],
-        optionTitles: ["Elevated Card", "Minimal Border", "Glassmorphic", "Bento Box"],
+        options: [
+            "elevated", "outline", "gradient", "glass", "bento", "spotlight", "aurora", "frame",
+            "google", "gcompact", "gdark", "tp", "tpstrip", "tpc", "verified", "plain",
+            "quote", "pull", "mag", "news", "press", "museum", "ruled", "broad",
+            "reveal", "unfold", "tilt", "shine", "trace", "pop", "unblur", "liquid",
+            "brutal", "neon", "duo", "sticker", "neu", "sheen", "pearl", "term", "memphis",
+            "clay", "linen", "eink", "sage", "pebble", "kraft", "sunbaked", "ceramic",
+            "noir", "gilt", "hotel", "couture", "onyx", "platinum", "velvet", "atelier"
+        ],
+        optionTitles: [
+            "Elevated (Modern)", "Outline (Modern)", "Gradient Edge (Modern)", "Glassmorphic (Modern)", "Bento Box (Modern)", "Spotlight Hover (Modern)", "Aurora Glow (Modern)", "Outer Frame (Modern)",
+            "Google Native (Basic)", "Google Compact (Basic)", "Google Dark (Basic)", "Trustpilot Native (Basic)", "Trustpilot Strip (Basic)", "Trustpilot Compact (Basic)", "Verified Pill (Basic)", "Plain Clean (Basic)",
+            "Quote Mark (Editorial)", "Pull Quote (Editorial)", "Magazine Dropcap (Editorial)", "Newspaper Serif (Editorial)", "Press Ivory (Editorial)", "Museum Gallery (Editorial)", "Ruled Paper (Editorial)", "Broadsheet (Editorial)",
+            "Cascade Reveal (Motion)", "Unfold 3D (Motion)", "Perspective Tilt (Motion)", "Shine Sweep (Motion)", "Border Trace (Motion)", "Spring Pop (Motion)", "Unblur Words (Motion)", "Liquid Edge (Motion)",
+            "Neo-Brutalist (Bold)", "Cyber Neon (Bold)", "Duotone Contrast (Bold)", "Tilted Sticker (Bold)", "Neumorphic Soft (Bold)", "Brushed Sheen (Bold)", "Pearl Luster (Bold)", "Terminal CRT (Bold)", "Memphis Pop (Bold)",
+            "Terracotta Clay (Warm)", "Woven Linen (Warm)", "E-Ink Paper (Warm)", "Sage Leaf (Warm)", "Pebble Stone (Warm)", "Kraft Card (Warm)", "Sunbaked Ochre (Warm)", "Studio Ceramic (Warm)",
+            "Noir Pitch (Luxury)", "Gilt Gold Foil (Luxury)", "Hotel Boutique (Luxury)", "Couture Serif (Luxury)", "Onyx Metal (Luxury)", "Platinum Rim (Luxury)", "Plum Velvet (Luxury)", "Atelier Studio (Luxury)"
+        ],
         defaultValue: "elevated",
     },
     themeMode: {
@@ -838,7 +862,7 @@ addPropertyControls(Reviewfic, {
         options: ["slow", "normal", "fast"],
         optionTitles: ["Slow", "Normal", "Fast"],
         defaultValue: "normal",
-        hidden: (props: any) => props.layout !== "marquee",
+        hidden: (props: any) => props.layout !== "ticker" && props.layout !== "marquee",
     },
     cornerRadius: {
         type: ControlType.Number,

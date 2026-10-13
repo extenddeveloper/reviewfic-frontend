@@ -14,9 +14,14 @@ export interface ReviewItem {
     hidden?: boolean
 }
 
-export type ReviewLayout = "carousel" | "grid" | "masonry" | "marquee" | "list" | "badge"
-
-export type CardStyle = "elevated" | "minimal" | "glass" | "bento"
+export type {
+    ReviewLayout,
+    CardStyle,
+    LayoutGroup,
+    LayoutDef,
+    CardFamily,
+    CardPresetDef,
+} from "./catalogue"
 
 export type ThemeMode = "auto" | "light" | "dark"
 

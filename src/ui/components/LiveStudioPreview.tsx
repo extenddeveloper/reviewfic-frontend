@@ -1,0 +1,607 @@
+import { useState, useEffect, useMemo } from "react"
+import { ReviewConfig, ReviewItem, BlendedStats, ReviewLayout, CardStyle } from "../../core/types"
+import { IconGoogle, IconTrustpilot, IconStar, IconShieldCheck } from "../icons"
+
+export interface LiveStudioPreviewProps {
+    layout: ReviewLayout
+    cardStyle: CardStyle
+    reviews: ReviewItem[]
+    stats: BlendedStats
+    config: ReviewConfig
+    stageTheme?: "auto" | "light" | "dark"
+}
+
+export function LiveStudioPreview({
+    layout,
+    cardStyle,
+    reviews,
+    stats,
+    config,
+    stageTheme = "auto",
+}: LiveStudioPreviewProps) {
+    const {
+        starColor = "#FBBC05",
+        showStars = true,
+        showSourceIcon = true,
+        showAvatar = true,
+        showDate = true,
+        showVerifiedBadge = true,
+        showWriteReview = true,
+        textClamp = true,
+        cornerRadius = 16,
+    } = config
+
+    // Interactive state for rotators
+    const [carouselIdx, setCarouselIdx] = useState(0)
+    const [spotlightIdx, setSpotlightIdx] = useState(0)
+    const [galleryIdx, setGalleryIdx] = useState(0)
+    const [orbitIdx, setOrbitIdx] = useState(0)
+    const [ribbonIdx, setRibbonIdx] = useState(0)
+    const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({})
+
+    const toggleExpand = (id: string) => {
+        setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }))
+    }
+
+    // Auto-rotate spotlight
+    useEffect(() => {
+        if (layout !== "spotlight" || reviews.length <= 1) return
+        const t = setInterval(() => {
+            setSpotlightIdx((prev) => (prev + 1) % reviews.length)
+        }, 4500)
+        return () => clearInterval(t)
+    }, [layout, reviews.length])
+
+    // Auto-rotate ribbon
+    useEffect(() => {
+        if (layout !== "ribbon" || reviews.length <= 1) return
+        const t = setInterval(() => {
+            setRibbonIdx((prev) => (prev + 1) % reviews.length)
+        }, 4200)
+        return () => clearInterval(t)
+    }, [layout, reviews.length])
+
+    // Rating breakdown distribution
+    const breakdownRows = useMemo(() => {
+        const total = reviews.length || 1
+        return [5, 4, 3, 2, 1].map((s) => {
+            const count = reviews.filter((r) => Math.round(r.rating) === s).length
+            const pc = Math.round((count / total) * 100)
+            return { stars: s, count, pc }
+        })
+    }, [reviews])
+
+    const renderStars = (rating: number, size = 14) => {
+        return (
+            <div className="vr-stars">
+                {[1, 2, 3, 4, 5].map((s) => (
+                    <IconStar
+                        key={s}
+                        size={size}
+                        filled={s <= Math.round(rating)}
+                        color={starColor}
+                    />
+                ))}
+            </div>
+        )
+    }
+
+    const renderCard = (r: ReviewItem, idx: number, extraClass = "") => {
+        const cardId = r.id || `card-${idx}`
+        const isExpanded = Boolean(expandedCards[cardId])
+        const isLong = Boolean(r.text && r.text.length > 130)
+        const shouldClamp = textClamp && !isExpanded && isLong
+        const displayText = shouldClamp ? r.text.slice(0, 125) + "..." : r.text
+
+        return (
+            <div key={cardId} className={`vr-card vrp-${cardStyle} ${extraClass}`}>
+                <div className="vr-card-head">
+                    <div className="vr-card-author-wrap">
+                        {showAvatar && (
+                            <div className="vr-avatar">
+                                {r.authorAvatar ? (
+                                    <img src={r.authorAvatar} alt={r.authorName} className="vr-avatar-img" />
+                                ) : (
+                                    <div className="vr-avatar-fallback">
+                                        {(r.authorName || "C").charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        <div className="vr-card-author-info">
+                            <div className="vr-card-name-row">
+                                <span className="vr-name">{r.authorName}</span>
+                                {showVerifiedBadge && r.verified && (
+                                    <span className="vr-verified-badge" title="Verified Customer">
+                                        <IconShieldCheck size={12} />
+                                    </span>
+                                )}
+                            </div>
+                            {showDate && <span className="vr-date">{r.date}</span>}
+                        </div>
+                    </div>
+
+                    {showSourceIcon && (
+                        <div className="vr-source-icon">
+                            {r.source === "google" && <IconGoogle size={15} />}
+                            {r.source === "trustpilot" && <IconTrustpilot size={15} />}
+                            {r.source === "custom" && (
+                                <span className="vr-custom-pill">Customer testimonial</span>
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                {showStars && renderStars(r.rating)}
+
+                <p className={`vr-body ${shouldClamp ? "clamped" : ""}`}>{displayText}</p>
+
+                {textClamp && isLong && (
+                    <button
+                        type="button"
+                        className="vr-read-more-btn"
+                        onClick={() => toggleExpand(cardId)}
+                    >
+                        {isExpanded ? "Show less" : "Read more"}
+                    </button>
+                )}
+
+                {r.source === "google" && (
+                    <span className="vr-platform-link">Read on Google ↗</span>
+                )}
+                {r.source === "trustpilot" && (
+                    <span className="vr-platform-link">Read on Trustpilot ↗</span>
+                )}
+            </div>
+        )
+    }
+
+    // Single-bracket style objects to comply with Zero-Inline-CSS rule
+    const rootStyleObj = {
+        ["--vr-star" as any]: starColor,
+        ["--vr-radius" as any]: `${cornerRadius}px`,
+    }
+
+    const carouselTrackStyle = {
+        transform: `translateX(-${carouselIdx * 100}%)`,
+    }
+
+    if (reviews.length === 0) {
+        return (
+            <div className={`vr-root vr-empty-box ${stageTheme}`} style={rootStyleObj}>
+                <p>No reviews match your search or filters.</p>
+            </div>
+        )
+    }
+
+    return (
+        <div className={`vr-root vrp-${cardStyle} ${stageTheme}`} style={rootStyleObj}>
+            {/* Header for non-badge layouts */}
+            {![
+                "badge",
+                "avatars",
+                "ratingcard",
+                "gbadge",
+                "trustpilot",
+                "ribbon",
+                "breakdown",
+            ].includes(layout) && (
+                <div className="vr-header">
+                    <div className="vr-header-left">
+                        <span className="vr-rating">{stats.averageRating}</span>
+                        <div className="vr-header-meta">
+                            {renderStars(stats.averageRating, 15)}
+                            <span className="vr-count">Based on {stats.totalReviews}+ verified reviews</span>
+                        </div>
+                    </div>
+
+                    <div className="vr-chips">
+                        <span className="vr-chip">Google ({stats.googleCount})</span>
+                        <span className="vr-chip">Trustpilot ({stats.trustpilotCount})</span>
+                    </div>
+
+                    {showWriteReview && (
+                        <span className="vr-write-cta">Write a Review ↗</span>
+                    )}
+                </div>
+            )}
+
+            {/* 1. Card Blocks */}
+            {layout === "grid" && (
+                <div className="vr-grid">
+                    {reviews.map((r, i) => renderCard(r, i))}
+                </div>
+            )}
+
+            {layout === "masonry" && (
+                <div className="vr-masonry">
+                    {reviews.map((r, i) => renderCard(r, i))}
+                </div>
+            )}
+
+            {layout === "highlight" && (
+                <div className="vr-hl">
+                    <div className="vr-hl-big">
+                        {renderCard(reviews[0], 0, "hero-card")}
+                    </div>
+                    <div className="vr-hl-side">
+                        {reviews.slice(1, 4).map((r, i) => renderCard(r, i + 1))}
+                    </div>
+                </div>
+            )}
+
+            {layout === "list" && (
+                <div className="vr-list">
+                    {reviews.map((r, i) => renderCard(r, i))}
+                </div>
+            )}
+
+            {/* 2. Arrangements / Shapes */}
+            {layout === "pinboard" && (
+                <div className="vr-pin">
+                    {reviews.map((r, i) => renderCard(r, i))}
+                </div>
+            )}
+
+            {layout === "duo" && (
+                <div className="vr-duo2">
+                    {reviews.map((r, i) => renderCard(r, i))}
+                </div>
+            )}
+
+            {layout === "feature" && (
+                <div className="vr-feature">
+                    {reviews.map((r, i) => renderCard(r, i, i === 0 ? "feature-lead" : ""))}
+                </div>
+            )}
+
+            {layout === "band" && (
+                <div className="vr-band">
+                    {reviews.slice(0, 4).map((r, i) => renderCard(r, i))}
+                </div>
+            )}
+
+            {layout === "spotlightgrid" && (
+                <div className="vr-spotgrid">
+                    <div className="vr-spotgrid-hero">
+                        {renderCard(reviews[0], 0)}
+                    </div>
+                    <div className="vr-spotgrid-rest">
+                        {reviews.slice(1, 5).map((r, i) => renderCard(r, i + 1))}
+                    </div>
+                </div>
+            )}
+
+            {/* 3. In Motion */}
+            {layout === "carousel" && (
+                <div className="vr-carousel-container">
+                    <div className="vr-carousel-viewport">
+                        <div className="vr-carousel-slider" style={carouselTrackStyle}>
+                            {reviews.map((r, i) => (
+                                <div key={r.id || i} className="vr-carousel-slide">
+                                    {renderCard(r, i)}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                    {reviews.length > 1 && (
+                        <div className="vr-carousel-controls">
+                            <button
+                                type="button"
+                                className="vr-carousel-arrow"
+                                onClick={() => setCarouselIdx((p) => (p - 1 + reviews.length) % reviews.length)}
+                                aria-label="Previous review"
+                            >
+                                ‹
+                            </button>
+                            <div className="vr-carousel-indicators">
+                                {reviews.map((_, i) => (
+                                    <button
+                                        key={i}
+                                        type="button"
+                                        className={`vr-carousel-dot ${i === carouselIdx ? "active" : ""}`}
+                                        onClick={() => setCarouselIdx(i)}
+                                        aria-label={`Slide ${i + 1}`}
+                                    />
+                                ))}
+                            </div>
+                            <button
+                                type="button"
+                                className="vr-carousel-arrow"
+                                onClick={() => setCarouselIdx((p) => (p + 1) % reviews.length)}
+                                aria-label="Next review"
+                            >
+                                ›
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {layout === "ticker" && (
+                <div className="vr-ticker">
+                    <div className="vr-ticker-row">
+                        {[...reviews, ...reviews].map((r, i) => renderCard(r, i))}
+                    </div>
+                </div>
+            )}
+
+            {layout === "wall" && (
+                <div className="vr-wall">
+                    <div className="vr-wall-col">
+                        {reviews.filter((_, i) => i % 3 === 0).map((r, i) => renderCard(r, i))}
+                    </div>
+                    <div className="vr-wall-col">
+                        {reviews.filter((_, i) => i % 3 === 1).map((r, i) => renderCard(r, i))}
+                    </div>
+                    <div className="vr-wall-col">
+                        {reviews.filter((_, i) => i % 3 === 2).map((r, i) => renderCard(r, i))}
+                    </div>
+                </div>
+            )}
+
+            {layout === "spotlight" && (
+                <div className="vr-spot">
+                    <div className="vr-spot-slot">
+                        {renderCard(reviews[spotlightIdx] || reviews[0], spotlightIdx)}
+                    </div>
+                    {reviews.length > 1 && (
+                        <div className="vr-dots">
+                            {reviews.map((_, i) => (
+                                <button
+                                    key={i}
+                                    type="button"
+                                    className={`vr-dot ${i === spotlightIdx ? "vr-on" : ""}`}
+                                    onClick={() => setSpotlightIdx(i)}
+                                    aria-label={`Spotlight ${i + 1}`}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* 4. Dedicated Designs / Reading */}
+            {layout === "compact" && (
+                <div className="vr-compact">
+                    {reviews.map((r, i) => (
+                        <div key={r.id || i} className="vr-crow">
+                            <div className="vr-avatar">
+                                <div className="vr-avatar-fallback">{r.authorName.charAt(0)}</div>
+                            </div>
+                            <div className="vr-cwho">
+                                <span className="vr-name">{r.authorName}</span>
+                                <span className="vr-cq">{r.text}</span>
+                            </div>
+                            <div className="vr-cmeta">
+                                {renderStars(r.rating, 11)}
+                                <span className="vr-date">{r.date}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {layout === "split" && (
+                <div className="vr-split">
+                    {reviews.map((r, i) => (
+                        <div key={r.id || i} className="vr-split-row">
+                            <div className="vr-split-who">
+                                <div className="vr-avatar">
+                                    <div className="vr-avatar-fallback">{r.authorName.charAt(0)}</div>
+                                </div>
+                                <span className="vr-name">{r.authorName}</span>
+                                {renderStars(r.rating, 12)}
+                                <span className="vr-date">{r.date}</span>
+                            </div>
+                            <p className="vr-split-b">{r.text}</p>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {layout === "flow" && (
+                <div className="vr-flow">
+                    <div className="vr-flow-row">
+                        {[...reviews.slice(0, 4), ...reviews.slice(0, 4)].map((r, i) => (
+                            <span key={i} className="vr-flow-item">
+                                <span className="vr-flow-t">{r.text}</span>
+                                <span className="vr-flow-w">
+                                    <span className="vr-name">{r.authorName}</span>
+                                    {renderStars(r.rating, 11)}
+                                </span>
+                            </span>
+                        ))}
+                    </div>
+                    <div className="vr-flow-row r2">
+                        {[...reviews.slice(4), ...reviews.slice(4)].map((r, i) => (
+                            <span key={i} className="vr-flow-item">
+                                <span className="vr-flow-t">{r.text}</span>
+                                <span className="vr-flow-w">
+                                    <span className="vr-name">{r.authorName}</span>
+                                    {renderStars(r.rating, 11)}
+                                </span>
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {layout === "breakdown" && (
+                <div className="vr-break">
+                    <div className="vr-break-head">
+                        <span className="vr-break-n">{stats.averageRating}</span>
+                        {renderStars(stats.averageRating, 18)}
+                        <span className="vr-break-c">Based on {stats.totalReviews}+ reviews</span>
+                    </div>
+                    <div className="vr-break-bars">
+                        {breakdownRows.map((b) => {
+                            const barFillStyle = { width: `${b.pc}%` }
+                            return (
+                                <div key={b.stars} className="vr-break-row">
+                                    <span>{b.stars} star</span>
+                                    <span className="vr-break-track">
+                                        <span className="vr-break-fill" style={barFillStyle} />
+                                    </span>
+                                    <span className="vr-break-pc">{b.pc}%</span>
+                                </div>
+                            )
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {layout === "ribbon" && (
+                <div className="vr-ribbon">
+                    <div className="vr-ribbon-score">
+                        <span className="vr-ribbon-n">{stats.averageRating}</span>
+                        {renderStars(stats.averageRating, 13)}
+                        <span className="vr-ribbon-c">{stats.totalReviews} reviews</span>
+                    </div>
+                    <div className="vr-ribbon-slot">
+                        {reviews[ribbonIdx] && (
+                            <div className="vr-ribbon-q">
+                                <span className="vr-ribbon-t">{reviews[ribbonIdx].text}</span>
+                                <span className="vr-ribbon-w">— {reviews[ribbonIdx].authorName}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {layout === "gallery" && (
+                <div className="vr-gal">
+                    <div className="vr-gal-slot">
+                        {reviews[galleryIdx] && (
+                            <div className="vr-gal-card">
+                                <p className="vr-gal-q">"{reviews[galleryIdx].text}"</p>
+                                <div className="vr-gal-who">
+                                    <span className="vr-name">{reviews[galleryIdx].authorName}</span>
+                                    {renderStars(reviews[galleryIdx].rating, 13)}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <div className="vr-gal-faces">
+                        {reviews.slice(0, 8).map((r, i) => (
+                            <button
+                                key={r.id || i}
+                                type="button"
+                                className={`vr-gal-face ${i === galleryIdx ? "on" : ""}`}
+                                onClick={() => setGalleryIdx(i)}
+                                title={r.authorName}
+                            >
+                                <div className="vr-avatar">
+                                    {r.authorAvatar ? (
+                                        <img src={r.authorAvatar} alt={r.authorName} />
+                                    ) : (
+                                        <div className="vr-avatar-fallback">{r.authorName.charAt(0)}</div>
+                                    )}
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {layout === "orbit" && (
+                <div className="vr-orbit">
+                    <div className="vr-orbit-ring" />
+                    <div className="vr-orbit-mid">
+                        <span className="vr-orbit-n">{stats.averageRating}</span>
+                        {renderStars(stats.averageRating, 15)}
+                        {reviews[orbitIdx] && (
+                            <div className="vr-orbit-slot">
+                                <p className="vr-orbit-q">"{reviews[orbitIdx].text}"</p>
+                                <span className="vr-orbit-who">— {reviews[orbitIdx].authorName}</span>
+                            </div>
+                        )}
+                    </div>
+                    <div className="vr-orbit-faces-row">
+                        {reviews.slice(0, 8).map((r, i) => (
+                            <button
+                                key={r.id || i}
+                                type="button"
+                                className={`vr-orbit-face ${i === orbitIdx ? "on" : ""}`}
+                                onClick={() => setOrbitIdx(i)}
+                                title={r.authorName}
+                            >
+                                <div className="vr-avatar">
+                                    <div className="vr-avatar-fallback">{r.authorName.charAt(0)}</div>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* 5. Badges & Proof */}
+            {layout === "badge" && (
+                <div className="vr-badge">
+                    {renderStars(stats.averageRating, 14)}
+                    <span className="vr-badge-score">{stats.averageRating}</span>
+                    <span className="vr-badge-text">Rated {stats.averageRating}/5 on Google &amp; Trustpilot ({stats.totalReviews}+ reviews)</span>
+                </div>
+            )}
+
+            {layout === "avatars" && (
+                <div className="vr-trustedby">
+                    <div className="vr-tb-avatars">
+                        {reviews.slice(0, 5).map((r, i) => (
+                            <div key={r.id || i} className="vr-tb-av">
+                                <div className="vr-avatar-fallback">{r.authorName.charAt(0)}</div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="vr-tb-info">
+                        <div className="vr-tb-top">
+                            {renderStars(stats.averageRating, 13)}
+                            <span className="vr-tb-rating">{stats.averageRating} / 5</span>
+                        </div>
+                        <span className="vr-tb-count">Trusted by {stats.totalReviews}+ customers</span>
+                    </div>
+                </div>
+            )}
+
+            {layout === "ratingcard" && (
+                <div className="vr-rc">
+                    <span className="vr-rc-n">{stats.averageRating}</span>
+                    {renderStars(stats.averageRating, 16)}
+                    <span className="vr-rc-c">Based on {stats.totalReviews} reviews</span>
+                    <div className="vr-rc-src">
+                        <IconGoogle size={14} />
+                        <IconTrustpilot size={14} />
+                    </div>
+                </div>
+            )}
+
+            {layout === "gbadge" && (
+                <div className="vr-gb">
+                    <span className="vr-gb-n">{stats.googleCount > 0 ? config.googleRating : stats.averageRating}</span>
+                    <div className="vr-gb-mid">
+                        {renderStars(stats.googleCount > 0 ? config.googleRating : stats.averageRating, 15)}
+                        <span className="vr-gb-c">Based on {stats.googleCount || stats.totalReviews} Google reviews</span>
+                    </div>
+                    <div className="vr-gb-mark">
+                        <IconGoogle size={18} />
+                        <span>Google</span>
+                    </div>
+                </div>
+            )}
+
+            {layout === "trustpilot" && (
+                <div className="vr-tp-badge">
+                    <span className="vr-tp-rating">{stats.trustpilotCount > 0 ? config.trustpilotRating : stats.averageRating}</span>
+                    <div className="vr-tp-mid">
+                        {renderStars(stats.trustpilotCount > 0 ? config.trustpilotRating : stats.averageRating, 15)}
+                        <span className="vr-tp-c">Based on {stats.trustpilotCount || stats.totalReviews} Trustpilot reviews</span>
+                    </div>
+                    <div className="vr-tp-mark">
+                        <IconTrustpilot size={18} />
+                        <span>Trustpilot</span>
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
