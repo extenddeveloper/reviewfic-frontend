@@ -61,27 +61,26 @@ const DEFAULT_DATA = ${serializedConfig}
 const WIDGET_BUNDLE_CSS = ${serializedCSS}
 
 export default function Reviewfic(props: ReviewficProps) {
-    const {
-        layout = DEFAULT_DATA.layout || "carousel",
-        cardStyle = DEFAULT_DATA.cardStyle || "elevated",
-        themeMode = DEFAULT_DATA.themeMode || "auto",
-        starColor = props.starColor || DEFAULT_DATA.starColor || "#FBBC05",
-        gridColumns = props.gridColumns || DEFAULT_DATA.gridColumns || 3,
-        showStars = props.showStars !== undefined ? props.showStars : DEFAULT_DATA.showStars,
-        showSourceIcon = props.showSourceIcon !== undefined ? props.showSourceIcon : DEFAULT_DATA.showSourceIcon,
-        showAvatar = props.showAvatar !== undefined ? props.showAvatar : DEFAULT_DATA.showAvatar,
-        showDate = props.showDate !== undefined ? props.showDate : DEFAULT_DATA.showDate,
-        showVerifiedBadge = props.showVerifiedBadge !== undefined ? props.showVerifiedBadge : DEFAULT_DATA.showVerifiedBadge,
-        showWriteReview = props.showWriteReview !== undefined ? props.showWriteReview : DEFAULT_DATA.showWriteReview,
-        minRating = props.minRating !== undefined ? props.minRating : (DEFAULT_DATA.minRatingFilter || 0),
-        carouselAutoplay = props.carouselAutoplay !== undefined ? props.carouselAutoplay : DEFAULT_DATA.carouselAutoplay,
-        carouselSpeed = props.carouselSpeed || DEFAULT_DATA.carouselSpeed || 5,
-        marqueeSpeed = props.marqueeSpeed || DEFAULT_DATA.marqueeSpeed || "normal",
-        cornerRadius = props.cornerRadius !== undefined ? props.cornerRadius : (DEFAULT_DATA.cornerRadius || 16),
-        sortOrder = props.sortOrder || DEFAULT_DATA.sortOrder || "newest",
-        textClamp = props.textClamp !== undefined ? props.textClamp : (DEFAULT_DATA.textClamp ?? true),
-        showBrandingBadge = props.showBrandingBadge !== undefined ? props.showBrandingBadge : (DEFAULT_DATA.showBrandingBadge ?? true),
-    } = props
+    const layout = props.layout ?? DEFAULT_DATA.layout ?? "carousel"
+    const cardStyle = props.cardStyle ?? DEFAULT_DATA.cardStyle ?? "elevated"
+    const themeMode = props.themeMode ?? DEFAULT_DATA.themeMode ?? "auto"
+    const starColor = props.starColor ?? DEFAULT_DATA.starColor ?? "#FBBC05"
+    const gridColumns = props.gridColumns ?? DEFAULT_DATA.gridColumns ?? 3
+    const showStars = props.showStars !== undefined ? props.showStars : (DEFAULT_DATA.showStars ?? true)
+    const showSourceIcon = props.showSourceIcon !== undefined ? props.showSourceIcon : (DEFAULT_DATA.showSourceIcon ?? true)
+    const showAvatar = props.showAvatar !== undefined ? props.showAvatar : (DEFAULT_DATA.showAvatar ?? true)
+    const showDate = props.showDate !== undefined ? props.showDate : (DEFAULT_DATA.showDate ?? true)
+    const showVerifiedBadge = props.showVerifiedBadge !== undefined ? props.showVerifiedBadge : (DEFAULT_DATA.showVerifiedBadge ?? true)
+    const showWriteReview = props.showWriteReview !== undefined ? props.showWriteReview : (DEFAULT_DATA.showWriteReview ?? true)
+    const minRating = props.minRating !== undefined ? props.minRating : (DEFAULT_DATA.minRatingFilter || 0)
+    const carouselAutoplay = props.carouselAutoplay !== undefined ? props.carouselAutoplay : (DEFAULT_DATA.carouselAutoplay ?? true)
+    const carouselSpeed = props.carouselSpeed || DEFAULT_DATA.carouselSpeed || 5
+    const marqueeSpeed = props.marqueeSpeed || DEFAULT_DATA.marqueeSpeed || "normal"
+    const cornerRadius = props.cornerRadius !== undefined ? props.cornerRadius : (DEFAULT_DATA.cornerRadius || 16)
+    const sortOrder = props.sortOrder || DEFAULT_DATA.sortOrder || "newest"
+    const textClamp = props.textClamp !== undefined ? props.textClamp : (DEFAULT_DATA.textClamp ?? true)
+    const showBrandingBadge = props.showBrandingBadge !== undefined ? props.showBrandingBadge : (DEFAULT_DATA.showBrandingBadge ?? true)
+
 
     const reviews = React.useMemo(() => {
         let list = Array.isArray(DEFAULT_DATA.activeReviews) ? [...DEFAULT_DATA.activeReviews] : []
@@ -103,13 +102,20 @@ export default function Reviewfic(props: ReviewficProps) {
         trustpilotCount: 88,
     }
 
-    const [carouselIndex, setCarouselIndex] = React.useState(0)
     const [spotlightIndex, setSpotlightIndex] = React.useState(0)
     const [galleryIndex, setGalleryIndex] = React.useState(0)
     const [orbitIndex, setOrbitIndex] = React.useState(0)
     const [ribbonIndex, setRibbonIndex] = React.useState(0)
     const [isHovered, setIsHovered] = React.useState(false)
     const [expandedCards, setExpandedCards] = React.useState<Record<string, boolean>>({})
+
+    const trackRef = React.useRef<HTMLDivElement>(null)
+    const scrollTrack = React.useCallback((direction: number) => {
+        if (!trackRef.current) return
+        const firstCard = trackRef.current.firstElementChild as HTMLElement | null
+        const cardWidth = firstCard?.clientWidth || 300
+        trackRef.current.scrollBy({ left: direction * (cardWidth + 16), behavior: "smooth" })
+    }, [])
 
     const toggleExpand = React.useCallback((id: string) => {
         setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }))
@@ -119,10 +125,16 @@ export default function Reviewfic(props: ReviewficProps) {
     React.useEffect(() => {
         if (layout !== "carousel" || !carouselAutoplay || isHovered || reviews.length <= 1) return
         const timer = setInterval(() => {
-            setCarouselIndex((prev) => (prev + 1) % reviews.length)
+            if (!trackRef.current) return
+            const maxScroll = trackRef.current.scrollWidth - trackRef.current.clientWidth
+            if (trackRef.current.scrollLeft >= maxScroll - 15) {
+                trackRef.current.scrollTo({ left: 0, behavior: "smooth" })
+            } else {
+                scrollTrack(1)
+            }
         }, Math.max(2, carouselSpeed) * 1000)
         return () => clearInterval(timer)
-    }, [layout, carouselAutoplay, carouselSpeed, isHovered, reviews.length])
+    }, [layout, carouselAutoplay, carouselSpeed, isHovered, reviews.length, scrollTrack])
 
     // Spotlight autoplay
     React.useEffect(() => {
@@ -252,13 +264,24 @@ export default function Reviewfic(props: ReviewficProps) {
         )
     }
 
+    const isDark = themeMode === "dark"
     const rootStyleObj = {
         ["--vr-star" as any]: starColor,
         ["--vr-radius" as any]: cornerRadius + "px",
-    }
-
-    const carouselTrackStyle = {
-        transform: "translateX(-" + (carouselIndex * 100) + "%)",
+        ["--vr-accent" as any]: "#0099FF",
+        ["--vr-card-min" as any]: "280px",
+        ["--vr-card-pad" as any]: "20px",
+        ["--vr-gap" as any]: "16px",
+        ["--vr-clamp" as any]: textClamp ? 4 : 100,
+        ["--vr-grid-cols" as any]: gridColumns || 3,
+        ["--vr-card-bg" as any]: isDark ? "#181A22" : "#FFFFFF",
+        ["--vr-text-primary" as any]: isDark ? "#F3F4F6" : "#18181B",
+        ["--vr-head-text" as any]: isDark ? "#F3F4F6" : "#18181B",
+        ["--vr-card-border" as any]: isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.08)",
+        width: "100%",
+        minWidth: "320px",
+        boxSizing: "border-box" as any,
+        ...props.style,
     }
 
     if (reviews.length === 0) {
@@ -299,8 +322,18 @@ export default function Reviewfic(props: ReviewficProps) {
                     </div>
 
                     <div className="vr-chips">
-                        <span className="vr-chip">Google ({stats.googleCount})</span>
-                        <span className="vr-chip">Trustpilot ({stats.trustpilotCount})</span>
+                        {stats.googleCount > 0 && (
+                            <span className="vr-chip">
+                                <svg width="12" height="12" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/></svg>
+                                <span>Google ({stats.googleCount})</span>
+                            </span>
+                        )}
+                        {stats.trustpilotCount > 0 && (
+                            <span className="vr-chip">
+                                <svg width="12" height="12" viewBox="0 0 24 24"><path fill="#00B67A" d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77 5.82 21l1.18-6.88-5-4.87 7.1-1.01z"/></svg>
+                                <span>Trustpilot ({stats.trustpilotCount})</span>
+                            </span>
+                        )}
                     </div>
 
                     {showWriteReview && (
@@ -384,42 +417,25 @@ export default function Reviewfic(props: ReviewficProps) {
 
             {/* 3. In Motion */}
             {layout === "carousel" && (
-                <div className="vr-carousel-container">
-                    <div className="vr-carousel-viewport">
-                        <div className="vr-carousel-slider" style={carouselTrackStyle}>
-                            {reviews.map((r: any, i: number) => (
-                                <div key={r.id || i} className="vr-carousel-slide">
-                                    {renderCard(r, i)}
-                                </div>
-                            ))}
-                        </div>
+                <div className="vr-carousel-wrapper">
+                    <div className="vr-track" ref={trackRef}>
+                        {reviews.map((r: any, i: number) => renderCard(r, i))}
                     </div>
                     {reviews.length > 1 && (
-                        <div className="vr-carousel-controls">
+                        <div className="vr-arrows">
                             <button
                                 type="button"
-                                className="vr-carousel-arrow"
-                                onClick={() => setCarouselIndex((p) => (p - 1 + reviews.length) % reviews.length)}
-                                aria-label="Previous review"
+                                className="vr-arrow"
+                                onClick={() => scrollTrack(-1)}
+                                aria-label="Previous reviews"
                             >
                                 ‹
                             </button>
-                            <div className="vr-carousel-indicators">
-                                {reviews.map((_: any, i: number) => (
-                                    <button
-                                        key={i}
-                                        type="button"
-                                        className={"vr-carousel-dot" + (i === carouselIndex ? " active" : "")}
-                                        onClick={() => setCarouselIndex(i)}
-                                        aria-label={"Slide " + (i + 1)}
-                                    />
-                                ))}
-                            </div>
                             <button
                                 type="button"
-                                className="vr-carousel-arrow"
-                                onClick={() => setCarouselIndex((p) => (p + 1) % reviews.length)}
-                                aria-label="Next review"
+                                className="vr-arrow"
+                                onClick={() => scrollTrack(1)}
+                                aria-label="Next reviews"
                             >
                                 ›
                             </button>
@@ -918,14 +934,45 @@ addPropertyControls(Reviewfic, {
 `
 }
 
+export function buildControlPayload(config: ReviewConfig) {
+    return {
+        layout: config.layout || "carousel",
+        cardStyle: config.cardStyle || "elevated",
+        themeMode: config.themeMode || "auto",
+        starColor: config.starColor || "#FBBC05",
+        gridColumns: config.gridColumns || 3,
+        showStars: config.showStars !== undefined ? config.showStars : true,
+        showSourceIcon: config.showSourceIcon !== undefined ? config.showSourceIcon : true,
+        showAvatar: config.showAvatar !== undefined ? config.showAvatar : true,
+        showDate: config.showDate !== undefined ? config.showDate : true,
+        showVerifiedBadge: config.showVerifiedBadge !== undefined ? config.showVerifiedBadge : true,
+        showWriteReview: config.showWriteReview !== undefined ? config.showWriteReview : true,
+        minRating: config.minRatingFilter || 0,
+        carouselAutoplay: config.carouselAutoplay !== undefined ? config.carouselAutoplay : true,
+        carouselSpeed: config.carouselSpeed || 5,
+        marqueeSpeed: config.marqueeSpeed || "normal",
+        cornerRadius: config.cornerRadius || 16,
+        sortOrder: config.sortOrder || "newest",
+        textClamp: config.textClamp !== undefined ? config.textClamp : true,
+        showBrandingBadge: config.showBrandingBadge !== undefined ? config.showBrandingBadge : true,
+    }
+}
+
+export function isBadgeLayout(layout?: string): boolean {
+    return ["badge", "avatars", "ratingcard", "gbadge", "trustpilot"].includes(layout || "")
+}
+
 export async function insertCanvasComponent(config: ReviewConfig): Promise<{ success: boolean; message: string }> {
     const code = generateReviewficComponentCode(config)
     const fileName = "Reviewfic.tsx"
+    const isBadge = isBadgeLayout(config.layout)
+    const targetWidth = isBadge ? "420px" : "1100px"
+    const controlPayload = buildControlPayload(config)
 
     try {
         if (typeof (framer as any).isAllowedTo === "function") {
             try {
-                await (framer as any).isAllowedTo("createCodeFile", "addComponentInstance", "setSelection")
+                await (framer as any).isAllowedTo("createCodeFile", "addComponentInstance", "setSelection", "getNodesWithType")
             } catch {}
         }
 
@@ -938,32 +985,43 @@ export async function insertCanvasComponent(config: ReviewConfig): Promise<{ suc
             file = await framer.createCodeFile(fileName, code, { editViaPlugin: true })
         }
 
+        // Query existing canvas component instances
+        const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
+        const existingReviewficNodes = instances?.filter(isReviewficInstance) || []
+
+        if (existingReviewficNodes.length > 0) {
+            // Update all existing Reviewfic nodes on canvas so changes take effect immediately
+            for (const node of existingReviewficNodes) {
+                if (typeof node.setAttributes === "function") {
+                    await node.setAttributes({
+                        controls: controlPayload,
+                        width: targetWidth,
+                    })
+                }
+            }
+
+            if (existingReviewficNodes[0]?.id) {
+                try {
+                    await framer.setSelection([existingReviewficNodes[0].id])
+                } catch {}
+            }
+
+            return {
+                success: true,
+                message: `Updated existing Reviewfic component on canvas (${config.layout} layout, ${config.cardStyle} style)!`,
+            }
+        }
+
+        // If no instance exists on canvas yet, insert a new one
         const componentExport = file.exports.find((exp) => exp.type === "component")
         if (componentExport && "insertURL" in componentExport) {
             const instance = (await framer.addComponentInstance({
                 url: componentExport.insertURL,
                 attributes: {
-                    controls: {
-                        layout: config.layout || "carousel",
-                        cardStyle: config.cardStyle || "elevated",
-                        themeMode: config.themeMode || "auto",
-                        starColor: config.starColor || "#FBBC05",
-                        gridColumns: config.gridColumns || 3,
-                        showStars: config.showStars,
-                        showSourceIcon: config.showSourceIcon,
-                        showAvatar: config.showAvatar,
-                        showDate: config.showDate,
-                        showVerifiedBadge: config.showVerifiedBadge,
-                        showWriteReview: config.showWriteReview,
-                        minRating: config.minRatingFilter || 0,
-                        carouselAutoplay: config.carouselAutoplay,
-                        carouselSpeed: config.carouselSpeed || 5,
-                        marqueeSpeed: config.marqueeSpeed || "normal",
-                        cornerRadius: config.cornerRadius || 16,
-                        sortOrder: config.sortOrder || "newest",
-                        textClamp: config.textClamp !== undefined ? config.textClamp : true,
-                        showBrandingBadge: config.showBrandingBadge !== undefined ? config.showBrandingBadge : true,
-                    },
+                    controls: controlPayload,
+                    width: targetWidth,
+                    minWidth: "320px",
+                    name: "Reviewfic - Social Proof Reviews",
                 },
             })) as any
 
@@ -975,13 +1033,13 @@ export async function insertCanvasComponent(config: ReviewConfig): Promise<{ suc
 
             return {
                 success: true,
-                message: "Reviewfic component inserted onto the canvas! Customize it in the property panel as needed.",
+                message: "Reviewfic component inserted onto the canvas!",
             }
         }
 
         return {
             success: true,
-            message: "Reviewfic component updated in your Code Assets! You can drag it onto any page.",
+            message: "Reviewfic component code updated! Drag it onto your page from Assets.",
         }
     } catch (error) {
         return {
@@ -990,6 +1048,34 @@ export async function insertCanvasComponent(config: ReviewConfig): Promise<{ suc
         }
     }
 }
+
+/**
+ * Live updates any existing Reviewfic canvas instance immediately as the user tweaks controls in the studio.
+ */
+export async function syncCanvasInstance(config: ReviewConfig): Promise<boolean> {
+    try {
+        const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
+        const reviewficNodes = instances?.filter(isReviewficInstance) || []
+        if (reviewficNodes.length === 0) return false
+
+        const isBadge = isBadgeLayout(config.layout)
+        const targetWidth = isBadge ? "420px" : "1100px"
+        const controlPayload = buildControlPayload(config)
+
+        for (const node of reviewficNodes) {
+            if (typeof node.setAttributes === "function") {
+                await node.setAttributes({
+                    controls: controlPayload,
+                    width: targetWidth,
+                })
+            }
+        }
+        return true
+    } catch {
+        return false
+    }
+}
+
 
 export function isReviewficInstance(node: any): boolean {
     if (!node) return false

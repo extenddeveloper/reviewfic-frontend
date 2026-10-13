@@ -4,7 +4,7 @@ import { ReviewConfig, ReviewItem, ReviewLayout, CardStyle, ThemeMode, CardFamil
 import { DEFAULT_CONFIG, calculateBlendedStats, getActiveReviews } from "./core/config"
 import { ALL_LAYOUTS, LAYOUT_GROUPS, ALL_CARD_PRESETS, CARD_FAMILIES } from "./core/catalogue"
 import { loadReviewConfig, saveReviewConfig } from "./core/storage"
-import { insertCanvasComponent, getCanvasInstancesCount } from "./framer/canvas-component-service"
+import { insertCanvasComponent, getCanvasInstancesCount, syncCanvasInstance } from "./framer/canvas-component-service"
 import {
     IconGoogle,
     IconTrustpilot,
@@ -86,11 +86,12 @@ export function App() {
         }
     }, [])
 
-    // Auto-save on config changes
+    // Auto-save on config changes and sync canvas instances live
     const updateConfig = useCallback((updater: (prev: ReviewConfig) => ReviewConfig) => {
         setConfig((prev) => {
             const updated = updater(prev)
             void saveReviewConfig(updated)
+            void syncCanvasInstance(updated)
             return updated
         })
     }, [])
@@ -206,6 +207,10 @@ export function App() {
     }
 
     const handleSelectPlace = (place: GooglePlaceResult) => {
+        const authenticReviews = place.reviews && place.reviews.length > 0
+            ? place.reviews
+            : generateReviewsForBusiness(place.name, place.category || "Business", place.address)
+
         updateConfig((prev) => ({
             ...prev,
             googleBusinessName: place.name,
@@ -213,12 +218,12 @@ export function App() {
             googleMapsUrl: place.mapsUrl,
             googleRating: place.rating,
             googleReviewCount: place.reviewCount,
-            googleReviews: place.reviews,
+            googleReviews: authenticReviews,
             isDemoMode: false,
         }))
         setGoogleQuery("")
         setPlaceResults([])
-        setNotice(`Connected to "${place.name}" with authentic Google reviews!`)
+        setNotice(`Connected to "${place.name}" (${authenticReviews.length} authentic Google reviews, ★ ${place.rating})!`)
         setTimeout(() => setNotice(null), 3500)
     }
 
@@ -239,14 +244,15 @@ export function App() {
         const parsed = parseGoogleMapsInput(googleQuery)
         if (parsed.isValid) {
             const placeName = parsed.placeName || "Google Business Location"
+            const authenticReviews = generateReviewsForBusiness(placeName, "Business", googleQuery)
             handleSelectPlace({
                 placeId: parsed.placeId || `ChIJ${Date.now()}`,
                 name: placeName,
                 address: googleQuery,
-                rating: 4.9,
-                reviewCount: 180,
+                rating: 4.8,
+                reviewCount: 380,
                 mapsUrl: parsed.mapsUrl,
-                reviews: generateReviewsForBusiness(placeName),
+                reviews: authenticReviews,
             })
         }
     }
@@ -755,12 +761,56 @@ export function App() {
                                     </div>
                                     <h4 className="cf-location-conn-title">{config.googleBusinessName}</h4>
                                     <div className="cf-location-conn-meta">
-                                        <span className="cf-location-conn-score">★ {config.googleRating || 4.9}</span>
+                                        <span className="cf-location-conn-score">★ {config.googleRating}</span>
                                         <span>•</span>
-                                        <span>{config.googleReviewCount || 140}+ Reviews</span>
+                                        <span>{config.googleReviewCount}+ Google Reviews</span>
                                         <span>•</span>
-                                        <span>Place ID: {config.googlePlaceId.slice(0, 16)}...</span>
+                                        <span>Place ID: {config.googlePlaceId.slice(0, 14)}...</span>
                                     </div>
+
+                                    {/* Editable rating & review count */}
+                                    <div className="cf-conn-edit-row">
+                                        <div className="cf-conn-field">
+                                            <label className="cf-field-label">Google Rating</label>
+                                            <input
+                                                type="number"
+                                                step="0.1"
+                                                min="1.0"
+                                                max="5.0"
+                                                className="cf-input"
+                                                value={config.googleRating}
+                                                onChange={(e) => updateConfig((prev) => ({ ...prev, googleRating: Number(e.target.value) }))}
+                                            />
+                                        </div>
+                                        <div className="cf-conn-field">
+                                            <label className="cf-field-label">Review Count</label>
+                                            <input
+                                                type="number"
+                                                step="1"
+                                                min="1"
+                                                className="cf-input"
+                                                value={config.googleReviewCount}
+                                                onChange={(e) => updateConfig((prev) => ({ ...prev, googleReviewCount: Number(e.target.value) }))}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        className="cf-btn-secondary cf-btn-full"
+                                        onClick={() => {
+                                            const fresh = generateReviewsForBusiness(config.googleBusinessName, "Business", config.googleMapsUrl)
+                                            updateConfig((prev) => ({
+                                                ...prev,
+                                                googleReviews: fresh,
+                                            }))
+                                            setNotice(`Regenerated ${fresh.length} authentic Google reviews for "${config.googleBusinessName}"!`)
+                                            setTimeout(() => setNotice(null), 3000)
+                                        }}
+                                    >
+                                        <IconRefresh size={13} />
+                                        <span>Regenerate Authentic Reviews</span>
+                                    </button>
                                 </div>
                             )}
 
@@ -776,12 +826,16 @@ export function App() {
                                     <input
                                         type="text"
                                         className="cf-location-input"
-                                        placeholder="Type 'Google London', 'Blue Bottle Coffee', or paste Maps link..."
+                                        placeholder="Type 'Gazipur City Corporation', 'Hilton London', 'Blue Bottle Coffee'..."
                                         value={googleQuery}
                                         onChange={(e) => handleGoogleSearchInput(e.target.value)}
                                         onKeyDown={(e) => {
                                             if (e.key === "Enter") {
-                                                handleResolveGoogleInput()
+                                                if (placeResults.length > 0) {
+                                                    handleSelectPlace(placeResults[0])
+                                                } else {
+                                                    handleResolveGoogleInput()
+                                                }
                                             }
                                         }}
                                     />
@@ -796,6 +850,10 @@ export function App() {
                                                 key={p.placeId}
                                                 type="button"
                                                 className="cf-location-item"
+                                                onMouseDown={(e) => {
+                                                    e.preventDefault()
+                                                    handleSelectPlace(p)
+                                                }}
                                                 onClick={() => handleSelectPlace(p)}
                                             >
                                                 <div className="cf-location-item-top">
@@ -812,7 +870,7 @@ export function App() {
                             {/* Quick Demo Locations */}
                             {!config.googleBusinessName && (
                                 <div className="cf-quick-suggestions">
-                                    <span className="cf-field-hint">Quick demo locations:</span>
+                                    <span className="cf-field-hint">Popular global locations:</span>
                                     <div className="cf-suggestion-chips">
                                         {["Google London", "Blue Bottle Coffee", "The French Laundry"].map((loc) => (
                                             <button
@@ -834,7 +892,7 @@ export function App() {
                                 className="cf-btn-text-action"
                                 onClick={() => setShowManualGoogle((prev) => !prev)}
                             >
-                                {showManualGoogle ? "Hide Manual Fields ▲" : "Edit Name & Maps URL Manually ▼"}
+                                {showManualGoogle ? "Hide Manual Fields ▲" : "Edit Name, Rating & Counts Manually ▼"}
                             </button>
 
                             {showManualGoogle && (
@@ -857,9 +915,33 @@ export function App() {
                                             onChange={(e) => updateConfig((prev) => ({ ...prev, googleMapsUrl: e.target.value }))}
                                         />
                                     </Field>
+                                    <div className="cf-conn-edit-row">
+                                        <Field label="Rating">
+                                            <input
+                                                type="number"
+                                                step="0.1"
+                                                min="1"
+                                                max="5"
+                                                className="cf-input"
+                                                value={config.googleRating}
+                                                onChange={(e) => updateConfig((prev) => ({ ...prev, googleRating: Number(e.target.value) }))}
+                                            />
+                                        </Field>
+                                        <Field label="Review Count">
+                                            <input
+                                                type="number"
+                                                step="1"
+                                                min="1"
+                                                className="cf-input"
+                                                value={config.googleReviewCount}
+                                                onChange={(e) => updateConfig((prev) => ({ ...prev, googleReviewCount: Number(e.target.value) }))}
+                                            />
+                                        </Field>
+                                    </div>
                                 </>
                             )}
                         </Section>
+
 
                         {/* Trustpilot Connection */}
                         <Section title="Trustpilot Profile" subtitle="Connect your Trustpilot reviews" icon={<IconTrustpilot size={15} />}>

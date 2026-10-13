@@ -1622,35 +1622,44 @@ button.cf-chip-tab.active {
     border: 1px solid var(--cf-border-hover);
     border-radius: var(--cf-radius-md);
     box-shadow: var(--cf-shadow-lg);
-    z-index: 50;
-    max-height: 230px;
+    z-index: 100;
+    max-height: 260px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
 }
 
-.cf-location-item {
-    padding: 10px 12px;
-    border-bottom: 1px solid var(--cf-border);
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    text-align: left;
+button.cf-location-item {
+    all: unset !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 4px !important;
+    padding: 10px 12px !important;
+    border-bottom: 1px solid var(--cf-border) !important;
+    cursor: pointer !important;
+    text-align: left !important;
     background: transparent !important;
     border-left: none !important;
     border-right: none !important;
     border-top: none !important;
-    transition: background 0.15s ease;
+    transition: background 0.15s ease !important;
     width: 100% !important;
+    height: auto !important;
+    min-height: 48px !important;
+    box-sizing: border-box !important;
+    white-space: normal !important;
+    font-family: inherit !important;
+    color: var(--cf-text-primary) !important;
 }
 
-.cf-location-item:last-child {
-    border-bottom: none;
-}
-
-.cf-location-item:hover {
+button.cf-location-item:hover {
     background: var(--cf-bg-hover) !important;
+}
+
+button.cf-location-item:last-child {
+    border-bottom: none !important;
 }
 
 .cf-location-item-top {
@@ -1769,6 +1778,19 @@ button.cf-btn-text-action:hover {
     align-items: center;
     gap: 6px;
     flex-wrap: wrap;
+}
+
+.cf-conn-edit-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.cf-conn-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 

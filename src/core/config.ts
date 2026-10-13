@@ -9,15 +9,15 @@ export const DEFAULT_CONFIG: ReviewConfig = {
     googlePlaceId: "",
     googleMapsUrl: "",
     googleBusinessName: "Company Studio",
-    googleRating: 4.9,
-    googleReviewCount: 142,
+    googleRating: 4.8,
+    googleReviewCount: 230,
     googleEnabled: true,
     googleReviews: [],
 
     // Trustpilot defaults
     trustpilotDomain: "company.com",
     trustpilotRating: 4.8,
-    trustpilotReviewCount: 88,
+    trustpilotReviewCount: 180,
     trustpilotEnabled: true,
 
     // Custom Reviews

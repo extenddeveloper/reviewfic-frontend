@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef, useCallback } from "react"
 import { ReviewConfig, ReviewItem, BlendedStats, ReviewLayout, CardStyle } from "../../core/types"
 import { IconGoogle, IconTrustpilot, IconStar } from "../icons"
 
@@ -43,16 +43,38 @@ export function LiveStudioPreview({
     } = config
 
     // Interactive state for rotators
-    const [carouselIdx, setCarouselIdx] = useState(0)
     const [spotlightIdx, setSpotlightIdx] = useState(0)
     const [galleryIdx, setGalleryIdx] = useState(0)
     const [orbitIdx, setOrbitIdx] = useState(0)
     const [ribbonIdx, setRibbonIdx] = useState(0)
     const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({})
 
+    const trackRef = useRef<HTMLDivElement>(null)
+    const scrollTrack = useCallback((direction: number) => {
+        if (!trackRef.current) return
+        const firstCard = trackRef.current.firstElementChild as HTMLElement | null
+        const cardWidth = firstCard?.clientWidth || 280
+        trackRef.current.scrollBy({ left: direction * (cardWidth + 16), behavior: "smooth" })
+    }, [])
+
     const toggleExpand = (id: string) => {
         setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }))
     }
+
+    // Auto-rotate carousel
+    useEffect(() => {
+        if (layout !== "carousel" || !config.carouselAutoplay || reviews.length <= 1) return
+        const t = setInterval(() => {
+            if (!trackRef.current) return
+            const maxScroll = trackRef.current.scrollWidth - trackRef.current.clientWidth
+            if (trackRef.current.scrollLeft >= maxScroll - 15) {
+                trackRef.current.scrollTo({ left: 0, behavior: "smooth" })
+            } else {
+                scrollTrack(1)
+            }
+        }, Math.max(2, config.carouselSpeed || 5) * 1000)
+        return () => clearInterval(t)
+    }, [layout, config.carouselAutoplay, config.carouselSpeed, reviews.length, scrollTrack])
 
     // Auto-rotate spotlight
     useEffect(() => {
@@ -166,13 +188,14 @@ export function LiveStudioPreview({
         ["--vr-card-bg" as any]: isDark ? "#181A22" : "#FFFFFF",
         ["--vr-card-border" as any]: isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.08)",
         ["--vr-accent" as any]: "#0099FF",
-        ["--vr-card-min" as any]: "240px",
+        ["--vr-card-min" as any]: "280px",
         ["--vr-card-pad" as any]: "16px",
-        ["--vr-gap" as any]: "12px",
-    }
-
-    const carouselTrackStyle = {
-        transform: `translateX(-${carouselIdx * 100}%)`,
+        ["--vr-gap" as any]: "14px",
+        ["--vr-clamp" as any]: textClamp ? 4 : 100,
+        ["--vr-grid-cols" as any]: config.gridColumns || 3,
+        width: "100%",
+        minWidth: "320px",
+        boxSizing: "border-box" as any,
     }
 
     if (reviews.length === 0) {
@@ -289,42 +312,25 @@ export function LiveStudioPreview({
 
             {/* 3. In Motion */}
             {layout === "carousel" && (
-                <div className="vr-carousel-container">
-                    <div className="vr-carousel-viewport">
-                        <div className="vr-carousel-slider" style={carouselTrackStyle}>
-                            {reviews.map((r, i) => (
-                                <div key={r.id || i} className="vr-carousel-slide">
-                                    {renderCard(r, i)}
-                                </div>
-                            ))}
-                        </div>
+                <div className="vr-carousel-wrapper">
+                    <div className="vr-track" ref={trackRef}>
+                        {reviews.map((r, i) => renderCard(r, i))}
                     </div>
                     {reviews.length > 1 && (
-                        <div className="vr-carousel-controls">
+                        <div className="vr-arrows">
                             <button
                                 type="button"
-                                className="vr-carousel-arrow"
-                                onClick={() => setCarouselIdx((p) => (p - 1 + reviews.length) % reviews.length)}
-                                aria-label="Previous review"
+                                className="vr-arrow"
+                                onClick={() => scrollTrack(-1)}
+                                aria-label="Previous reviews"
                             >
                                 ‹
                             </button>
-                            <div className="vr-carousel-indicators">
-                                {reviews.map((_, i) => (
-                                    <button
-                                        key={i}
-                                        type="button"
-                                        className={`vr-carousel-dot ${i === carouselIdx ? "active" : ""}`}
-                                        onClick={() => setCarouselIdx(i)}
-                                        aria-label={`Slide ${i + 1}`}
-                                    />
-                                ))}
-                            </div>
                             <button
                                 type="button"
-                                className="vr-carousel-arrow"
-                                onClick={() => setCarouselIdx((p) => (p + 1) % reviews.length)}
-                                aria-label="Next review"
+                                className="vr-arrow"
+                                onClick={() => scrollTrack(1)}
+                                aria-label="Next reviews"
                             >
                                 ›
                             </button>
