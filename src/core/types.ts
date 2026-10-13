@@ -65,6 +65,8 @@ export interface ReviewConfig {
     minRatingFilter: number // 0 (all), 4, 5
     hideEmptyText: boolean
     maxReviews: number
+    sortOrder: "newest" | "highest" | "random"
+    textClamp: boolean
 
     // Engine options
     carouselAutoplay: boolean
@@ -75,6 +77,9 @@ export interface ReviewConfig {
     cornerRadius: number // px
     cardPadding: number // px
     cardGap: number // px
+
+    // Branding & Compliance
+    showBrandingBadge: boolean
 
     // SEO
     enableJsonLdSchema: boolean

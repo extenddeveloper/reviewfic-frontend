@@ -39,10 +39,12 @@ export const DEFAULT_CONFIG: ReviewConfig = {
     writeReviewGoogleUrl: "",
     writeReviewTrustpilotUrl: "",
 
-    // Filters
+    // Filters & Curation
     minRatingFilter: 0,
     hideEmptyText: true,
     maxReviews: 12,
+    sortOrder: "newest",
+    textClamp: true,
 
     // Engine
     carouselAutoplay: true,
@@ -53,6 +55,9 @@ export const DEFAULT_CONFIG: ReviewConfig = {
     cornerRadius: 16,
     cardPadding: 20,
     cardGap: 16,
+
+    // Branding & Compliance
+    showBrandingBadge: true,
 
     // SEO
     enableJsonLdSchema: true,
@@ -67,31 +72,20 @@ export function normalizeConfig(saved?: Partial<ReviewConfig> | null): ReviewCon
     }
 }
 
-export function calculateBlendedStats(config: ReviewConfig, activeReviews: ReviewItem[]): BlendedStats {
-    let totalScore = 0
-    let totalCount = 0
-    let googleCount = 0
-    let trustpilotCount = 0
-    let customCount = 0
-
+export function calculateBlendedStats(config: ReviewConfig, _activeReviews?: ReviewItem[]): BlendedStats {
     if (config.isDemoMode) {
-        // Weighted composite of demo reviews
-        activeReviews.forEach((r) => {
-            if (r.hidden) return
+        // Overall rating and review count computed from full source data, even when reviews are hidden
+        let totalScore = 0
+        DEMO_REVIEWS.forEach((r) => {
             totalScore += r.rating
-            totalCount += 1
-            if (r.source === "google") googleCount += 1
-            else if (r.source === "trustpilot") trustpilotCount += 1
-            else customCount += 1
         })
-
-        const avg = totalCount > 0 ? Number((totalScore / totalCount).toFixed(1)) : 4.9
+        const total = DEMO_REVIEWS.length
         return {
-            averageRating: avg || 4.9,
-            totalReviews: totalCount || 8,
-            googleCount: googleCount || 4,
-            trustpilotCount: trustpilotCount || 3,
-            customCount: customCount || 1,
+            averageRating: total > 0 ? Number((totalScore / total).toFixed(1)) : 4.9,
+            totalReviews: total,
+            googleCount: DEMO_REVIEWS.filter((r) => r.source === "google").length,
+            trustpilotCount: DEMO_REVIEWS.filter((r) => r.source === "trustpilot").length,
+            customCount: DEMO_REVIEWS.filter((r) => r.source === "custom").length,
         }
     }
 
@@ -174,11 +168,18 @@ export function getActiveReviews(config: ReviewConfig): ReviewItem[] {
     // Exclude hidden
     list = list.filter((r) => !r.hidden)
 
-    // Sort: Pinned first, then by rating/date
+    // Sort: Pinned first, then by chosen sortOrder
     list.sort((a, b) => {
         if (a.pinned && !b.pinned) return -1
         if (!a.pinned && b.pinned) return 1
-        return b.rating - a.rating
+        if (config.sortOrder === "highest") {
+            return b.rating - a.rating
+        }
+        if (config.sortOrder === "random") {
+            return a.id.localeCompare(b.id)
+        }
+        // "newest" preserves arrival / primary order
+        return 0
     })
 
     if (config.maxReviews > 0) {

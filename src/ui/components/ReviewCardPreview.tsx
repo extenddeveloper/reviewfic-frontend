@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { ReviewConfig, ReviewItem } from "../../core/types"
 import { IconGoogle, IconTrustpilot, IconStar, IconShieldCheck } from "../icons"
 
@@ -7,7 +8,11 @@ export interface ReviewCardPreviewProps {
 }
 
 export function ReviewCardPreview({ review, config }: ReviewCardPreviewProps) {
-    const { cardStyle, starColor, showStars, showSourceIcon, showAvatar, showDate, showVerifiedBadge } = config
+    const { cardStyle, starColor, showStars, showSourceIcon, showAvatar, showDate, showVerifiedBadge, textClamp } = config
+    const [isExpanded, setIsExpanded] = useState(false)
+
+    const isLongText = Boolean(review.text && review.text.length > 120)
+    const shouldClamp = textClamp && !isExpanded && isLongText
 
     return (
         <div className={`cf-review-card ${cardStyle}`}>
@@ -42,7 +47,7 @@ export function ReviewCardPreview({ review, config }: ReviewCardPreviewProps) {
                         {review.source === "google" && <IconGoogle size={15} />}
                         {review.source === "trustpilot" && <IconTrustpilot size={15} />}
                         {review.source === "custom" && (
-                            <span className="cf-custom-source-badge">Direct</span>
+                            <span className="cf-custom-source-badge">Customer testimonial</span>
                         )}
                     </div>
                 )}
@@ -61,7 +66,25 @@ export function ReviewCardPreview({ review, config }: ReviewCardPreviewProps) {
                 </div>
             )}
 
-            <p className="cf-card-text">{review.text}</p>
+            <p className={`cf-card-text ${shouldClamp ? "clamped" : ""}`}>{review.text}</p>
+
+            {textClamp && isLongText && (
+                <button
+                    type="button"
+                    className="cf-read-more-btn"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                >
+                    {isExpanded ? "Show less" : "Read more"}
+                </button>
+            )}
+
+            {review.source === "google" && (
+                <span className="cf-card-footer-link">Read on Google ↗</span>
+            )}
+            {review.source === "trustpilot" && (
+                <span className="cf-card-footer-link">Read on Trustpilot ↗</span>
+            )}
         </div>
     )
 }
+

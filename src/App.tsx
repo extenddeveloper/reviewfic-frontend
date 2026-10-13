@@ -22,6 +22,7 @@ import {
     IconCrown,
     IconSliders,
     IconCheck,
+    IconShieldCheck,
 } from "./ui/icons"
 import { HeroCard } from "./ui/components/HeroCard"
 import { Switch } from "./ui/components/Switch"
@@ -492,6 +493,16 @@ export function App() {
 
                         {/* Google Profile Connection */}
                         <Section title="Google Business Profile" subtitle="Connect your Google Places reviews" icon={<IconGoogle size={15} />}>
+                            <div className="cf-callout-notice">
+                                <div className="cf-callout-title">
+                                    <IconGoogle size={14} />
+                                    <span>Google Places 5-Review Limit Notice</span>
+                                </div>
+                                <p className="cf-callout-text">
+                                    Google’s official Places API strictly returns at most <strong>5 top reviews</strong> per location. To showcase more social proof, you can blend your feed with <strong>Trustpilot</strong> or add bespoke <strong>Customer Testimonials</strong> below.
+                                </p>
+                            </div>
+
                             <Switch
                                 label="Enable Google Reviews"
                                 checked={config.googleEnabled}
@@ -621,6 +632,24 @@ export function App() {
                                 </select>
                             </Field>
 
+                            <Field label="Sort Order">
+                                <select
+                                    className="cf-select"
+                                    value={config.sortOrder}
+                                    onChange={(e) => updateConfig((prev) => ({ ...prev, sortOrder: e.target.value as any }))}
+                                >
+                                    <option value="newest">Newest First (Chronological)</option>
+                                    <option value="highest">Highest Rating (5★ First)</option>
+                                    <option value="random">Random Shuffle (Balanced Showcase)</option>
+                                </select>
+                            </Field>
+
+                            <Switch
+                                label="Clamp Long Reviews with 'Read More'"
+                                checked={config.textClamp}
+                                onChange={(v) => updateConfig((prev) => ({ ...prev, textClamp: v }))}
+                            />
+
                             <Switch
                                 label="Hide Empty Ratings Without Written Comments"
                                 checked={config.hideEmptyText}
@@ -637,6 +666,17 @@ export function App() {
                                     onChange={(e) => updateConfig((prev) => ({ ...prev, maxReviews: Number(e.target.value) }))}
                                 />
                             </Field>
+                        </Section>
+
+                        <Section title="Branding & Attribution" subtitle="Compliance & badge display" icon={<IconShieldCheck size={15} />}>
+                            <Switch
+                                label="Show 'Reviews by Reviewfic' Attribution Badge"
+                                checked={config.showBrandingBadge}
+                                onChange={(v) => updateConfig((prev) => ({ ...prev, showBrandingBadge: v }))}
+                            />
+                            <p className="cf-field-hint">
+                                Free tier includes a discreet Reviewfic attribution mark. Pro plan can toggle this off.
+                            </p>
                         </Section>
 
                         <Section title="SEO & Structured Data" subtitle="Boost organic search ranking" icon={<IconCheck size={15} />}>

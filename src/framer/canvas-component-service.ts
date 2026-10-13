@@ -33,6 +33,9 @@ interface ReviewficProps {
     carouselSpeed?: number
     marqueeSpeed?: "slow" | "normal" | "fast"
     cornerRadius?: number
+    sortOrder?: "newest" | "highest" | "random"
+    textClamp?: boolean
+    showBrandingBadge?: boolean
 }
 
 const DEFAULT_DATA = ${serializedConfig}
@@ -55,15 +58,23 @@ export default function Reviewfic(props: ReviewficProps) {
         carouselSpeed = props.carouselSpeed || DEFAULT_DATA.carouselSpeed || 5,
         marqueeSpeed = props.marqueeSpeed || DEFAULT_DATA.marqueeSpeed || "normal",
         cornerRadius = props.cornerRadius !== undefined ? props.cornerRadius : (DEFAULT_DATA.cornerRadius || 16),
+        sortOrder = props.sortOrder || DEFAULT_DATA.sortOrder || "newest",
+        textClamp = props.textClamp !== undefined ? props.textClamp : (DEFAULT_DATA.textClamp ?? true),
+        showBrandingBadge = props.showBrandingBadge !== undefined ? props.showBrandingBadge : (DEFAULT_DATA.showBrandingBadge ?? true),
     } = props
 
     const reviews = React.useMemo(() => {
-        let list = Array.isArray(DEFAULT_DATA.activeReviews) ? DEFAULT_DATA.activeReviews : []
+        let list = Array.isArray(DEFAULT_DATA.activeReviews) ? [...DEFAULT_DATA.activeReviews] : []
         if (minRating > 0) {
             list = list.filter((r: any) => r.rating >= minRating)
         }
+        if (sortOrder === "highest") {
+            list.sort((a: any, b: any) => (b.rating || 0) - (a.rating || 0))
+        } else if (sortOrder === "random") {
+            list.sort((a: any, b: any) => String(a.id || "").localeCompare(String(b.id || "")))
+        }
         return list
-    }, [minRating])
+    }, [minRating, sortOrder])
 
     const stats = DEFAULT_DATA.stats || {
         averageRating: 4.9,
@@ -74,6 +85,11 @@ export default function Reviewfic(props: ReviewficProps) {
 
     const [carouselIndex, setCarouselIndex] = React.useState(0)
     const [isHovered, setIsHovered] = React.useState(false)
+    const [expandedCards, setExpandedCards] = React.useState<Record<string, boolean>>({})
+
+    const toggleExpand = React.useCallback((id: string) => {
+        setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }))
+    }, [])
 
     // Carousel autoplay timer
     React.useEffect(() => {
@@ -118,9 +134,15 @@ export default function Reviewfic(props: ReviewficProps) {
 
     const renderCard = (r: any, idx: number) => {
         const cardInlineStyle = { borderRadius: cornerRadius + "px" }
+        const cardId = String(r.id || idx)
+        const isExpanded = Boolean(expandedCards[cardId])
+        const isLongText = Boolean(r.text && r.text.length > 120)
+        const shouldClamp = textClamp && !isExpanded && isLongText
+        const displayText = shouldClamp ? r.text.slice(0, 115) + "..." : r.text
+
         return (
             <div
-                key={r.id || idx}
+                key={cardId}
                 className={"rf-card " + cardStyle}
                 style={cardInlineStyle}
             >
@@ -169,7 +191,7 @@ export default function Reviewfic(props: ReviewficProps) {
                                 </svg>
                             )}
                             {r.source === "custom" && (
-                                <span className="rf-custom-pill">Verified</span>
+                                <span className="rf-custom-pill">Customer testimonial</span>
                             )}
                         </div>
                     )}
@@ -177,7 +199,43 @@ export default function Reviewfic(props: ReviewficProps) {
 
                 {showStars && renderStars(r.rating)}
 
-                <p className="rf-card-text">{r.text}</p>
+                <p className={"rf-card-text" + (shouldClamp ? " clamped" : "")}>{displayText}</p>
+
+                {textClamp && isLongText && (
+                    <button
+                        type="button"
+                        className="rf-read-more-btn"
+                        onClick={() => toggleExpand(cardId)}
+                    >
+                        {isExpanded ? "Show less" : "Read more"}
+                    </button>
+                )}
+
+                {r.source === "google" && (
+                    <a
+                        href={r.originalUrl || DEFAULT_DATA.googleMapsUrl || "https://google.com"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rf-platform-link"
+                        title="Read on Google"
+                    >
+                        <span>Read on Google</span>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+                    </a>
+                )}
+
+                {r.source === "trustpilot" && (
+                    <a
+                        href={r.originalUrl || (DEFAULT_DATA.trustpilotDomain ? ("https://trustpilot.com/review/" + DEFAULT_DATA.trustpilotDomain) : "https://trustpilot.com")}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rf-platform-link"
+                        title="Read on Trustpilot"
+                    >
+                        <span>Read on Trustpilot</span>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M7 17L17 7M17 7H7M17 7V17"/></svg>
+                    </a>
+                )}
             </div>
         )
     }
@@ -292,6 +350,7 @@ export default function Reviewfic(props: ReviewficProps) {
                     display: flex;
                     flex-direction: column;
                     gap: 12px;
+                    min-height: 140px;
                 }
                 .rf-card.elevated {
                     box-shadow: var(--rf-shadow);
@@ -370,6 +429,69 @@ export default function Reviewfic(props: ReviewficProps) {
                     line-height: 1.55;
                     margin: 0;
                     color: inherit;
+                }
+                .rf-card-text.clamped {
+                    display: -webkit-box;
+                    -webkit-line-clamp: 3;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
+                .rf-read-more-btn {
+                    background: none;
+                    border: none;
+                    padding: 0;
+                    color: #0077E6;
+                    font-size: 12px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    text-align: left;
+                    margin-top: 2px;
+                    align-self: flex-start;
+                }
+                .rf-read-more-btn:hover {
+                    text-decoration: underline;
+                }
+                .rf-platform-link {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 4px;
+                    font-size: 11px;
+                    font-weight: 500;
+                    color: var(--rf-text-muted);
+                    text-decoration: none;
+                    margin-top: auto;
+                    padding-top: 6px;
+                    transition: color 0.15s ease;
+                }
+                .rf-platform-link:hover {
+                    color: #0077E6;
+                    text-decoration: underline;
+                }
+                .rf-custom-pill {
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 2px 7px;
+                    border-radius: 999px;
+                    font-size: 10px;
+                    font-weight: 600;
+                    background: rgba(0, 119, 230, 0.08);
+                    color: #0077E6;
+                }
+                .rf-badge-brand-link {
+                    color: inherit;
+                    font-weight: 600;
+                    text-decoration: none;
+                }
+                .rf-badge-brand-link:hover {
+                    text-decoration: underline;
+                }
+                @media (prefers-reduced-motion: reduce) {
+                    .rf-marquee-track {
+                        animation: none !important;
+                    }
+                    .rf-carousel-track {
+                        transition: none !important;
+                    }
                 }
 
                 /* Layout: Grid */
@@ -620,9 +742,12 @@ export default function Reviewfic(props: ReviewficProps) {
                 </div>
             )}
 
-            <div className="rf-footer">
-                Verified reviews via Google & Trustpilot · Powered by Reviewfic
-            </div>
+            {showBrandingBadge && (
+                <div className="rf-footer">
+                    <span>Verified reviews via Google &amp; Trustpilot · </span>
+                    <a href="https://reviewfic.com" target="_blank" rel="noopener noreferrer" className="rf-badge-brand-link">Reviews by Reviewfic</a>
+                </div>
+            )}
         </div>
     )
 }
@@ -644,6 +769,9 @@ Reviewfic.defaultProps = {
     carouselSpeed: 5,
     marqueeSpeed: "normal",
     cornerRadius: 16,
+    sortOrder: "newest",
+    textClamp: true,
+    showBrandingBadge: true,
 }
 
 addPropertyControls(Reviewfic, {
@@ -750,6 +878,23 @@ addPropertyControls(Reviewfic, {
         title: "Write Review",
         defaultValue: true,
     },
+    sortOrder: {
+        type: ControlType.Enum,
+        title: "Sort Order",
+        options: ["newest", "highest", "random"],
+        optionTitles: ["Newest First", "Highest Rating", "Random Shuffle"],
+        defaultValue: "newest",
+    },
+    textClamp: {
+        type: ControlType.Boolean,
+        title: "Clamp Long Text",
+        defaultValue: true,
+    },
+    showBrandingBadge: {
+        type: ControlType.Boolean,
+        title: "Reviewfic Badge",
+        defaultValue: true,
+    },
 })
 `
 }
@@ -796,6 +941,9 @@ export async function insertCanvasComponent(config: ReviewConfig): Promise<{ suc
                         carouselSpeed: config.carouselSpeed || 5,
                         marqueeSpeed: config.marqueeSpeed || "normal",
                         cornerRadius: config.cornerRadius || 16,
+                        sortOrder: config.sortOrder || "newest",
+                        textClamp: config.textClamp !== undefined ? config.textClamp : true,
+                        showBrandingBadge: config.showBrandingBadge !== undefined ? config.showBrandingBadge : true,
                     },
                 },
             })) as any
