@@ -1,6 +1,6 @@
-# Framer Plugin Template
+# Reviewfic - Google & Trustpilot Reviews
 
-This is a template for using the Framer Plugin API in a TypeScript project.
+Framer plugin for embedding and customizing Google & Trustpilot customer reviews and testimonials.
 
 ## Quickstart
 
