@@ -39,6 +39,7 @@ export interface ReviewConfig {
     googleRating: number
     googleReviewCount: number
     googleEnabled: boolean
+    googleReviews: ReviewItem[]
 
     // Trustpilot Source
     trustpilotDomain: string

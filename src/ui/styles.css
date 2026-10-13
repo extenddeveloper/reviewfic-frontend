@@ -803,49 +803,59 @@ textarea.cf-input::placeholder {
 }
 
 /* Custom Review Manager Item */
+/* Custom Review Manager Item */
 .cf-custom-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px;
+    padding: 10px 12px;
     background: var(--cf-bg-tertiary);
     border: 1px solid var(--cf-border);
-    border-radius: var(--cf-radius-sm);
-    gap: 8px;
+    border-radius: var(--cf-radius-md);
+    gap: 10px;
+    margin-bottom: 8px;
 }
 
 .cf-custom-item-info {
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    overflow: hidden;
 }
 
 .cf-custom-item-name {
     font-size: 12px;
     font-weight: 600;
+    color: var(--cf-text-primary) !important;
 }
 
 .cf-custom-item-snippet {
     font-size: 11px;
-    color: var(--cf-text-muted);
+    color: var(--cf-text-secondary) !important;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.cf-btn-icon-del {
-    background: transparent;
-    border: none;
-    color: #EF4444;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: var(--cf-radius-sm);
+button.cf-btn-icon-del {
+    width: 28px !important;
+    height: 28px !important;
+    flex: 0 0 28px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    border: none !important;
+    color: #EF4444 !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+    border-radius: var(--cf-radius-sm) !important;
     transition: background 0.2s;
 }
 
-.cf-btn-icon-del:hover {
-    background: rgba(239, 68, 68, 0.15);
+button.cf-btn-icon-del:hover {
+    background: rgba(239, 68, 68, 0.15) !important;
 }
 
 /* Mandatory .primary-cta Button Standard */
@@ -1137,109 +1147,68 @@ textarea.cf-input::placeholder {
     align-self: center;
 }
 
-/* Swatches & Color Chips */
-.cf-color-swatches-row {
+/* Swatches & Circular Color Dots */
+.cf-color-dots-row {
     display: flex;
-    flex-wrap: wrap;
+    align-items: center;
     gap: 8px;
-    align-items: center;
     margin-top: 8px;
+    flex-wrap: wrap;
 }
 
-.cf-color-chip-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 10px;
-    background: var(--cf-bg-tertiary);
-    border: 1px solid var(--cf-border);
-    border-radius: var(--cf-radius-full);
-    color: var(--cf-text-secondary);
-    font-size: 11.5px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s ease;
+button.cf-color-dot {
+    all: unset !important;
+    width: 24px !important;
+    height: 24px !important;
+    border-radius: 50% !important;
+    border: 2px solid transparent !important;
+    cursor: pointer !important;
+    flex: 0 0 24px !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    box-sizing: border-box !important;
 }
 
-.cf-color-chip-btn:hover {
-    background: var(--cf-bg-hover);
-    color: var(--cf-text-primary);
-    border-color: var(--cf-border-hover);
+button.cf-color-dot:hover {
+    transform: scale(1.15) !important;
 }
 
-.cf-color-chip-btn.active {
-    background: var(--cf-bg-secondary);
-    color: var(--cf-accent);
-    border-color: var(--cf-accent);
-    box-shadow: 0 0 0 1px var(--cf-accent);
+button.cf-color-dot.active {
+    transform: scale(1.18) !important;
+    box-shadow: 0 0 0 2px var(--cf-bg), 0 0 0 4px var(--cf-accent) !important;
 }
 
 /* ==========================================================================
-   Phase 2: Live Search, Studio Stage, Layouts & Presets Catalogs
+   Phase 2: Live Studio Stage, Layouts & Presets Catalogs, & Place Resolver
    ========================================================================== */
 
-/* Live Search Bar */
-.cf-search-box {
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: 100%;
-    margin-bottom: 8px;
+/* Universal Button Clashing Fixes:
+   Overrides Framer's @framer/plugin/styles/framer.css global button { width: 100% } */
+button.cf-chip-tab,
+button.cf-stage-btn,
+button.cf-theme-toggle,
+button.cf-profile-btn,
+button.cf-search-clear,
+button.cf-btn-icon-del,
+button.cf-color-dot,
+button.cf-color-chip-btn,
+.vr-root button,
+.vr-root .vr-more,
+.vr-root .vr-dot,
+.vr-root .vr-arrow,
+.vr-root .vr-carousel-arrow,
+.vr-root .vr-gal-face,
+.vr-root .vr-orbit-face {
+    width: auto !important;
+    max-width: none !important;
+    flex-grow: 0 !important;
+    flex-shrink: 0 !important;
 }
 
-.cf-search-box .cf-search-icon {
-    position: absolute;
-    left: 10px;
-    color: var(--cf-text-muted);
-    pointer-events: none;
-    display: flex;
-    align-items: center;
-}
-
-.cf-search-input {
-    width: 100%;
-    padding: 8px 30px 8px 32px !important;
-    background: var(--cf-bg-tertiary) !important;
-    border: 1px solid var(--cf-border) !important;
-    border-radius: var(--cf-radius-md) !important;
-    color: var(--cf-text-primary) !important;
-    font-size: 12px !important;
-    outline: none;
-    transition: all 0.2s;
-}
-
-.cf-search-input:focus {
-    border-color: var(--cf-accent) !important;
-    box-shadow: 0 0 0 2px var(--cf-accent-glow) !important;
-}
-
-.cf-search-clear {
-    position: absolute;
-    right: 8px;
-    background: none;
-    border: none;
-    color: var(--cf-text-muted);
-    font-size: 14px;
+.vr-root button {
+    all: unset;
     cursor: pointer;
-    padding: 2px 4px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.cf-search-clear:hover {
-    color: var(--cf-text-primary);
-    background: var(--cf-bg-hover);
-}
-
-.cf-search-meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 11px;
-    color: var(--cf-text-muted);
-    margin-bottom: 10px;
+    box-sizing: border-box;
 }
 
 /* Live Studio Stage */
@@ -1273,26 +1242,26 @@ textarea.cf-input::placeholder {
     border: 1px solid var(--cf-border);
 }
 
-.cf-stage-btn {
-    padding: 3px 8px;
-    background: transparent;
-    border: none;
-    border-radius: var(--cf-radius-full);
-    font-size: 10.5px;
-    font-weight: 600;
-    color: var(--cf-text-muted);
-    cursor: pointer;
-    transition: all 0.15s ease;
+button.cf-stage-btn {
+    padding: 3px 8px !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: var(--cf-radius-full) !important;
+    font-size: 10.5px !important;
+    font-weight: 600 !important;
+    color: var(--cf-text-muted) !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
 }
 
-.cf-stage-btn:hover {
-    color: var(--cf-text-primary);
+button.cf-stage-btn:hover {
+    color: var(--cf-text-primary) !important;
 }
 
-.cf-stage-btn.active {
-    background: var(--cf-bg-secondary);
-    color: var(--cf-accent);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+button.cf-stage-btn.active {
+    background: var(--cf-bg-secondary) !important;
+    color: var(--cf-accent) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) !important;
 }
 
 .cf-preview-stage {
@@ -1302,6 +1271,8 @@ textarea.cf-input::placeholder {
     position: relative;
     transition: background 0.25s ease, border-color 0.25s ease;
     min-height: 180px;
+    max-height: 460px;
+    overflow-y: auto;
 }
 
 .cf-preview-stage.backdrop-soft {
@@ -1320,6 +1291,63 @@ textarea.cf-input::placeholder {
     background-size: 16px 16px;
 }
 
+.cf-preview-stage .vr-root {
+    padding: 16px 12px !important;
+    --vr-bleed: 0px !important;
+    --vr-card-min: 240px !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Badge Layout Preview Container */
+.vr-badge-preview-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 24px 20px;
+    background: var(--vr-card-bg);
+    border: 1px solid var(--vr-card-border);
+    border-radius: var(--vr-radius);
+    box-shadow: var(--vr-shadow);
+    text-align: center;
+    max-width: 320px;
+    margin: 0 auto;
+}
+
+.vr-badge-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.vr-badge-score {
+    font-size: 38px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--vr-text-primary);
+    letter-spacing: -0.04em;
+}
+
+.vr-badge-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.vr-badge-count {
+    font-size: 11.5px;
+    color: var(--vr-text-muted);
+    font-weight: 500;
+}
+
+.vr-badge-chips {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 /* Scrollable Horizontal Chip Tabs */
 .cf-chip-tabs {
     display: flex;
@@ -1328,40 +1356,43 @@ textarea.cf-input::placeholder {
     padding-bottom: 6px;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+    width: 100%;
 }
 
 .cf-chip-tabs::-webkit-scrollbar {
     display: none;
 }
 
-.cf-chip-tab {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: var(--cf-bg-tertiary);
-    border: 1px solid var(--cf-border);
-    border-radius: var(--cf-radius-full);
-    color: var(--cf-text-secondary);
-    font-size: 11.5px;
-    font-weight: 600;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: all 0.18s ease;
-    flex-shrink: 0;
+button.cf-chip-tab {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 5px 12px !important;
+    background: var(--cf-bg-tertiary) !important;
+    border: 1px solid var(--cf-border) !important;
+    border-radius: var(--cf-radius-full) !important;
+    color: var(--cf-text-secondary) !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+    transition: all 0.18s ease !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
 }
 
-.cf-chip-tab:hover {
-    background: var(--cf-bg-hover);
-    color: var(--cf-text-primary);
-    border-color: var(--cf-border-hover);
+button.cf-chip-tab:hover {
+    background: var(--cf-bg-hover) !important;
+    color: var(--cf-text-primary) !important;
+    border-color: var(--cf-border-hover) !important;
 }
 
-.cf-chip-tab.active {
-    background: var(--cf-accent);
-    color: #FFFFFF;
-    border-color: var(--cf-accent);
-    box-shadow: 0 2px 8px var(--cf-accent-glow);
+button.cf-chip-tab.active {
+    background: var(--cf-accent) !important;
+    color: #FFFFFF !important;
+    border-color: var(--cf-accent) !important;
+    box-shadow: 0 2px 8px var(--cf-accent-glow) !important;
 }
 
 .cf-chip-tab-count {
@@ -1396,6 +1427,7 @@ textarea.cf-input::placeholder {
     cursor: pointer;
     text-align: left;
     transition: all 0.18s ease;
+    width: 100% !important;
 }
 
 .cf-catalog-item:hover {
@@ -1477,6 +1509,7 @@ textarea.cf-input::placeholder {
     cursor: pointer;
     text-align: left;
     transition: all 0.18s ease;
+    width: 100% !important;
 }
 
 .cf-preset-item:hover {
@@ -1521,4 +1554,221 @@ textarea.cf-input::placeholder {
     -webkit-line-clamp: 2;
     overflow: hidden;
 }
+
+/* Google Location Search & Live Resolver */
+.cf-location-search-wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.cf-location-input-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.cf-location-input-icon {
+    position: absolute;
+    left: 10px;
+    color: var(--cf-text-muted);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+}
+
+.cf-location-input {
+    width: 100% !important;
+    padding: 9px 34px 9px 32px !important;
+    background: var(--cf-bg-tertiary) !important;
+    border: 1px solid var(--cf-border) !important;
+    border-radius: var(--cf-radius-md) !important;
+    color: var(--cf-text-primary) !important;
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+    transition: all 0.2s ease !important;
+}
+
+.cf-location-input:focus {
+    border-color: var(--cf-accent) !important;
+    box-shadow: 0 0 0 2px var(--cf-accent-glow) !important;
+}
+
+.cf-location-spinner {
+    position: absolute;
+    right: 10px;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--cf-text-muted);
+    border-top-color: var(--cf-accent);
+    border-radius: 50%;
+    animation: cf-spin 0.6s linear infinite;
+}
+
+@keyframes cf-spin {
+    to { transform: rotate(360deg); }
+}
+
+.cf-location-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--cf-bg-secondary);
+    border: 1px solid var(--cf-border-hover);
+    border-radius: var(--cf-radius-md);
+    box-shadow: var(--cf-shadow-lg);
+    z-index: 50;
+    max-height: 230px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.cf-location-item {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--cf-border);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    text-align: left;
+    background: transparent !important;
+    border-left: none !important;
+    border-right: none !important;
+    border-top: none !important;
+    transition: background 0.15s ease;
+    width: 100% !important;
+}
+
+.cf-location-item:last-child {
+    border-bottom: none;
+}
+
+.cf-location-item:hover {
+    background: var(--cf-bg-hover) !important;
+}
+
+.cf-location-item-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.cf-location-item-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cf-text-primary);
+}
+
+.cf-location-item-rating {
+    font-size: 11px;
+    font-weight: 700;
+    color: #FBBC05;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.cf-location-item-addr {
+    font-size: 10.5px;
+    color: var(--cf-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Connected Google Place Card */
+.cf-location-connected-card {
+    background: var(--cf-bg-tertiary);
+    border: 1px solid rgba(66, 133, 244, 0.35);
+    border-left: 3px solid var(--cf-google);
+    border-radius: var(--cf-radius-md);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.cf-location-conn-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+.cf-location-conn-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--cf-google);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.cf-location-conn-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cf-text-primary);
+    margin: 0;
+}
+
+.cf-location-conn-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 11px;
+    color: var(--cf-text-secondary);
+}
+
+.cf-location-conn-score {
+    color: #FBBC05;
+    font-weight: 700;
+}
+
+.cf-location-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+button.cf-btn-text-action {
+    background: transparent !important;
+    border: none !important;
+    color: var(--cf-accent) !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+    text-decoration: underline !important;
+    width: auto !important;
+}
+
+button.cf-btn-text-action:hover {
+    color: var(--cf-accent-hover) !important;
+}
+
+.cf-quick-suggestions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.cf-suggestion-chips {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
 

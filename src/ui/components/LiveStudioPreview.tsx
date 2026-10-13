@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react"
 import { ReviewConfig, ReviewItem, BlendedStats, ReviewLayout, CardStyle } from "../../core/types"
-import { IconGoogle, IconTrustpilot, IconStar, IconShieldCheck } from "../icons"
+import { IconGoogle, IconTrustpilot, IconStar } from "../icons"
 
 export interface LiveStudioPreviewProps {
     layout: ReviewLayout
@@ -9,6 +9,19 @@ export interface LiveStudioPreviewProps {
     stats: BlendedStats
     config: ReviewConfig
     stageTheme?: "auto" | "light" | "dark"
+}
+
+const PASTELS = ["#fde68a", "#bfdbfe", "#c7d2fe", "#fbcfe8", "#bbf7d0", "#fed7aa"]
+
+function getInitials(name: string): string {
+    const parts = (name || "").trim().split(/\s+/).filter(Boolean)
+    if (!parts.length) return "?"
+    return parts.length === 1 ? parts[0].slice(0, 2).toUpperCase() : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
+
+function getShortName(name: string): string {
+    const parts = (name || "").trim().split(/\s+/).filter(Boolean)
+    return parts.length < 2 ? name || "Verified Customer" : parts[0] + " " + parts[parts.length - 1][0].toUpperCase() + "."
 }
 
 export function LiveStudioPreview({
@@ -23,9 +36,7 @@ export function LiveStudioPreview({
         starColor = "#FBBC05",
         showStars = true,
         showSourceIcon = true,
-        showAvatar = true,
         showDate = true,
-        showVerifiedBadge = true,
         showWriteReview = true,
         textClamp = true,
         cornerRadius = 16,
@@ -73,7 +84,7 @@ export function LiveStudioPreview({
 
     const renderStars = (rating: number, size = 14) => {
         return (
-            <div className="vr-stars">
+            <span className="vr-stars">
                 {[1, 2, 3, 4, 5].map((s) => (
                     <IconStar
                         key={s}
@@ -82,7 +93,7 @@ export function LiveStudioPreview({
                         color={starColor}
                     />
                 ))}
-            </div>
+            </span>
         )
     }
 
@@ -93,73 +104,71 @@ export function LiveStudioPreview({
         const shouldClamp = textClamp && !isExpanded && isLong
         const displayText = shouldClamp ? r.text.slice(0, 125) + "..." : r.text
 
-        return (
-            <div key={cardId} className={`vr-card vrp-${cardStyle} ${extraClass}`}>
-                <div className="vr-card-head">
-                    <div className="vr-card-author-wrap">
-                        {showAvatar && (
-                            <div className="vr-avatar">
-                                {r.authorAvatar ? (
-                                    <img src={r.authorAvatar} alt={r.authorName} className="vr-avatar-img" />
-                                ) : (
-                                    <div className="vr-avatar-fallback">
-                                        {(r.authorName || "C").charAt(0).toUpperCase()}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        <div className="vr-card-author-info">
-                            <div className="vr-card-name-row">
-                                <span className="vr-name">{r.authorName}</span>
-                                {showVerifiedBadge && r.verified && (
-                                    <span className="vr-verified-badge" title="Verified Customer">
-                                        <IconShieldCheck size={12} />
-                                    </span>
-                                )}
-                            </div>
-                            {showDate && <span className="vr-date">{r.date}</span>}
-                        </div>
-                    </div>
+        const avatarBgStyle = {
+            background: PASTELS[idx % PASTELS.length],
+        }
 
+        return (
+            <article key={cardId} className={`vr-card vrp-${cardStyle} ${extraClass}`}>
+                <div className="vr-id">
+                    <span className="vr-avatar" style={avatarBgStyle}>
+                        {getInitials(r.authorName)}
+                    </span>
+                    <span className="vr-name">{getShortName(r.authorName)}</span>
+                </div>
+
+                <span className="vr-src">
                     {showSourceIcon && (
-                        <div className="vr-source-icon">
-                            {r.source === "google" && <IconGoogle size={15} />}
-                            {r.source === "trustpilot" && <IconTrustpilot size={15} />}
-                            {r.source === "custom" && (
-                                <span className="vr-custom-pill">Customer testimonial</span>
-                            )}
-                        </div>
+                        <span className="vr-badge">
+                            {r.source === "google" && <IconGoogle size={14} />}
+                            {r.source === "trustpilot" && <IconTrustpilot size={14} />}
+                            {r.source === "custom" && <span className="vr-custom-pill">Verified</span>}
+                        </span>
+                    )}
+                </span>
+
+                <div className="vr-mid">
+                    <p className={`vr-body ${shouldClamp ? "vr-clamped" : "vr-expanded"}`}>{displayText}</p>
+                    {textClamp && isLong && (
+                        <button
+                            type="button"
+                            className="vr-more"
+                            onClick={() => toggleExpand(cardId)}
+                        >
+                            {isExpanded ? "Show less" : "Read more"}
+                        </button>
                     )}
                 </div>
 
-                {showStars && renderStars(r.rating)}
+                <div className="vr-bl">
+                    {showStars && renderStars(r.rating, 14)}
+                </div>
 
-                <p className={`vr-body ${shouldClamp ? "clamped" : ""}`}>{displayText}</p>
+                <div className="vr-br">
+                    {showDate && <span className="vr-date">{r.date}</span>}
+                </div>
 
-                {textClamp && isLong && (
-                    <button
-                        type="button"
-                        className="vr-read-more-btn"
-                        onClick={() => toggleExpand(cardId)}
-                    >
-                        {isExpanded ? "Show less" : "Read more"}
-                    </button>
+                {config.showBrandingBadge && (
+                    <span className="vr-stamp">
+                        Powered by <b>Reviewfic</b>
+                    </span>
                 )}
-
-                {r.source === "google" && (
-                    <span className="vr-platform-link">Read on Google ↗</span>
-                )}
-                {r.source === "trustpilot" && (
-                    <span className="vr-platform-link">Read on Trustpilot ↗</span>
-                )}
-            </div>
+            </article>
         )
     }
 
-    // Single-bracket style objects to comply with Zero-Inline-CSS rule
+    const isDark = stageTheme === "dark" || (stageTheme === "auto" && config.themeMode === "dark")
     const rootStyleObj = {
         ["--vr-star" as any]: starColor,
         ["--vr-radius" as any]: `${cornerRadius}px`,
+        ["--vr-text-primary" as any]: isDark ? "#F3F4F6" : "#18181B",
+        ["--vr-head-text" as any]: isDark ? "#F3F4F6" : "#18181B",
+        ["--vr-card-bg" as any]: isDark ? "#181A22" : "#FFFFFF",
+        ["--vr-card-border" as any]: isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.08)",
+        ["--vr-accent" as any]: "#0099FF",
+        ["--vr-card-min" as any]: "240px",
+        ["--vr-card-pad" as any]: "16px",
+        ["--vr-gap" as any]: "12px",
     }
 
     const carouselTrackStyle = {
@@ -176,7 +185,7 @@ export function LiveStudioPreview({
 
     return (
         <div className={`vr-root vrp-${cardStyle} ${stageTheme}`} style={rootStyleObj}>
-            {/* Header for non-badge layouts */}
+            {/* Header for non-badge and non-rotator layouts */}
             {![
                 "badge",
                 "avatars",
@@ -196,8 +205,14 @@ export function LiveStudioPreview({
                     </div>
 
                     <div className="vr-chips">
-                        <span className="vr-chip">Google ({stats.googleCount})</span>
-                        <span className="vr-chip">Trustpilot ({stats.trustpilotCount})</span>
+                        <span className="vr-chip">
+                            <IconGoogle size={12} />
+                            <span>Google ({stats.googleCount})</span>
+                        </span>
+                        <span className="vr-chip">
+                            <IconTrustpilot size={12} />
+                            <span>Trustpilot ({stats.trustpilotCount})</span>
+                        </span>
                     </div>
 
                     {showWriteReview && (
@@ -364,39 +379,47 @@ export function LiveStudioPreview({
             {/* 4. Dedicated Designs / Reading */}
             {layout === "compact" && (
                 <div className="vr-compact">
-                    {reviews.map((r, i) => (
-                        <div key={r.id || i} className="vr-crow">
-                            <div className="vr-avatar">
-                                <div className="vr-avatar-fallback">{r.authorName.charAt(0)}</div>
+                    {reviews.map((r, i) => {
+                        const avStyle = { background: PASTELS[i % PASTELS.length] }
+                        return (
+                            <div key={r.id || i} className="vr-crow">
+                                <span className="vr-avatar" style={avStyle}>
+                                    {getInitials(r.authorName)}
+                                </span>
+                                <div className="vr-cwho">
+                                    <span className="vr-name">{getShortName(r.authorName)}</span>
+                                    <span className="vr-cq">{r.text}</span>
+                                </div>
+                                <div className="vr-cmeta">
+                                    {renderStars(r.rating, 11)}
+                                    <span className="vr-date">{r.date}</span>
+                                </div>
                             </div>
-                            <div className="vr-cwho">
-                                <span className="vr-name">{r.authorName}</span>
-                                <span className="vr-cq">{r.text}</span>
-                            </div>
-                            <div className="vr-cmeta">
-                                {renderStars(r.rating, 11)}
-                                <span className="vr-date">{r.date}</span>
-                            </div>
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
             )}
 
             {layout === "split" && (
                 <div className="vr-split">
-                    {reviews.map((r, i) => (
-                        <div key={r.id || i} className="vr-split-row">
-                            <div className="vr-split-who">
-                                <div className="vr-avatar">
-                                    <div className="vr-avatar-fallback">{r.authorName.charAt(0)}</div>
+                    {reviews.map((r, i) => {
+                        const avStyle = { background: PASTELS[i % PASTELS.length] }
+                        return (
+                            <div key={r.id || i} className="vr-split-row">
+                                <div className="vr-split-who">
+                                    <span className="vr-split-id">
+                                        <span className="vr-avatar" style={avStyle}>
+                                            {getInitials(r.authorName)}
+                                        </span>
+                                        <span className="vr-name">{getShortName(r.authorName)}</span>
+                                    </span>
+                                    {renderStars(r.rating, 12)}
+                                    <span className="vr-date">{r.date}</span>
                                 </div>
-                                <span className="vr-name">{r.authorName}</span>
-                                {renderStars(r.rating, 12)}
-                                <span className="vr-date">{r.date}</span>
+                                <p className="vr-split-b">{r.text}</p>
                             </div>
-                            <p className="vr-split-b">{r.text}</p>
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
             )}
 
@@ -407,7 +430,7 @@ export function LiveStudioPreview({
                             <span key={i} className="vr-flow-item">
                                 <span className="vr-flow-t">{r.text}</span>
                                 <span className="vr-flow-w">
-                                    <span className="vr-name">{r.authorName}</span>
+                                    <span className="vr-name">{getShortName(r.authorName)}</span>
                                     {renderStars(r.rating, 11)}
                                 </span>
                             </span>
@@ -418,7 +441,7 @@ export function LiveStudioPreview({
                             <span key={i} className="vr-flow-item">
                                 <span className="vr-flow-t">{r.text}</span>
                                 <span className="vr-flow-w">
-                                    <span className="vr-name">{r.authorName}</span>
+                                    <span className="vr-name">{getShortName(r.authorName)}</span>
                                     {renderStars(r.rating, 11)}
                                 </span>
                             </span>
@@ -462,7 +485,7 @@ export function LiveStudioPreview({
                         {reviews[ribbonIdx] && (
                             <div className="vr-ribbon-q">
                                 <span className="vr-ribbon-t">{reviews[ribbonIdx].text}</span>
-                                <span className="vr-ribbon-w">— {reviews[ribbonIdx].authorName}</span>
+                                <span className="vr-ribbon-w">— {getShortName(reviews[ribbonIdx].authorName)}</span>
                             </div>
                         )}
                     </div>
@@ -476,30 +499,29 @@ export function LiveStudioPreview({
                             <div className="vr-gal-card">
                                 <p className="vr-gal-q">"{reviews[galleryIdx].text}"</p>
                                 <div className="vr-gal-who">
-                                    <span className="vr-name">{reviews[galleryIdx].authorName}</span>
+                                    <span className="vr-name">{getShortName(reviews[galleryIdx].authorName)}</span>
                                     {renderStars(reviews[galleryIdx].rating, 13)}
                                 </div>
                             </div>
                         )}
                     </div>
                     <div className="vr-gal-faces">
-                        {reviews.slice(0, 8).map((r, i) => (
-                            <button
-                                key={r.id || i}
-                                type="button"
-                                className={`vr-gal-face ${i === galleryIdx ? "on" : ""}`}
-                                onClick={() => setGalleryIdx(i)}
-                                title={r.authorName}
-                            >
-                                <div className="vr-avatar">
-                                    {r.authorAvatar ? (
-                                        <img src={r.authorAvatar} alt={r.authorName} />
-                                    ) : (
-                                        <div className="vr-avatar-fallback">{r.authorName.charAt(0)}</div>
-                                    )}
-                                </div>
-                            </button>
-                        ))}
+                        {reviews.slice(0, 8).map((r, i) => {
+                            const avStyle = { background: PASTELS[i % PASTELS.length] }
+                            return (
+                                <button
+                                    key={r.id || i}
+                                    type="button"
+                                    className={`vr-gal-face ${i === galleryIdx ? "on" : ""}`}
+                                    onClick={() => setGalleryIdx(i)}
+                                    title={r.authorName}
+                                >
+                                    <span className="vr-avatar" style={avStyle}>
+                                        {getInitials(r.authorName)}
+                                    </span>
+                                </button>
+                            )
+                        })}
                     </div>
                 </div>
             )}
@@ -513,53 +535,78 @@ export function LiveStudioPreview({
                         {reviews[orbitIdx] && (
                             <div className="vr-orbit-slot">
                                 <p className="vr-orbit-q">"{reviews[orbitIdx].text}"</p>
-                                <span className="vr-orbit-who">— {reviews[orbitIdx].authorName}</span>
+                                <span className="vr-orbit-who">— {getShortName(reviews[orbitIdx].authorName)}</span>
                             </div>
                         )}
                     </div>
                     <div className="vr-orbit-faces-row">
-                        {reviews.slice(0, 8).map((r, i) => (
-                            <button
-                                key={r.id || i}
-                                type="button"
-                                className={`vr-orbit-face ${i === orbitIdx ? "on" : ""}`}
-                                onClick={() => setOrbitIdx(i)}
-                                title={r.authorName}
-                            >
-                                <div className="vr-avatar">
-                                    <div className="vr-avatar-fallback">{r.authorName.charAt(0)}</div>
-                                </div>
-                            </button>
-                        ))}
+                        {reviews.slice(0, 8).map((r, i) => {
+                            const avStyle = { background: PASTELS[i % PASTELS.length] }
+                            return (
+                                <button
+                                    key={r.id || i}
+                                    type="button"
+                                    className={`vr-orbit-face ${i === orbitIdx ? "on" : ""}`}
+                                    onClick={() => setOrbitIdx(i)}
+                                    title={r.authorName}
+                                >
+                                    <span className="vr-avatar" style={avStyle}>
+                                        {getInitials(r.authorName)}
+                                    </span>
+                                </button>
+                            )
+                        })}
                     </div>
                 </div>
             )}
 
-            {/* 5. Badges & Proof */}
+            {/* 5. Badges & Social Proof */}
             {layout === "badge" && (
-                <div className="vr-badge">
-                    {renderStars(stats.averageRating, 14)}
-                    <span className="vr-badge-score">{stats.averageRating}</span>
-                    <span className="vr-badge-text">Rated {stats.averageRating}/5 on Google &amp; Trustpilot ({stats.totalReviews}+ reviews)</span>
+                <div className="vr-badge-preview-card">
+                    <div className="vr-badge-top">
+                        <span className="vr-badge-score">{stats.averageRating}</span>
+                        <div className="vr-badge-meta">
+                            {renderStars(stats.averageRating, 16)}
+                            <span className="vr-badge-count">Rated {stats.averageRating}/5 on Google &amp; Trustpilot ({stats.totalReviews}+ reviews)</span>
+                        </div>
+                    </div>
+                    <div className="vr-badge-chips">
+                        <span className="vr-chip">
+                            <IconGoogle size={13} />
+                            <span>Google ({stats.googleCount})</span>
+                        </span>
+                        <span className="vr-chip">
+                            <IconTrustpilot size={13} />
+                            <span>Trustpilot ({stats.trustpilotCount})</span>
+                        </span>
+                    </div>
                 </div>
             )}
 
             {layout === "avatars" && (
                 <div className="vr-trustedby">
-                    <div className="vr-tb-avatars">
-                        {reviews.slice(0, 5).map((r, i) => (
-                            <div key={r.id || i} className="vr-tb-av">
-                                <div className="vr-avatar-fallback">{r.authorName.charAt(0)}</div>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="vr-tb-info">
-                        <div className="vr-tb-top">
-                            {renderStars(stats.averageRating, 13)}
+                    <span className="vr-tb-avatars">
+                        {reviews.slice(0, 5).map((r, i) => {
+                            const avStyle = {
+                                background: PASTELS[i % PASTELS.length],
+                                zIndex: 10 - i,
+                            }
+                            return (
+                                <span key={r.id || i} className="vr-tb-av">
+                                    <span className="vr-avatar" style={avStyle}>
+                                        {getInitials(r.authorName)}
+                                    </span>
+                                </span>
+                            )
+                        })}
+                    </span>
+                    <span className="vr-tb-info">
+                        <span className="vr-tb-top">
+                            {renderStars(stats.averageRating, 14)}
                             <span className="vr-tb-rating">{stats.averageRating} / 5</span>
-                        </div>
+                        </span>
                         <span className="vr-tb-count">Trusted by {stats.totalReviews}+ customers</span>
-                    </div>
+                    </span>
                 </div>
             )}
 
@@ -569,17 +616,17 @@ export function LiveStudioPreview({
                     {renderStars(stats.averageRating, 16)}
                     <span className="vr-rc-c">Based on {stats.totalReviews} reviews</span>
                     <div className="vr-rc-src">
-                        <IconGoogle size={14} />
-                        <IconTrustpilot size={14} />
+                        <IconGoogle size={16} />
+                        <IconTrustpilot size={16} />
                     </div>
                 </div>
             )}
 
             {layout === "gbadge" && (
                 <div className="vr-gb">
-                    <span className="vr-gb-n">{stats.googleCount > 0 ? config.googleRating : stats.averageRating}</span>
+                    <span className="vr-gb-n">{stats.averageRating}</span>
                     <div className="vr-gb-mid">
-                        {renderStars(stats.googleCount > 0 ? config.googleRating : stats.averageRating, 15)}
+                        {renderStars(stats.averageRating, 15)}
                         <span className="vr-gb-c">Based on {stats.googleCount || stats.totalReviews} Google reviews</span>
                     </div>
                     <div className="vr-gb-mark">
@@ -591,15 +638,19 @@ export function LiveStudioPreview({
 
             {layout === "trustpilot" && (
                 <div className="vr-tp-badge">
-                    <span className="vr-tp-rating">{stats.trustpilotCount > 0 ? config.trustpilotRating : stats.averageRating}</span>
-                    <div className="vr-tp-mid">
-                        {renderStars(stats.trustpilotCount > 0 ? config.trustpilotRating : stats.averageRating, 15)}
-                        <span className="vr-tp-c">Based on {stats.trustpilotCount || stats.totalReviews} Trustpilot reviews</span>
+                    <span className="vr-tp-word">Excellent</span>
+                    <div className="vr-tp-stars">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                            <span key={s} className="vr-tp-box">★</span>
+                        ))}
                     </div>
-                    <div className="vr-tp-mark">
-                        <IconTrustpilot size={18} />
-                        <span>Trustpilot</span>
-                    </div>
+                    <span className="vr-tp-label">
+                        <u>{stats.totalReviews} reviews on</u>
+                    </span>
+                    <span className="vr-tp-brand">
+                        <IconTrustpilot size={16} />
+                        <b>Trustpilot</b>
+                    </span>
                 </div>
             )}
         </div>

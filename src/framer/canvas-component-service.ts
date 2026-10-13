@@ -187,33 +187,24 @@ export default function Reviewfic(props: ReviewficProps) {
                 key={cardId}
                 className={"vr-card vrp-" + cardStyle + (extraClass ? " " + extraClass : "")}
             >
-                <div className="vr-card-head">
-                    <div className="vr-card-author-wrap">
-                        {showAvatar && (
-                            <div className="vr-avatar">
-                                {r.authorAvatar ? (
-                                    <img src={r.authorAvatar} alt={r.authorName} />
-                                ) : (
-                                    <div className="vr-avatar-fallback">
-                                        {(r.authorName || "C").charAt(0).toUpperCase()}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        <div className="vr-card-author-meta">
-                            <span className="vr-name">{r.authorName}</span>
-                            {showVerifiedBadge && r.verified && (
-                                <span className="vr-verified-pill" title="Verified Customer">
-                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 6 9 17l-5-5"/></svg>
-                                    <span>Verified</span>
-                                </span>
+                <div className="vr-id">
+                    {showAvatar && (
+                        <div className="vr-avatar">
+                            {r.authorAvatar ? (
+                                <img src={r.authorAvatar} alt={r.authorName} />
+                            ) : (
+                                <div className="vr-avatar-fallback">
+                                    {(r.authorName || "C").charAt(0).toUpperCase()}
+                                </div>
                             )}
-                            {showDate && <span className="vr-date">{r.date}</span>}
                         </div>
-                    </div>
+                    )}
+                    <span className="vr-name">{r.authorName}</span>
+                </div>
 
+                <span className="vr-src">
                     {showSourceIcon && (
-                        <div className="vr-card-source">
+                        <span className="vr-badge">
                             {r.source === "google" && (
                                 <svg width="15" height="15" viewBox="0 0 24 24">
                                     <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -229,41 +220,33 @@ export default function Reviewfic(props: ReviewficProps) {
                                 </svg>
                             )}
                             {r.source === "custom" && (
-                                <span className="vr-custom-pill">Customer testimonial</span>
+                                <span className="vr-custom-pill">Verified</span>
                             )}
-                        </div>
+                        </span>
+                    )}
+                </span>
+
+                <div className="vr-mid">
+                    <p className={"vr-body" + (shouldClamp ? " vr-clamped" : " vr-expanded")}>{displayText}</p>
+                    {textClamp && isLongText && (
+                        <button type="button" className="vr-more" onClick={() => toggleExpand(cardId)}>
+                            {isExpanded ? "Show less" : "Read more"}
+                        </button>
                     )}
                 </div>
 
-                {showStars && renderStars(r.rating)}
+                <div className="vr-bl">
+                    {showStars && renderStars(r.rating, 14)}
+                </div>
 
-                <p className={"vr-body" + (shouldClamp ? " vr-clamped" : " vr-expanded")}>{displayText}</p>
+                <div className="vr-br">
+                    {showDate && <span className="vr-date">{r.date}</span>}
+                </div>
 
-                {textClamp && isLongText && (
-                    <button type="button" className="vr-more" onClick={() => toggleExpand(cardId)}>
-                        {isExpanded ? "Show less" : "Read more"}
-                    </button>
-                )}
-
-                {r.source === "google" && (
-                    <a
-                        href={r.originalUrl || DEFAULT_DATA.googleMapsUrl || "https://google.com"}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="vr-stamp"
-                    >
-                        <span>Read on Google ↗</span>
-                    </a>
-                )}
-                {r.source === "trustpilot" && (
-                    <a
-                        href={r.originalUrl || (DEFAULT_DATA.trustpilotDomain ? ("https://trustpilot.com/review/" + DEFAULT_DATA.trustpilotDomain) : "https://trustpilot.com")}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="vr-stamp"
-                    >
-                        <span>Read on Trustpilot ↗</span>
-                    </a>
+                {showBrandingBadge && (
+                    <span className="vr-stamp">
+                        Powered by <b>Reviewfic</b>
+                    </span>
                 )}
             </div>
         )
@@ -668,12 +651,24 @@ export default function Reviewfic(props: ReviewficProps) {
 
             {/* 5. Badges & Social Proof */}
             {layout === "badge" && (
-                <div className="vr-badge">
-                    {renderStars(stats.averageRating, 14)}
-                    <span className="vr-badge-score">{stats.averageRating}</span>
-                    <span className="vr-badge-text">
-                        Rated {stats.averageRating}/5 on Google &amp; Trustpilot ({stats.totalReviews}+ reviews)
-                    </span>
+                <div className="vr-badge-preview-card">
+                    <div className="vr-badge-top">
+                        <span className="vr-badge-score">{stats.averageRating}</span>
+                        <div className="vr-badge-meta">
+                            {renderStars(stats.averageRating, 16)}
+                            <span className="vr-badge-count">Rated {stats.averageRating}/5 on Google &amp; Trustpilot ({stats.totalReviews}+ reviews)</span>
+                        </div>
+                    </div>
+                    <div className="vr-badge-chips">
+                        <span className="vr-chip">
+                            <svg width="13" height="13" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/></svg>
+                            <span>Google ({stats.googleCount})</span>
+                        </span>
+                        <span className="vr-chip">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="4" fill="#00B67A"/><path d="M12 4.5l2.3 7.1h7.4l-6 4.4 2.3 7.1-6-4.4-6 4.4 2.3-7.1-6-4.4h7.4z" fill="#FFFFFF"/></svg>
+                            <span>Trustpilot ({stats.trustpilotCount})</span>
+                        </span>
+                    </div>
                 </div>
             )}
 

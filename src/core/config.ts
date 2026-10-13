@@ -12,6 +12,7 @@ export const DEFAULT_CONFIG: ReviewConfig = {
     googleRating: 4.9,
     googleReviewCount: 142,
     googleEnabled: true,
+    googleReviews: [],
 
     // Trustpilot defaults
     trustpilotDomain: "company.com",
@@ -69,6 +70,7 @@ export function normalizeConfig(saved?: Partial<ReviewConfig> | null): ReviewCon
         ...DEFAULT_CONFIG,
         ...saved,
         customReviews: Array.isArray(saved.customReviews) ? saved.customReviews : DEFAULT_CONFIG.customReviews,
+        googleReviews: Array.isArray(saved.googleReviews) ? saved.googleReviews : DEFAULT_CONFIG.googleReviews,
     }
 }
 
@@ -142,8 +144,14 @@ export function getActiveReviews(config: ReviewConfig): ReviewItem[] {
     if (config.isDemoMode) {
         list = [...DEMO_REVIEWS]
     } else {
-        // Include custom reviews + any synced reviews
-        list = [...config.customReviews]
+        const gList = config.googleEnabled && Array.isArray(config.googleReviews) && config.googleReviews.length > 0
+            ? config.googleReviews
+            : []
+        list = [...gList, ...config.customReviews]
+        // Fallback to demo reviews if live sources have not yet been connected
+        if (list.length === 0) {
+            list = [...DEMO_REVIEWS]
+        }
     }
 
     // Filter by source mode

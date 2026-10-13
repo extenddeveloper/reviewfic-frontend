@@ -48,7 +48,7 @@ try {
         (framer as any).showUncheckedPermissionToasts = false
     }
     if (typeof (framer as any).isAllowedTo === "function") {
-        ;(framer as any).isAllowedTo(
+        ; (framer as any).isAllowedTo(
             "createCodeFile",
             "addComponentInstance",
             "setSelection",
@@ -56,7 +56,7 @@ try {
             "getPluginData"
         )
     }
-} catch {}
+} catch { }
 
 try {
     framer.showUI({
@@ -64,7 +64,7 @@ try {
         width: 400,
         height: 720,
     })
-} catch {}
+} catch { }
 
 const root = document.getElementById("root")
 if (!root) throw new Error("Root element not found")
