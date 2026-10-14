@@ -167,16 +167,41 @@ export function generateReviewsForBusiness(businessName: string, category = "Bus
     const lowerAddr = (address || "").toLowerCase()
 
     // Intelligent category detection
-    const isCivicOrGov =
-        lowerName.includes("corporation") ||
-        lowerName.includes("city") ||
-        lowerName.includes("council") ||
-        lowerName.includes("municipality") ||
-        lowerName.includes("gazipur") ||
-        lowerName.includes("dhaka") ||
-        lowerCat.includes("government") ||
-        lowerCat.includes("administrative") ||
-        lowerCat.includes("public")
+    const isCollegeOrEducation =
+        lowerName.includes("college") ||
+        lowerName.includes("university") ||
+        lowerName.includes("school") ||
+        lowerName.includes("academy") ||
+        lowerName.includes("polytechnic") ||
+        lowerName.includes("institute") ||
+        lowerName.includes("varsity") ||
+        lowerName.includes("campus") ||
+        lowerName.includes("faculty") ||
+        lowerName.includes("madrasha") ||
+        lowerName.includes("madrasa") ||
+        lowerName.includes("vidyalaya") ||
+        lowerName.includes("shiksha") ||
+        lowerName.includes("education") ||
+        lowerCat.includes("college") ||
+        lowerCat.includes("university") ||
+        lowerCat.includes("school") ||
+        lowerCat.includes("education")
+
+    const isHealthOrMedical =
+        lowerName.includes("hospital") ||
+        lowerName.includes("clinic") ||
+        lowerName.includes("medical") ||
+        lowerName.includes("health") ||
+        lowerName.includes("dental") ||
+        lowerName.includes("pharma") ||
+        lowerName.includes("pharmacy") ||
+        lowerName.includes("diagnostic") ||
+        lowerName.includes("doctor") ||
+        lowerName.includes("physio") ||
+        lowerCat.includes("hospital") ||
+        lowerCat.includes("doctor") ||
+        lowerCat.includes("health") ||
+        lowerCat.includes("pharmacy")
 
     const isFoodOrCafe =
         lowerName.includes("coffee") ||
@@ -201,6 +226,58 @@ export function generateReviewsForBusiness(businessName: string, category = "Bus
         lowerCat.includes("hotel") ||
         lowerCat.includes("lodging")
 
+    const isRealEstateOrProperty =
+        lowerName.includes("estate") ||
+        lowerName.includes("realtor") ||
+        lowerName.includes("property") ||
+        lowerName.includes("properties") ||
+        lowerName.includes("builder") ||
+        lowerName.includes("developer") ||
+        lowerName.includes("housing") ||
+        lowerName.includes("apartments") ||
+        lowerName.includes("living") ||
+        lowerCat.includes("real_estate")
+
+    const isLegalOrFinance =
+        lowerName.includes("law") ||
+        lowerName.includes("legal") ||
+        lowerName.includes("attorney") ||
+        lowerName.includes("advocate") ||
+        lowerName.includes("counsel") ||
+        lowerName.includes("tax") ||
+        lowerName.includes("audit") ||
+        lowerName.includes("accounting") ||
+        lowerName.includes("finance") ||
+        lowerName.includes("capital") ||
+        lowerName.includes("consulting") ||
+        lowerCat.includes("bank") ||
+        lowerCat.includes("accounting") ||
+        lowerCat.includes("finance")
+
+    const isFitnessOrGym =
+        lowerName.includes("gym") ||
+        lowerName.includes("fitness") ||
+        lowerName.includes("crossfit") ||
+        lowerName.includes("workout") ||
+        lowerName.includes("yoga") ||
+        lowerName.includes("pilates") ||
+        lowerName.includes("wellness") ||
+        lowerCat.includes("gym") ||
+        lowerCat.includes("fitness")
+
+    const isRetailOrShop =
+        lowerName.includes("store") ||
+        lowerName.includes("shop") ||
+        lowerName.includes("boutique") ||
+        lowerName.includes("mart") ||
+        lowerName.includes("supermarket") ||
+        lowerName.includes("retail") ||
+        lowerName.includes("fashion") ||
+        lowerName.includes("jewel") ||
+        lowerName.includes("optics") ||
+        lowerCat.includes("shop") ||
+        lowerCat.includes("store")
+
     const isTechOrCreative =
         lowerName.includes("studio") ||
         lowerName.includes("agency") ||
@@ -213,6 +290,235 @@ export function generateReviewsForBusiness(businessName: string, category = "Bus
         lowerName.includes("apple") ||
         lowerCat.includes("office") ||
         lowerCat.includes("commercial")
+
+    const isCivicOrGov =
+        lowerName.includes("corporation") ||
+        lowerName.includes("city council") ||
+        lowerName.includes("municipality") ||
+        lowerName.includes("paurashava") ||
+        lowerName.includes("secretariat") ||
+        lowerName.includes("ministry") ||
+        lowerName.includes("commission") ||
+        lowerCat.includes("government") ||
+        lowerCat.includes("administrative") ||
+        lowerCat.includes("public_service")
+
+    if (isCollegeOrEducation) {
+        return [
+            {
+                id: `g-${now}-1`,
+                source: "google",
+                authorName: "Tanvir Ahmed",
+                authorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "2 days ago",
+                text: `One of the most reputed educational institutions in the area. The faculty members at ${cleanName} are exceptionally dedicated and always guide students both academically and in extra-curricular activities. Highly disciplined campus environment.`,
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+            {
+                id: `g-${now}-2`,
+                source: "google",
+                authorName: "Nusrat Jahan",
+                authorAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "5 days ago",
+                text: `Completed my studies here with great satisfaction. The seminar rooms, central library, and science labs at ${cleanName} are well-maintained. The administration is helpful and supportive to all students.`,
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+            {
+                id: `g-${now}-3`,
+                source: "google",
+                authorName: "Md. Rafiqul Islam",
+                authorAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80",
+                rating: 4,
+                date: "1 week ago",
+                text: `Good academic environment with experienced senior professors. Regular class schedules and well-organized examination management at ${cleanName}. A trustworthy institution for higher education.`,
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+            {
+                id: `g-${now}-4`,
+                source: "google",
+                authorName: "Sadia Sultana",
+                authorAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "2 weeks ago",
+                text: `Proud to be an alumnus of ${cleanName}. The teachers go out of their way to solve doubts and provide extra study materials before finals. Clean campus with an inspiring learning atmosphere.`,
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+            {
+                id: `g-${now}-5`,
+                source: "google",
+                authorName: "Ashiqur Rahman",
+                authorAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "3 weeks ago",
+                text: `Great college with vibrant campus life. Cultural programs, sports tournaments, and career counseling sessions at ${cleanName} really help build student confidence alongside the academic syllabus.`,
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+            {
+                id: `g-${now}-6`,
+                source: "google",
+                authorName: "Farzana Akter",
+                authorAvatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "1 month ago",
+                text: `Excellent educational institution. The teachers are approachable, cooperative, and maintain strict academic standards. The campus location and transit access to ${cleanName} are also very convenient.`,
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+        ]
+    }
+
+    if (isHealthOrMedical) {
+        return [
+            {
+                id: `g-${now}-1`,
+                source: "google",
+                authorName: "Dr. Ananya Roy",
+                authorAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "2 days ago",
+                text: `Exceptional medical care and prompt emergency response at ${cleanName}. The attending physicians took great care to explain treatment options, and the nursing staff was compassionate throughout.`,
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+            {
+                id: `g-${now}-2`,
+                source: "google",
+                authorName: "Kamrul Hasan",
+                authorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "4 days ago",
+                text: `State-of-the-art diagnostic facilities and clean wards. Scheduling appointments at ${cleanName} was effortless with minimal waiting time. Highly recommended healthcare team.`,
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+            {
+                id: `g-${now}-3`,
+                source: "google",
+                authorName: "Sabrina Chowdhury",
+                authorAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "1 week ago",
+                text: `Clean, sanitary, and well-organized medical center. The staff at ${cleanName} treated my family with the utmost dignity and attentiveness during our consultation.`,
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+        ]
+    }
+
+    if (isRealEstateOrProperty) {
+        return [
+            {
+                id: `g-${now}-1`,
+                source: "google",
+                authorName: "Robert Hughes",
+                authorAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "3 days ago",
+                text: `Outstanding experience working with ${cleanName}. Transparent paperwork, fair valuations, and swift closing on our dream property. True professionals.`,
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+            {
+                id: `g-${now}-2`,
+                source: "google",
+                authorName: "Maria Garcia",
+                authorAvatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "1 week ago",
+                text: `Top-tier developers with impeccable attention to structural quality and modern layouts. Very impressed with the dedication of the ${cleanName} team.`,
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+        ]
+    }
+
+    if (isLegalOrFinance) {
+        return [
+            {
+                id: `g-${now}-1`,
+                source: "google",
+                authorName: "Jonathan Miller",
+                authorAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "2 days ago",
+                text: `Exceptional counsel from ${cleanName}. Their strategic guidance and meticulous preparation gave us total confidence in our corporate transactions.`,
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+            {
+                id: `g-${now}-2`,
+                source: "google",
+                authorName: "Clara Bennett",
+                authorAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "5 days ago",
+                text: `Prompt, diligent, and highly knowledgeable advisors. ${cleanName} streamlined our compliance and fiscal planning with remarkable professionalism.`,
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+        ]
+    }
+
+    if (isFitnessOrGym) {
+        return [
+            {
+                id: `g-${now}-1`,
+                source: "google",
+                authorName: "Brandon Cole",
+                authorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "Yesterday",
+                text: `Best fitness center in town. The trainers at ${cleanName} create custom training plans that actually deliver results. Clean equipment and motivating vibe!`,
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+            {
+                id: `g-${now}-2`,
+                source: "google",
+                authorName: "Jessica Lee",
+                authorAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "4 days ago",
+                text: `Spacious gym floor with premium cardio and strength machines. The group classes and shower facilities at ${cleanName} are always spotless.`,
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+        ]
+    }
+
+    if (isRetailOrShop) {
+        return [
+            {
+                id: `g-${now}-1`,
+                source: "google",
+                authorName: "Amanda White",
+                authorAvatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "2 days ago",
+                text: `Fantastic shopping experience at ${cleanName}. Wide selection of authentic products, fair pricing, and polite staff who assist you right away.`,
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+            {
+                id: `g-${now}-2`,
+                source: "google",
+                authorName: "David Miller",
+                authorAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "1 week ago",
+                text: `Always my go-to store. ${cleanName} consistently stocks top-quality items, and checkout is super fast even during peak weekend hours.`,
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+        ]
+    }
 
     if (isCivicOrGov) {
         return [

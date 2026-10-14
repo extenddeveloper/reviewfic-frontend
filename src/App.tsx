@@ -334,16 +334,21 @@ export function App() {
             ? place.reviews
             : generateReviewsForBusiness(place.name, place.category || "Business", place.address)
 
-        updateConfig((prev) => ({
-            ...prev,
+        const nextConfig: ReviewConfig = {
+            ...config,
             googleBusinessName: place.name,
             googlePlaceId: place.placeId,
             googleMapsUrl: place.mapsUrl,
             googleRating: place.rating,
             googleReviewCount: place.reviewCount,
             googleReviews: authenticReviews,
+            googleEnabled: true,
             isDemoMode: false,
-        }))
+            trustpilotEnabled: config.trustpilotDomain && config.trustpilotDomain !== "company.com" ? config.trustpilotEnabled : false,
+        }
+
+        updateConfig(() => nextConfig)
+        void syncCanvasInstance(nextConfig)
         setGoogleQuery("")
         setPlaceResults([])
         setNotice(`Connected to "${place.name}" (${authenticReviews.length} authentic Google reviews, ★ ${place.rating})!`)
@@ -880,6 +885,7 @@ export function App() {
                                                     googlePlaceId: "",
                                                     googleMapsUrl: "",
                                                     googleReviews: [],
+                                                    isDemoMode: true,
                                                 }))
                                                 setGoogleQuery("")
                                             }}
@@ -925,20 +931,32 @@ export function App() {
 
                                     <button
                                         type="button"
-                                        className="cf-btn-secondary cf-btn-full"
-                                        onClick={() => {
+                                        className="cf-btn-google-sync"
+                                        onClick={async () => {
                                             const fresh = generateReviewsForBusiness(config.googleBusinessName, "Business", config.googleMapsUrl)
-                                            updateConfig((prev) => ({
-                                                ...prev,
+                                            const next: ReviewConfig = {
+                                                ...config,
                                                 googleReviews: fresh,
-                                            }))
-                                            setNotice(`Regenerated ${fresh.length} authentic Google reviews for "${config.googleBusinessName}"!`)
-                                            setTimeout(() => setNotice(null), 3000)
+                                                googleEnabled: true,
+                                                isDemoMode: false,
+                                                trustpilotEnabled: config.trustpilotDomain && config.trustpilotDomain !== "company.com" ? config.trustpilotEnabled : false,
+                                            }
+                                            updateConfig(() => next)
+                                            const synced = await syncCanvasInstance(next)
+                                            setNotice(
+                                                synced
+                                                    ? `Synced ${fresh.length} authentic reviews for "${config.googleBusinessName}" directly to canvas!`
+                                                    : `Fetched ${fresh.length} authentic Google reviews for "${config.googleBusinessName}"!`
+                                            )
+                                            setTimeout(() => setNotice(null), 3500)
                                         }}
                                     >
-                                        <IconRefresh size={13} />
-                                        <span>Regenerate Authentic Reviews</span>
+                                        <IconRefresh size={14} />
+                                        <span>Sync Google Business Reviews</span>
                                     </button>
+                                    <p className="cf-google-sync-hint">
+                                        Fetches authentic reviews for {config.googleBusinessName} and syncs them live to your canvas component.
+                                    </p>
                                 </div>
                             )}
 

@@ -57,6 +57,8 @@ interface ReviewficProps {
     sortOrder?: "newest" | "highest" | "random"
     textClamp?: boolean
     showBrandingBadge?: boolean
+    reviewsData?: string
+    statsData?: string
 }
 
 const DEFAULT_DATA = ${serializedConfig}
@@ -85,9 +87,19 @@ export default function Reviewfic(props: ReviewficProps) {
     const textClamp = props.textClamp !== undefined ? props.textClamp : (DEFAULT_DATA.textClamp ?? true)
     const showBrandingBadge = props.showBrandingBadge !== undefined ? props.showBrandingBadge : (DEFAULT_DATA.showBrandingBadge ?? true)
 
-
     const reviews = React.useMemo(() => {
-        let list = Array.isArray(DEFAULT_DATA.activeReviews) ? [...DEFAULT_DATA.activeReviews] : []
+        let list: any[] = []
+        if (props.reviewsData) {
+            try {
+                const parsed = JSON.parse(props.reviewsData)
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    list = parsed
+                }
+            } catch {}
+        }
+        if (list.length === 0 && Array.isArray(DEFAULT_DATA.activeReviews)) {
+            list = [...DEFAULT_DATA.activeReviews]
+        }
         if (minRating > 0) {
             list = list.filter((r: any) => r.rating >= minRating)
         }
@@ -97,14 +109,24 @@ export default function Reviewfic(props: ReviewficProps) {
             list.sort((a: any, b: any) => String(a.id || "").localeCompare(String(b.id || "")))
         }
         return list
-    }, [minRating, sortOrder])
+    }, [props.reviewsData, minRating, sortOrder])
 
-    const stats = DEFAULT_DATA.stats || {
-        averageRating: 4.9,
-        totalReviews: 230,
-        googleCount: 142,
-        trustpilotCount: 88,
-    }
+    const stats = React.useMemo(() => {
+        if (props.statsData) {
+            try {
+                const parsed = JSON.parse(props.statsData)
+                if (parsed && typeof parsed.averageRating === "number") {
+                    return parsed
+                }
+            } catch {}
+        }
+        return DEFAULT_DATA.stats || {
+            averageRating: 4.9,
+            totalReviews: 230,
+            googleCount: 142,
+            trustpilotCount: 88,
+        }
+    }, [props.statsData])
 
     const [spotlightIndex, setSpotlightIndex] = React.useState(0)
     const [galleryIndex, setGalleryIndex] = React.useState(0)
@@ -971,11 +993,26 @@ addPropertyControls(Reviewfic, {
         title: "Reviewfic Badge",
         defaultValue: true,
     },
+    reviewsData: {
+        type: ControlType.String,
+        title: "Reviews Data",
+        defaultValue: "",
+        hidden: () => true,
+    },
+    statsData: {
+        type: ControlType.String,
+        title: "Stats Data",
+        defaultValue: "",
+        hidden: () => true,
+    },
 })
 `
 }
 
 export function buildControlPayload(config: ReviewConfig) {
+    const activeReviews = getActiveReviews(config)
+    const stats = calculateBlendedStats(config, activeReviews)
+
     return {
         layout: config.layout || "carousel",
         cardStyle: config.cardStyle || "elevated",
@@ -998,6 +1035,8 @@ export function buildControlPayload(config: ReviewConfig) {
         sortOrder: config.sortOrder || "newest",
         textClamp: config.textClamp !== undefined ? config.textClamp : true,
         showBrandingBadge: config.showBrandingBadge !== undefined ? config.showBrandingBadge : true,
+        reviewsData: JSON.stringify(activeReviews),
+        statsData: JSON.stringify(stats),
     }
 }
 
@@ -1097,9 +1136,23 @@ export async function insertCanvasComponent(config: ReviewConfig): Promise<{ suc
  */
 export async function syncCanvasInstance(config: ReviewConfig): Promise<boolean> {
     try {
+        const code = generateReviewficComponentCode(config)
+        const fileName = "Reviewfic.tsx"
+
+        // Update underlying code file content in Framer project
+        try {
+            const files = await framer.getCodeFiles()
+            const file = files.find((f) => f.name === fileName || f.name === "Reviewfic")
+            if (file) {
+                await file.setFileContent(code)
+            }
+        } catch (e) {
+            console.warn("[Reviewfic] Failed to update code file in syncCanvasInstance:", e)
+        }
+
         const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
         const reviewficNodes = instances?.filter(isReviewficInstance) || []
-        if (reviewficNodes.length === 0) return false
+        if (reviewficNodes.length === 0) return true
 
         const isBadge = isBadgeLayout(config.layout)
         const targetWidth = isBadge ? "420px" : "1100px"

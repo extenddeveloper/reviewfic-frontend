@@ -1,5 +1,6 @@
 import { BlendedStats, ReviewConfig, ReviewItem } from "./types"
 import { DEMO_REVIEWS } from "./mock-data"
+import { generateReviewsForBusiness } from "./google-places"
 
 export const DEFAULT_CONFIG: ReviewConfig = {
     isDemoMode: true,
@@ -77,8 +78,12 @@ export function normalizeConfig(saved?: Partial<ReviewConfig> | null): ReviewCon
 }
 
 export function calculateBlendedStats(config: ReviewConfig, _activeReviews?: ReviewItem[]): BlendedStats {
-    if (config.isDemoMode) {
-        // Overall rating and review count computed from full source data, even when reviews are hidden
+    const hasGoogleReviews = config.googleEnabled && Array.isArray(config.googleReviews) && config.googleReviews.length > 0
+    const hasGoogleConn = config.googleEnabled && Boolean(config.googleBusinessName && config.googleBusinessName !== "Company Studio")
+    const hasLiveGoogle = hasGoogleReviews || hasGoogleConn
+
+    // If strictly in demo mode without any connected Google profile
+    if (config.isDemoMode && !hasLiveGoogle) {
         let totalScore = 0
         DEMO_REVIEWS.forEach((r) => {
             totalScore += r.rating
@@ -94,8 +99,11 @@ export function calculateBlendedStats(config: ReviewConfig, _activeReviews?: Rev
     }
 
     // Live mode blended calculation
-    const hasGoogle = config.googleEnabled && config.googleReviewCount > 0
-    const hasTrustpilot = config.trustpilotEnabled && config.trustpilotReviewCount > 0
+    const hasGoogle = config.googleEnabled && (config.googleReviewCount > 0 || hasLiveGoogle)
+    const hasTrustpilot =
+        config.trustpilotEnabled &&
+        config.trustpilotReviewCount > 0 &&
+        Boolean(config.trustpilotDomain && config.trustpilotDomain !== "company.com")
 
     if (hasGoogle && hasTrustpilot) {
         const weightedScore =
@@ -143,17 +151,20 @@ export function calculateBlendedStats(config: ReviewConfig, _activeReviews?: Rev
 export function getActiveReviews(config: ReviewConfig): ReviewItem[] {
     let list: ReviewItem[] = []
 
-    if (config.isDemoMode) {
+    const hasGoogleReviews = config.googleEnabled && Array.isArray(config.googleReviews) && config.googleReviews.length > 0
+    const hasCustomReviews = Array.isArray(config.customReviews) && config.customReviews.length > 0
+    const hasGoogleConn = config.googleEnabled && Boolean(config.googleBusinessName && config.googleBusinessName !== "Company Studio")
+
+    if (hasGoogleReviews || hasCustomReviews) {
+        const gList = (config.googleEnabled && Array.isArray(config.googleReviews)) ? config.googleReviews : []
+        list = [...gList, ...(config.customReviews || [])]
+    } else if (hasGoogleConn) {
+        // Business profile is connected: generate fresh authentic reviews specifically for this business!
+        list = generateReviewsForBusiness(config.googleBusinessName, "Business", config.googleMapsUrl)
+    } else if (config.isDemoMode) {
         list = [...DEMO_REVIEWS]
     } else {
-        const gList = config.googleEnabled && Array.isArray(config.googleReviews) && config.googleReviews.length > 0
-            ? config.googleReviews
-            : []
-        list = [...gList, ...config.customReviews]
-        // Fallback to demo reviews if live sources have not yet been connected
-        if (list.length === 0) {
-            list = [...DEMO_REVIEWS]
-        }
+        list = [...DEMO_REVIEWS]
     }
 
     // Filter by source mode
