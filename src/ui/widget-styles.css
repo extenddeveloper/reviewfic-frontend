@@ -901,3 +901,41 @@ a.vr-chip:hover,a.vr-badge:hover{border-color:var(--vr-accent);opacity:1;}
   display: block;
 }
 
+/* Trustpilot Badge Layout */
+.vr-tp-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  border: 1px solid var(--vr-card-border);
+  border-radius: 12px;
+  background: var(--vr-card-bg);
+  box-shadow: var(--vr-shadow);
+}
+.vr-tp-badge .vr-tp-rating {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--vr-text-primary);
+  line-height: 1;
+}
+.vr-tp-badge .vr-tp-mid {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.vr-tp-badge .vr-tp-c {
+  font-size: 12.5px;
+  color: var(--vr-text-muted);
+}
+.vr-tp-badge .vr-tp-mark {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 14px;
+  border-left: 1px solid var(--vr-card-border);
+  font-size: 13px;
+  font-weight: 600;
+  color: #00B67A;
+}
+

@@ -2547,3 +2547,45 @@ button.cf-btn-tp-sync:disabled {
     border-color: var(--cf-accent, #0099FF) !important;
     color: var(--cf-accent, #0099FF) !important;
 }
+
+/* Trustpilot Badge Layout */
+.vr-tp-badge {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 14px !important;
+    padding: 12px 18px !important;
+    border: 1px solid var(--vr-card-border, rgba(0, 0, 0, 0.08)) !important;
+    border-radius: 12px !important;
+    background: var(--vr-card-bg, #FFFFFF) !important;
+    box-shadow: var(--vr-shadow, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
+}
+
+.vr-tp-badge .vr-tp-rating {
+    font-size: 30px !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.03em !important;
+    color: var(--vr-text-primary, #18181B) !important;
+    line-height: 1 !important;
+}
+
+.vr-tp-badge .vr-tp-mid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+}
+
+.vr-tp-badge .vr-tp-c {
+    font-size: 12.5px !important;
+    color: var(--vr-text-muted, rgba(0, 0, 0, 0.45)) !important;
+}
+
+.vr-tp-badge .vr-tp-mark {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding-left: 14px !important;
+    border-left: 1px solid var(--vr-card-border, rgba(0, 0, 0, 0.08)) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: #00B67A !important;
+}

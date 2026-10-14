@@ -168,7 +168,7 @@ export function LiveStudioPreview({
         }
 
         return (
-            <article key={cardId} className={`vr-card vrp-${cardStyle} ${extraClass}`}>
+            <article key={`${cardId}-${idx}-${extraClass}`} className={`vr-card vrp-${cardStyle} ${extraClass}`}>
                 <div className="vr-id">
                     {showAvatar && (
                         <span className="vr-avatar" style={r.authorAvatar ? undefined : avatarBgStyle}>
@@ -730,19 +730,15 @@ export function LiveStudioPreview({
 
             {layout === "trustpilot" && (
                 <div className="vr-tp-badge">
-                    <span className="vr-tp-word">Excellent</span>
-                    <div className="vr-tp-stars">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                            <span key={s} className="vr-tp-box">★</span>
-                        ))}
+                    <span className="vr-tp-rating">{stats.averageRating}</span>
+                    <div className="vr-tp-mid">
+                        {renderStars(stats.averageRating, 15, "trustpilot")}
+                        <span className="vr-tp-c">Based on {stats.trustpilotCount || stats.totalReviews} Trustpilot reviews</span>
                     </div>
-                    <span className="vr-tp-label">
-                        <u>{stats.totalReviews} reviews on</u>
-                    </span>
-                    <span className="vr-tp-brand">
-                        <IconTrustpilot size={16} />
-                        <b>Trustpilot</b>
-                    </span>
+                    <div className="vr-tp-mark">
+                        <IconTrustpilot size={18} />
+                        <span>Trustpilot</span>
+                    </div>
                 </div>
             )}
         </div>

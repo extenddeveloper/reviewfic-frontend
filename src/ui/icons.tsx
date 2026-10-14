@@ -20,9 +20,11 @@ export function IconGoogle({ size = 16, className }: IconProps) {
 export function IconTrustpilot({ size = 16, className }: IconProps) {
     return (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
-            <rect width="24" height="24" rx="4" fill="#00B67A" />
-            <path d="M12 4.5l2.3 7.1h7.4l-6 4.4 2.3 7.1-6-4.4-6 4.4 2.3-7.1-6-4.4h7.4z" fill="#FFFFFF" />
-            <path d="M14.3 11.6l-2.3-7.1v11.5l6 4.4z" fill="#005128" opacity="0.15" />
+            <rect width="24" height="24" rx="3.5" fill="#00B67A" />
+            <path
+                d="M12 4.2l1.9 5.8h6.1l-4.9 3.6 1.9 5.8-5-3.6-5 3.6 1.9-5.8-4.9-3.6h6.1z"
+                fill="#FFFFFF"
+            />
         </svg>
     )
 }
