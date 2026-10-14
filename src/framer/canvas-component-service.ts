@@ -58,6 +58,7 @@ interface ReviewficProps {
     sortOrder?: "newest" | "highest" | "random"
     textClamp?: boolean
     showBrandingBadge?: boolean
+    trustpilotStarStyle?: boolean
     reviewsData?: string
     statsData?: string
 }
@@ -88,6 +89,7 @@ export default function Reviewfic(props: ReviewficProps) {
     const sortOrder = props.sortOrder || DEFAULT_DATA.sortOrder || "newest"
     const textClamp = props.textClamp !== undefined ? props.textClamp : (DEFAULT_DATA.textClamp ?? true)
     const showBrandingBadge = props.showBrandingBadge !== undefined ? props.showBrandingBadge : (DEFAULT_DATA.showBrandingBadge ?? true)
+    const trustpilotStarStyle = props.trustpilotStarStyle !== undefined ? props.trustpilotStarStyle : (DEFAULT_DATA.trustpilotStarStyle ?? true)
 
     const reviews = React.useMemo(() => {
         let list: any[] = []
@@ -215,7 +217,29 @@ export default function Reviewfic(props: ReviewficProps) {
         })
     }, [reviews])
 
-    const renderStars = (rating: number, size = 14) => {
+    const renderStars = (rating: number, size = 14, source?: string) => {
+        const isTp = source === "trustpilot" && trustpilotStarStyle
+        if (isTp) {
+            return (
+                <div className="vr-tp-stars-row">
+                    {[1, 2, 3, 4, 5].map((s) => {
+                        const isFilled = s <= Math.round(rating)
+                        return (
+                            <span key={s} className={"vr-tp-star-box" + (isFilled ? " filled" : " empty")}>
+                                <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+                                    <rect width="24" height="24" rx="3" fill={isFilled ? "#00B67A" : "#DCDCE6"} />
+                                    <path d="M12 4.5l2.3 7.1h7.4l-6 4.4 2.3 7.1-6-4.4-6 4.4 2.3-7.1-6-4.4h7.4z" fill="#FFFFFF" />
+                                    {isFilled && (
+                                        <path d="M14.3 11.6l-2.3-7.1v11.5l6 4.4z" fill="#005128" opacity="0.18" />
+                                    )}
+                                </svg>
+                            </span>
+                        )
+                    })}
+                </div>
+            )
+        }
+
         return (
             <div className="vr-stars">
                 {[1, 2, 3, 4, 5].map((s) => (
@@ -300,7 +324,7 @@ export default function Reviewfic(props: ReviewficProps) {
                 </div>
 
                 <div className="vr-bl">
-                    {showStars && renderStars(r.rating, 14)}
+                    {showStars && renderStars(r.rating, 14, r.source)}
                 </div>
 
                 <div className="vr-br">
@@ -575,7 +599,7 @@ export default function Reviewfic(props: ReviewficProps) {
                                     <div className="vr-avatar-fallback">{r.authorName.charAt(0)}</div>
                                 </div>
                                 <span className="vr-name">{r.authorName}</span>
-                                {renderStars(r.rating, 12)}
+                                {renderStars(r.rating, 12, r.source)}
                                 <span className="vr-date">{r.date}</span>
                             </div>
                             <p className="vr-split-b">{r.text}</p>
@@ -592,7 +616,7 @@ export default function Reviewfic(props: ReviewficProps) {
                                 <span className="vr-flow-t">{r.text}</span>
                                 <span className="vr-flow-w">
                                     <span className="vr-name">{r.authorName}</span>
-                                    {renderStars(r.rating, 11)}
+                                    {renderStars(r.rating, 11, r.source)}
                                 </span>
                             </span>
                         ))}
@@ -603,7 +627,7 @@ export default function Reviewfic(props: ReviewficProps) {
                                 <span className="vr-flow-t">{r.text}</span>
                                 <span className="vr-flow-w">
                                     <span className="vr-name">{r.authorName}</span>
-                                    {renderStars(r.rating, 11)}
+                                    {renderStars(r.rating, 11, r.source)}
                                 </span>
                             </span>
                         ))}
@@ -661,7 +685,7 @@ export default function Reviewfic(props: ReviewficProps) {
                                 <p className="vr-gal-q">"{reviews[galleryIndex].text}"</p>
                                 <div className="vr-gal-who">
                                     <span className="vr-name">{reviews[galleryIndex].authorName}</span>
-                                    {renderStars(reviews[galleryIndex].rating, 13)}
+                                    {renderStars(reviews[galleryIndex].rating, 13, reviews[galleryIndex]?.source)}
                                 </div>
                             </div>
                         )}
@@ -693,7 +717,7 @@ export default function Reviewfic(props: ReviewficProps) {
                     <div className="vr-orbit-ring" />
                     <div className="vr-orbit-mid">
                         <span className="vr-orbit-n">{(reviews[orbitIndex]?.rating || stats.averageRating).toFixed(1)}</span>
-                        {renderStars(reviews[orbitIndex]?.rating || stats.averageRating, 16)}
+                        {renderStars(reviews[orbitIndex]?.rating || stats.averageRating, 16, reviews[orbitIndex]?.source)}
                         {reviews[orbitIndex] && (
                             <p className="vr-orbit-q">"{reviews[orbitIndex].text}"</p>
                         )}
@@ -990,6 +1014,11 @@ addPropertyControls(Reviewfic, {
         title: "Write Review",
         defaultValue: true,
     },
+    trustpilotStarStyle: {
+        type: ControlType.Boolean,
+        title: "TP Star Style",
+        defaultValue: true,
+    },
     sortOrder: {
         type: ControlType.Enum,
         title: "Sort Order",
@@ -1040,6 +1069,7 @@ export function buildControlPayload(config: ReviewConfig) {
         showDate: config.showDate !== undefined ? config.showDate : true,
         showVerifiedBadge: config.showVerifiedBadge !== undefined ? config.showVerifiedBadge : true,
         showWriteReview: config.showWriteReview !== undefined ? config.showWriteReview : true,
+        trustpilotStarStyle: config.trustpilotStarStyle !== undefined ? config.trustpilotStarStyle : true,
         minRating: config.minRatingFilter || 0,
         carouselAutoplay: config.carouselAutoplay !== undefined ? config.carouselAutoplay : true,
         carouselSpeed: config.carouselSpeed || 5,

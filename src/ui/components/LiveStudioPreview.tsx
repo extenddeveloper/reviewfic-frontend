@@ -118,7 +118,29 @@ export function LiveStudioPreview({
         })
     }, [reviews])
 
-    const renderStars = (rating: number, size = 14) => {
+    const renderStars = (rating: number, size = 14, source?: string) => {
+        const isTp = source === "trustpilot" && (config.trustpilotStarStyle ?? true)
+        if (isTp) {
+            return (
+                <span className="vr-tp-stars-row">
+                    {[1, 2, 3, 4, 5].map((s) => {
+                        const isFilled = s <= Math.round(rating)
+                        return (
+                            <span key={s} className={`vr-tp-star-box ${isFilled ? "filled" : "empty"}`}>
+                                <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+                                    <rect width="24" height="24" rx="3" fill={isFilled ? "#00B67A" : "#DCDCE6"} />
+                                    <path d="M12 4.5l2.3 7.1h7.4l-6 4.4 2.3 7.1-6-4.4-6 4.4 2.3-7.1-6-4.4h7.4z" fill="#FFFFFF" />
+                                    {isFilled && (
+                                        <path d="M14.3 11.6l-2.3-7.1v11.5l6 4.4z" fill="#005128" opacity="0.18" />
+                                    )}
+                                </svg>
+                            </span>
+                        )
+                    })}
+                </span>
+            )
+        }
+
         return (
             <span className="vr-stars">
                 {[1, 2, 3, 4, 5].map((s) => (
@@ -177,7 +199,7 @@ export function LiveStudioPreview({
                 </div>
 
                 <div className="vr-bl">
-                    {showStars && renderStars(r.rating, 14)}
+                    {showStars && renderStars(r.rating, 14, r.source)}
                 </div>
 
                 <div className="vr-br">
@@ -439,7 +461,7 @@ export function LiveStudioPreview({
                                         </span>
                                         <span className="vr-name">{getShortName(r.authorName)}</span>
                                     </span>
-                                    {renderStars(r.rating, 12)}
+                                    {renderStars(r.rating, 12, r.source)}
                                     <span className="vr-date">{r.date}</span>
                                 </div>
                                 <p className="vr-split-b">{r.text}</p>
@@ -457,7 +479,7 @@ export function LiveStudioPreview({
                                 <span className="vr-flow-t">{r.text}</span>
                                 <span className="vr-flow-w">
                                     <span className="vr-name">{getShortName(r.authorName)}</span>
-                                    {renderStars(r.rating, 11)}
+                                    {renderStars(r.rating, 11, r.source)}
                                 </span>
                             </span>
                         ))}
@@ -468,7 +490,7 @@ export function LiveStudioPreview({
                                 <span className="vr-flow-t">{r.text}</span>
                                 <span className="vr-flow-w">
                                     <span className="vr-name">{getShortName(r.authorName)}</span>
-                                    {renderStars(r.rating, 11)}
+                                    {renderStars(r.rating, 11, r.source)}
                                 </span>
                             </span>
                         ))}
@@ -526,7 +548,7 @@ export function LiveStudioPreview({
                                 <p className="vr-gal-q">"{reviews[galleryIdx].text}"</p>
                                 <div className="vr-gal-who">
                                     <span className="vr-name">{getShortName(reviews[galleryIdx].authorName)}</span>
-                                    {renderStars(reviews[galleryIdx].rating, 13)}
+                                    {renderStars(reviews[galleryIdx].rating, 13, reviews[galleryIdx]?.source)}
                                 </div>
                             </div>
                         )}
@@ -558,7 +580,7 @@ export function LiveStudioPreview({
                     <div className="vr-orbit-ring" />
                     <div className="vr-orbit-mid">
                         <span className="vr-orbit-n">{(reviews[orbitIdx]?.rating || stats.averageRating).toFixed(1)}</span>
-                        {renderStars(reviews[orbitIdx]?.rating || stats.averageRating, 16)}
+                        {renderStars(reviews[orbitIdx]?.rating || stats.averageRating, 16, reviews[orbitIdx]?.source)}
                         {reviews[orbitIdx] && (
                             <p className="vr-orbit-q">"{reviews[orbitIdx].text}"</p>
                         )}

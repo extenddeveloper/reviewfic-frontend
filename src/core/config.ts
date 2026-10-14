@@ -22,6 +22,7 @@ export const DEFAULT_CONFIG: ReviewConfig = {
     trustpilotReviewCount: 180,
     trustpilotEnabled: true,
     trustpilotReviews: [],
+    trustpilotStarStyle: true,
 
     // Custom Reviews
     customReviews: [],
@@ -78,6 +79,7 @@ export function normalizeConfig(saved?: Partial<ReviewConfig> | null): ReviewCon
         customReviews: Array.isArray(saved.customReviews) ? saved.customReviews : DEFAULT_CONFIG.customReviews,
         googleReviews: Array.isArray(saved.googleReviews) ? saved.googleReviews : DEFAULT_CONFIG.googleReviews,
         trustpilotReviews: Array.isArray(saved.trustpilotReviews) ? saved.trustpilotReviews : DEFAULT_CONFIG.trustpilotReviews,
+        trustpilotStarStyle: saved.trustpilotStarStyle !== undefined ? saved.trustpilotStarStyle : DEFAULT_CONFIG.trustpilotStarStyle,
     }
 }
 

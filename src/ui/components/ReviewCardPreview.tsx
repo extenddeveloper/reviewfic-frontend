@@ -55,14 +55,33 @@ export function ReviewCardPreview({ review, config }: ReviewCardPreviewProps) {
 
             {showStars && (
                 <div className="cf-card-stars">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                        <IconStar
-                            key={s}
-                            size={14}
-                            filled={s <= review.rating}
-                            color={starColor}
-                        />
-                    ))}
+                    {review.source === "trustpilot" && (config.trustpilotStarStyle ?? true) ? (
+                        <span className="vr-tp-stars-row">
+                            {[1, 2, 3, 4, 5].map((s) => {
+                                const isFilled = s <= Math.round(review.rating)
+                                return (
+                                    <span key={s} className={`vr-tp-star-box ${isFilled ? "filled" : "empty"}`}>
+                                        <svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+                                            <rect width="24" height="24" rx="3" fill={isFilled ? "#00B67A" : "#DCDCE6"} />
+                                            <path d="M12 4.5l2.3 7.1h7.4l-6 4.4 2.3 7.1-6-4.4-6 4.4 2.3-7.1-6-4.4h7.4z" fill="#FFFFFF" />
+                                            {isFilled && (
+                                                <path d="M14.3 11.6l-2.3-7.1v11.5l6 4.4z" fill="#005128" opacity="0.18" />
+                                            )}
+                                        </svg>
+                                    </span>
+                                )
+                            })}
+                        </span>
+                    ) : (
+                        [1, 2, 3, 4, 5].map((s) => (
+                            <IconStar
+                                key={s}
+                                size={14}
+                                filled={s <= review.rating}
+                                color={starColor}
+                            />
+                        ))
+                    )}
                 </div>
             )}
 

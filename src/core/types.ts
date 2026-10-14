@@ -56,6 +56,7 @@ export interface ReviewConfig {
     trustpilotReviewCount: number
     trustpilotEnabled: boolean
     trustpilotReviews: ReviewItem[]
+    trustpilotStarStyle?: boolean
 
     // Custom Reviews
     customReviews: ReviewItem[]

@@ -2406,6 +2406,28 @@ button.cf-btn-tp-sync:disabled {
     flex: 0 0 auto !important;
 }
 
+/* Trustpilot Star Rating Style */
+.vr-tp-stars-row {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 2.5px !important;
+    line-height: 1 !important;
+    vertical-align: middle !important;
+}
+
+.vr-tp-star-box {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 2px !important;
+    overflow: hidden !important;
+    flex: 0 0 auto !important;
+}
+
+.vr-tp-star-box svg {
+    display: block !important;
+}
+
 
 
 

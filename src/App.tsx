@@ -1101,6 +1101,11 @@ export function App() {
                                 checked={config.trustpilotEnabled}
                                 onChange={(v) => updateConfig((prev) => ({ ...prev, trustpilotEnabled: v }))}
                             />
+                            <Switch
+                                label="Trustpilot Star Rating Style"
+                                checked={config.trustpilotStarStyle ?? true}
+                                onChange={(v) => updateConfig((prev) => ({ ...prev, trustpilotStarStyle: v }))}
+                            />
 
                             {/* Connected Profile Card */}
                             {config.trustpilotDomain && config.trustpilotDomain !== "company.com" && (
