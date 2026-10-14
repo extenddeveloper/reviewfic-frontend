@@ -232,20 +232,11 @@ export default function Reviewfic(props: ReviewficProps) {
                         return (
                             <span key={s} className={"vr-tp-star-box" + (isFilled ? " filled" : " empty")}>
                                 <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-                                    <rect width="24" height="24" rx="3" fill={isFilled ? "#00B67A" : "#DCDCE6"} />
-                                    <g transform="translate(3.84, 3.87) scale(0.68)">
-                                        <path
-                                            d="M24 9.286h-9.179L12 0.643 9.179 9.286H0l7.429 5.357-2.821 8.643 7.429-5.357 4.571-3.286L24 9.286z"
-                                            fill="#FFFFFF"
-                                        />
-                                        {isFilled && (
-                                            <path
-                                                d="M12 17.964l5.214-1.321 2.179 6.714L12 17.964z"
-                                                fill="#005128"
-                                                opacity="0.22"
-                                            />
-                                        )}
-                                    </g>
+                                    <rect width="24" height="24" rx="3.5" fill={isFilled ? "#00B67A" : "#DCDCE6"} />
+                                    <path
+                                        d="M12 4.2l1.9 5.8h6.1l-4.9 3.6 1.9 5.8-5-3.6-5 3.6 1.9-5.8-4.9-3.6h6.1z"
+                                        fill="#FFFFFF"
+                                    />
                                 </svg>
                             </span>
                         )
@@ -1104,7 +1095,10 @@ export function isBadgeLayout(layout?: string): boolean {
     return ["badge", "avatars", "ratingcard", "gbadge", "trustpilot"].includes(layout || "")
 }
 
-export async function insertCanvasComponent(config: ReviewConfig): Promise<{ success: boolean; message: string }> {
+export async function insertCanvasComponent(
+    config: ReviewConfig,
+    options?: { updateExistingOnly?: boolean }
+): Promise<{ success: boolean; message: string }> {
     const code = generateReviewficComponentCode(config)
     const fileName = "Reviewfic.tsx"
     const isBadge = isBadgeLayout(config.layout)
@@ -1127,34 +1121,35 @@ export async function insertCanvasComponent(config: ReviewConfig): Promise<{ suc
             file = await framer.createCodeFile(fileName, code, { editViaPlugin: true })
         }
 
-        // Query existing canvas component instances
-        const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
-        const existingReviewficNodes = instances?.filter(isReviewficInstance) || []
+        // If the user explicitly only wants to update existing canvas instances:
+        if (options?.updateExistingOnly) {
+            const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
+            const existingReviewficNodes = instances?.filter(isReviewficInstance) || []
 
-        if (existingReviewficNodes.length > 0) {
-            // Update all existing Reviewfic nodes on canvas so changes take effect immediately
-            for (const node of existingReviewficNodes) {
-                if (typeof node.setAttributes === "function") {
-                    await node.setAttributes({
-                        controls: controlPayload,
-                        width: targetWidth,
-                    })
+            if (existingReviewficNodes.length > 0) {
+                for (const node of existingReviewficNodes) {
+                    if (typeof node.setAttributes === "function") {
+                        await node.setAttributes({
+                            controls: controlPayload,
+                            width: targetWidth,
+                        })
+                    }
                 }
-            }
 
-            if (existingReviewficNodes[0]?.id) {
-                try {
-                    await framer.setSelection([existingReviewficNodes[0].id])
-                } catch {}
-            }
+                if (existingReviewficNodes[0]?.id) {
+                    try {
+                        await framer.setSelection([existingReviewficNodes[0].id])
+                    } catch {}
+                }
 
-            return {
-                success: true,
-                message: `Updated existing Reviewfic component on canvas (${config.layout} layout, ${config.cardStyle} style)!`,
+                return {
+                    success: true,
+                    message: `Updated existing Reviewfic component on canvas (${config.layout} layout, ${config.cardStyle} style)!`,
+                }
             }
         }
 
-        // If no instance exists on canvas yet, insert a new one
+        // By default, ALWAYS insert a new component instance onto the canvas!
         const componentExport = file.exports.find((exp) => exp.type === "component")
         if (componentExport && "insertURL" in componentExport) {
             const instance = (await framer.addComponentInstance({
@@ -1163,7 +1158,7 @@ export async function insertCanvasComponent(config: ReviewConfig): Promise<{ suc
                     controls: controlPayload,
                     width: targetWidth,
                     minWidth: "320px",
-                    name: "Reviewfic - Social Proof Reviews",
+                    name: `Reviewfic - ${config.layout.charAt(0).toUpperCase() + config.layout.slice(1)} (${config.cardStyle})`,
                 },
             })) as any
 
@@ -1175,7 +1170,7 @@ export async function insertCanvasComponent(config: ReviewConfig): Promise<{ suc
 
             return {
                 success: true,
-                message: "Reviewfic component inserted onto the canvas!",
+                message: `New Reviewfic component (${config.layout} layout) inserted onto the canvas!`,
             }
         }
 

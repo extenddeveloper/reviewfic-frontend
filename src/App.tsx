@@ -77,6 +77,9 @@ export function App() {
     const [placeResults, setPlaceResults] = useState<GooglePlaceResult[]>([])
     const [isSearchingPlaces, setIsSearchingPlaces] = useState(false)
     const [showManualGoogle, setShowManualGoogle] = useState(false)
+    const [showOverrideGoogle, setShowOverrideGoogle] = useState(false)
+    const [showOverrideTp, setShowOverrideTp] = useState(false)
+    const [updatingCanvas, setUpdatingCanvas] = useState(false)
 
     // New custom review form state
     const [newAuthor, setNewAuthor] = useState("")
@@ -145,7 +148,7 @@ export function App() {
         try {
             const result = await insertCanvasComponent(config)
             if (result.success) {
-                setNotice("Reviewfic component inserted onto the canvas!")
+                setNotice(result.message || "New Reviewfic component inserted onto the canvas!")
                 const count = await getCanvasInstancesCount()
                 setCanvasCount(count)
             } else {
@@ -155,6 +158,24 @@ export function App() {
             setNotice(e?.message || "Failed to insert component.")
         } finally {
             setInserting(false)
+            setTimeout(() => setNotice(null), 4000)
+        }
+    }
+
+    const handleUpdateCanvas = async () => {
+        setUpdatingCanvas(true)
+        setNotice(null)
+        try {
+            const result = await insertCanvasComponent(config, { updateExistingOnly: true })
+            if (result.success) {
+                setNotice(result.message || "Updated existing component on canvas!")
+            } else {
+                setNotice(result.message || "Could not update canvas component.")
+            }
+        } catch (e: any) {
+            setNotice(e?.message || "Failed to update canvas component.")
+        } finally {
+            setUpdatingCanvas(false)
             setTimeout(() => setNotice(null), 4000)
         }
     }
@@ -935,32 +956,56 @@ export function App() {
                                         <span>Place ID: {config.googlePlaceId.slice(0, 14)}...</span>
                                     </div>
 
-                                    {/* Editable rating & review count */}
-                                    <div className="cf-conn-edit-row">
-                                        <div className="cf-conn-field">
-                                            <label className="cf-field-label">Google Rating</label>
-                                            <input
-                                                type="number"
-                                                step="0.1"
-                                                min="1.0"
-                                                max="5.0"
-                                                className="cf-input"
-                                                value={config.googleRating}
-                                                onChange={(e) => updateConfig((prev) => ({ ...prev, googleRating: Number(e.target.value) }))}
-                                            />
+                                    {/* Live Verified Google Metrics */}
+                                    <div className="cf-conn-metrics-row">
+                                        <div className="cf-conn-metric-card">
+                                            <span className="cf-metric-label">Google Rating</span>
+                                            <span className="cf-metric-value">★ {config.googleRating}</span>
+                                            <span className="cf-metric-source">Google Maps Live</span>
                                         </div>
-                                        <div className="cf-conn-field">
-                                            <label className="cf-field-label">Review Count</label>
-                                            <input
-                                                type="number"
-                                                step="1"
-                                                min="1"
-                                                className="cf-input"
-                                                value={config.googleReviewCount}
-                                                onChange={(e) => updateConfig((prev) => ({ ...prev, googleReviewCount: Number(e.target.value) }))}
-                                            />
+                                        <div className="cf-conn-metric-card">
+                                            <span className="cf-metric-label">Total Reviews</span>
+                                            <span className="cf-metric-value">{config.googleReviewCount}+</span>
+                                            <span className="cf-metric-source">Verified Count</span>
                                         </div>
                                     </div>
+
+                                    {/* Optional manual override toggle */}
+                                    <button
+                                        type="button"
+                                        className="cf-btn-text-action"
+                                        onClick={() => setShowOverrideGoogle((prev) => !prev)}
+                                    >
+                                        {showOverrideGoogle ? "Hide Custom Override ▲" : "Override Rating & Count (Optional) ▼"}
+                                    </button>
+
+                                    {showOverrideGoogle && (
+                                        <div className="cf-conn-edit-row">
+                                            <div className="cf-conn-field">
+                                                <label className="cf-field-label">Custom Rating</label>
+                                                <input
+                                                    type="number"
+                                                    step="0.1"
+                                                    min="1.0"
+                                                    max="5.0"
+                                                    className="cf-input"
+                                                    value={config.googleRating}
+                                                    onChange={(e) => updateConfig((prev) => ({ ...prev, googleRating: Number(e.target.value) }))}
+                                                />
+                                            </div>
+                                            <div className="cf-conn-field">
+                                                <label className="cf-field-label">Custom Review Count</label>
+                                                <input
+                                                    type="number"
+                                                    step="1"
+                                                    min="1"
+                                                    className="cf-input"
+                                                    value={config.googleReviewCount}
+                                                    onChange={(e) => updateConfig((prev) => ({ ...prev, googleReviewCount: Number(e.target.value) }))}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
 
                                     <button
                                         type="button"
@@ -1174,32 +1219,56 @@ export function App() {
                                         <span>Verified TrustScore</span>
                                     </div>
 
-                                    {/* Editable rating & review count */}
-                                    <div className="cf-conn-edit-row">
-                                        <div className="cf-conn-field">
-                                            <label className="cf-field-label">TrustScore</label>
-                                            <input
-                                                type="number"
-                                                step="0.1"
-                                                min="1.0"
-                                                max="5.0"
-                                                className="cf-input"
-                                                value={config.trustpilotRating}
-                                                onChange={(e) => updateConfig((prev) => ({ ...prev, trustpilotRating: Number(e.target.value) }))}
-                                            />
+                                    {/* Live Verified Trustpilot Metrics */}
+                                    <div className="cf-conn-metrics-row">
+                                        <div className="cf-conn-metric-card">
+                                            <span className="cf-metric-label">TrustScore</span>
+                                            <span className="cf-metric-value">★ {config.trustpilotRating}</span>
+                                            <span className="cf-metric-source">Trustpilot Verified</span>
                                         </div>
-                                        <div className="cf-conn-field">
-                                            <label className="cf-field-label">Review Count</label>
-                                            <input
-                                                type="number"
-                                                step="1"
-                                                min="1"
-                                                className="cf-input"
-                                                value={config.trustpilotReviewCount}
-                                                onChange={(e) => updateConfig((prev) => ({ ...prev, trustpilotReviewCount: Number(e.target.value) }))}
-                                            />
+                                        <div className="cf-conn-metric-card">
+                                            <span className="cf-metric-label">Total Reviews</span>
+                                            <span className="cf-metric-value">{config.trustpilotReviewCount}+</span>
+                                            <span className="cf-metric-source">TrustScore Pool</span>
                                         </div>
                                     </div>
+
+                                    {/* Optional manual override toggle */}
+                                    <button
+                                        type="button"
+                                        className="cf-btn-text-action"
+                                        onClick={() => setShowOverrideTp((prev) => !prev)}
+                                    >
+                                        {showOverrideTp ? "Hide Custom Override ▲" : "Override Rating & Count (Optional) ▼"}
+                                    </button>
+
+                                    {showOverrideTp && (
+                                        <div className="cf-conn-edit-row">
+                                            <div className="cf-conn-field">
+                                                <label className="cf-field-label">Custom TrustScore</label>
+                                                <input
+                                                    type="number"
+                                                    step="0.1"
+                                                    min="1.0"
+                                                    max="5.0"
+                                                    className="cf-input"
+                                                    value={config.trustpilotRating}
+                                                    onChange={(e) => updateConfig((prev) => ({ ...prev, trustpilotRating: Number(e.target.value) }))}
+                                                />
+                                            </div>
+                                            <div className="cf-conn-field">
+                                                <label className="cf-field-label">Custom Review Count</label>
+                                                <input
+                                                    type="number"
+                                                    step="1"
+                                                    min="1"
+                                                    className="cf-input"
+                                                    value={config.trustpilotReviewCount}
+                                                    onChange={(e) => updateConfig((prev) => ({ ...prev, trustpilotReviewCount: Number(e.target.value) }))}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
 
                                     <button
                                         type="button"
@@ -1575,17 +1644,29 @@ export function App() {
                         type="button"
                         className="primary-cta"
                         onClick={handleInsert}
-                        disabled={inserting}
-                        title="Insert Reviewfic component onto canvas"
+                        disabled={inserting || updatingCanvas}
+                        title="Insert new Reviewfic component onto canvas"
                     >
                         <IconSparkles size={16} />
-                        <span>{inserting ? "Inserting..." : "Insert into Canvas"}</span>
+                        <span>{inserting ? "Inserting..." : "Insert New Component"}</span>
                     </button>
+                    {canvasCount > 0 && (
+                        <button
+                            type="button"
+                            className="cf-btn-update-canvas"
+                            onClick={handleUpdateCanvas}
+                            disabled={inserting || updatingCanvas}
+                            title="Update existing Reviewfic component on canvas"
+                        >
+                            <IconRefresh size={14} />
+                            <span>{updatingCanvas ? "Updating..." : "Update Canvas"}</span>
+                        </button>
+                    )}
                     <button
                         type="button"
                         className="secondary-cta"
                         onClick={resetDefaults}
-                        disabled={inserting}
+                        disabled={inserting || updatingCanvas}
                         title="Reset all settings to defaults"
                     >
                         <IconRefresh size={13} />

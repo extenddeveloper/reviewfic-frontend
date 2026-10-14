@@ -2487,3 +2487,63 @@ button.cf-btn-tp-sync:disabled {
 .cf-stepper-slider {
     flex: 1 1 auto !important;
 }
+
+/* Connected Source Live Verified Metrics */
+.cf-conn-metrics-row {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+    margin: 12px 0 !important;
+}
+
+.cf-conn-metric-card {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 3px !important;
+    padding: 10px 14px !important;
+    background: var(--cf-bg-input, rgba(255, 255, 255, 0.04)) !important;
+    border: 1px solid var(--cf-border) !important;
+    border-radius: var(--cf-radius-sm, 8px) !important;
+}
+
+.cf-metric-label {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    color: var(--cf-text-secondary, #9CA3AF) !important;
+}
+
+.cf-metric-value {
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: var(--cf-text, #F3F4F6) !important;
+}
+
+.cf-metric-source {
+    font-size: 10.5px !important;
+    color: #22C55E !important;
+    font-weight: 500 !important;
+}
+
+.cf-btn-update-canvas {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 10px 14px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    background: var(--cf-bg-surface, #1E2028) !important;
+    border: 1px solid var(--cf-border) !important;
+    color: var(--cf-text, #F3F4F6) !important;
+    border-radius: var(--cf-radius-sm, 8px) !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.cf-btn-update-canvas:hover:not(:disabled) {
+    background: var(--cf-bg-hover, #2A2D38) !important;
+    border-color: var(--cf-accent, #0099FF) !important;
+    color: var(--cf-accent, #0099FF) !important;
+}

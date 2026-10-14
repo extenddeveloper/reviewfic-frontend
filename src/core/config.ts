@@ -8,16 +8,16 @@ export const DEFAULT_CONFIG: ReviewConfig = {
     sourceMode: "blend",
 
     // Google defaults
-    googlePlaceId: "",
-    googleMapsUrl: "",
-    googleBusinessName: "Company Studio",
-    googleRating: 4.8,
-    googleReviewCount: 230,
+    googlePlaceId: "ChIJ_themefic_dhaka_01",
+    googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=Themefic+Dhaka",
+    googleBusinessName: "Themefic",
+    googleRating: 4.9,
+    googleReviewCount: 340,
     googleEnabled: true,
     googleReviews: [],
 
     // Trustpilot defaults
-    trustpilotDomain: "company.com",
+    trustpilotDomain: "themefic.com",
     trustpilotRating: 4.8,
     trustpilotReviewCount: 180,
     trustpilotEnabled: true,
