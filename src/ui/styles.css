@@ -2134,8 +2134,8 @@ button.cf-btn-tp-sync:disabled {
     inset: 24px;
     border-radius: 50%;
     border: 1px dashed color-mix(in srgb,var(--vr-text-primary) 12%,transparent);
-    top: 50%;
-    left: 50%;
+    top: 50% !important;
+    left: 50% !important;
     transform: translate(-50%, -50%);
     width: calc(100% - 48px);
     height: calc(100% - 48px);
