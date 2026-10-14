@@ -14,7 +14,7 @@ export interface ReviewItem {
     hidden?: boolean
 }
 
-export type {
+import type {
     ReviewLayout,
     CardStyle,
     LayoutGroup,
@@ -22,6 +22,15 @@ export type {
     CardFamily,
     CardPresetDef,
 } from "./catalogue"
+
+export type {
+    ReviewLayout,
+    CardStyle,
+    LayoutGroup,
+    LayoutDef,
+    CardFamily,
+    CardPresetDef,
+}
 
 export type ThemeMode = "auto" | "light" | "dark"
 
@@ -54,6 +63,7 @@ export interface ReviewConfig {
     layout: ReviewLayout
     cardStyle: CardStyle
     themeMode: ThemeMode
+    containerBg?: string
     starColor: string // hex
     gridColumns: number // 1 to 4
 

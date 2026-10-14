@@ -11,6 +11,7 @@ export interface LiveStudioPreviewProps {
     stageTheme?: "auto" | "light" | "dark"
 }
 
+const PASTELS = ["#fde68a", "#bfdbfe", "#c7d2fe", "#fbcfe8", "#bbf7d0", "#fed7aa"]
 
 function getInitials(name: string): string {
     const parts = (name || "").trim().split(/\s+/).filter(Boolean)

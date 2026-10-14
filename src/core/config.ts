@@ -27,6 +27,7 @@ export const DEFAULT_CONFIG: ReviewConfig = {
     layout: "carousel",
     cardStyle: "elevated",
     themeMode: "auto",
+    containerBg: "",
     starColor: "#FBBC05", // Vibrant gold
     gridColumns: 3,
 
