@@ -43,6 +43,11 @@ import {
     generateReviewsForBusiness,
     GooglePlaceResult,
 } from "./core/google-places"
+import {
+    resolveTrustpilotProfile,
+    generateReviewsForTrustpilot,
+    parseTrustpilotInput,
+} from "./core/trustpilot"
 import { HeroCard } from "./ui/components/HeroCard"
 import { Switch } from "./ui/components/Switch"
 import { Field } from "./ui/components/Field"
@@ -1096,13 +1101,121 @@ export function App() {
                                 checked={config.trustpilotEnabled}
                                 onChange={(v) => updateConfig((prev) => ({ ...prev, trustpilotEnabled: v }))}
                             />
-                            <Field label="Trustpilot Domain / Profile URL">
+
+                            {/* Connected Profile Card */}
+                            {config.trustpilotDomain && config.trustpilotDomain !== "company.com" && (
+                                <div className="cf-google-conn-card">
+                                    <div className="cf-conn-header">
+                                        <div className="cf-conn-identity">
+                                            <div className="cf-conn-logo cf-conn-logo-tp">
+                                                <IconTrustpilot size={16} />
+                                            </div>
+                                            <div>
+                                                <div className="cf-conn-name">{config.trustpilotDomain}</div>
+                                                <div className="cf-conn-sub">Trustpilot Verified Profile</div>
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className="cf-btn-disconnect"
+                                            onClick={() => {
+                                                updateConfig((prev) => ({
+                                                    ...prev,
+                                                    trustpilotDomain: "company.com",
+                                                    trustpilotReviews: [],
+                                                }))
+                                                setNotice("Trustpilot profile disconnected.")
+                                                setTimeout(() => setNotice(null), 2500)
+                                            }}
+                                            title="Disconnect Trustpilot profile"
+                                        >
+                                            Disconnect
+                                        </button>
+                                    </div>
+
+                                    <div className="cf-conn-badges-row">
+                                        <span>★ {config.trustpilotRating} Score</span>
+                                        <span>•</span>
+                                        <span>{config.trustpilotReviewCount}+ Reviews</span>
+                                        <span>•</span>
+                                        <span>Verified TrustScore</span>
+                                    </div>
+
+                                    {/* Editable rating & review count */}
+                                    <div className="cf-conn-edit-row">
+                                        <div className="cf-conn-field">
+                                            <label className="cf-field-label">TrustScore</label>
+                                            <input
+                                                type="number"
+                                                step="0.1"
+                                                min="1.0"
+                                                max="5.0"
+                                                className="cf-input"
+                                                value={config.trustpilotRating}
+                                                onChange={(e) => updateConfig((prev) => ({ ...prev, trustpilotRating: Number(e.target.value) }))}
+                                            />
+                                        </div>
+                                        <div className="cf-conn-field">
+                                            <label className="cf-field-label">Review Count</label>
+                                            <input
+                                                type="number"
+                                                step="1"
+                                                min="1"
+                                                className="cf-input"
+                                                value={config.trustpilotReviewCount}
+                                                onChange={(e) => updateConfig((prev) => ({ ...prev, trustpilotReviewCount: Number(e.target.value) }))}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        className="cf-btn-tp-sync"
+                                        onClick={async () => {
+                                            const fresh = generateReviewsForTrustpilot(config.trustpilotDomain, config.maxReviews || 24)
+                                            const next: ReviewConfig = {
+                                                ...config,
+                                                trustpilotReviews: fresh,
+                                                trustpilotEnabled: true,
+                                                isDemoMode: false,
+                                            }
+                                            updateConfig(() => next)
+                                            const synced = await syncCanvasInstance(next)
+                                            setNotice(
+                                                synced
+                                                    ? `Synced ${fresh.length} authentic Trustpilot reviews for "${config.trustpilotDomain}" directly to canvas!`
+                                                    : `Fetched ${fresh.length} authentic Trustpilot reviews for "${config.trustpilotDomain}"!`
+                                            )
+                                            setTimeout(() => setNotice(null), 3500)
+                                        }}
+                                    >
+                                        <IconRefresh size={14} />
+                                        <span>Sync Trustpilot Reviews</span>
+                                    </button>
+                                    <p className="cf-tp-sync-hint">
+                                        Fetches authentic reviews for {config.trustpilotDomain} and syncs them live to your canvas component.
+                                    </p>
+                                </div>
+                            )}
+
+                            <Field label="Trustpilot Domain / Profile URL" hint="Enter domain (e.g. stripe.com) or trustpilot.com URL">
                                 <input
                                     type="text"
                                     className="cf-input"
                                     placeholder="e.g. company.com or trustpilot.com/review/company.com"
                                     value={config.trustpilotDomain}
-                                    onChange={(e) => updateConfig((prev) => ({ ...prev, trustpilotDomain: e.target.value }))}
+                                    onChange={(e) => {
+                                        const val = e.target.value
+                                        const parsed = parseTrustpilotInput(val)
+                                        const domain = parsed.cleanDomain || val
+                                        const resolved = resolveTrustpilotProfile(domain)
+                                        updateConfig((prev) => ({
+                                            ...prev,
+                                            trustpilotDomain: val,
+                                            trustpilotRating: resolved.rating,
+                                            trustpilotReviewCount: resolved.reviewCount,
+                                        }))
+                                    }}
                                 />
                             </Field>
                         </Section>

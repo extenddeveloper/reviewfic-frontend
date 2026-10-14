@@ -1,6 +1,7 @@
 import { BlendedStats, ReviewConfig, ReviewItem } from "./types"
 import { DEMO_REVIEWS } from "./mock-data"
 import { generateReviewsForBusiness } from "./google-places"
+import { generateReviewsForTrustpilot } from "./trustpilot"
 
 export const DEFAULT_CONFIG: ReviewConfig = {
     isDemoMode: true,
@@ -20,6 +21,7 @@ export const DEFAULT_CONFIG: ReviewConfig = {
     trustpilotRating: 4.8,
     trustpilotReviewCount: 180,
     trustpilotEnabled: true,
+    trustpilotReviews: [],
 
     // Custom Reviews
     customReviews: [],
@@ -45,7 +47,7 @@ export const DEFAULT_CONFIG: ReviewConfig = {
     // Filters & Curation
     minRatingFilter: 0,
     hideEmptyText: true,
-    maxReviews: 12,
+    maxReviews: 24,
     sortOrder: "newest",
     textClamp: true,
 
@@ -72,8 +74,10 @@ export function normalizeConfig(saved?: Partial<ReviewConfig> | null): ReviewCon
     return {
         ...DEFAULT_CONFIG,
         ...saved,
+        maxReviews: typeof saved.maxReviews === "number" ? saved.maxReviews : DEFAULT_CONFIG.maxReviews,
         customReviews: Array.isArray(saved.customReviews) ? saved.customReviews : DEFAULT_CONFIG.customReviews,
         googleReviews: Array.isArray(saved.googleReviews) ? saved.googleReviews : DEFAULT_CONFIG.googleReviews,
+        trustpilotReviews: Array.isArray(saved.trustpilotReviews) ? saved.trustpilotReviews : DEFAULT_CONFIG.trustpilotReviews,
     }
 }
 
@@ -82,8 +86,12 @@ export function calculateBlendedStats(config: ReviewConfig, _activeReviews?: Rev
     const hasGoogleConn = config.googleEnabled && Boolean(config.googleBusinessName && config.googleBusinessName !== "Company Studio")
     const hasLiveGoogle = hasGoogleReviews || hasGoogleConn
 
-    // If strictly in demo mode without any connected Google profile
-    if (config.isDemoMode && !hasLiveGoogle) {
+    const hasTpReviews = config.trustpilotEnabled && Array.isArray(config.trustpilotReviews) && config.trustpilotReviews.length > 0
+    const hasTpConn = config.trustpilotEnabled && Boolean(config.trustpilotDomain && config.trustpilotDomain !== "company.com")
+    const hasLiveTp = hasTpReviews || hasTpConn
+
+    // If strictly in demo mode without any connected Google or Trustpilot profile
+    if (config.isDemoMode && !hasLiveGoogle && !hasLiveTp) {
         let totalScore = 0
         DEMO_REVIEWS.forEach((r) => {
             totalScore += r.rating
@@ -100,51 +108,52 @@ export function calculateBlendedStats(config: ReviewConfig, _activeReviews?: Rev
 
     // Live mode blended calculation
     const hasGoogle = config.googleEnabled && (config.googleReviewCount > 0 || hasLiveGoogle)
-    const hasTrustpilot =
-        config.trustpilotEnabled &&
-        config.trustpilotReviewCount > 0 &&
-        Boolean(config.trustpilotDomain && config.trustpilotDomain !== "company.com")
+    const hasTrustpilot = config.trustpilotEnabled && (config.trustpilotReviewCount > 0 || hasLiveTp)
 
     if (hasGoogle && hasTrustpilot) {
-        const weightedScore =
-            config.googleRating * config.googleReviewCount +
-            config.trustpilotRating * config.trustpilotReviewCount
-        const total = config.googleReviewCount + config.trustpilotReviewCount
+        const gCount = config.googleReviewCount || (config.googleReviews?.length || 24)
+        const tpCount = config.trustpilotReviewCount || (config.trustpilotReviews?.length || 24)
+        const gRating = config.googleRating || 4.8
+        const tpRating = config.trustpilotRating || 4.8
+        const total = gCount + tpCount
+        const weightedScore = gRating * gCount + tpRating * tpCount
         return {
-            averageRating: Number((weightedScore / total).toFixed(1)),
+            averageRating: total > 0 ? Number((weightedScore / total).toFixed(1)) : 4.8,
             totalReviews: total,
-            googleCount: config.googleReviewCount,
-            trustpilotCount: config.trustpilotReviewCount,
-            customCount: config.customReviews.length,
+            googleCount: gCount,
+            trustpilotCount: tpCount,
+            customCount: (config.customReviews || []).length,
         }
     }
 
     if (hasGoogle) {
+        const gCount = config.googleReviewCount || (config.googleReviews?.length || 24)
         return {
-            averageRating: config.googleRating,
-            totalReviews: config.googleReviewCount,
-            googleCount: config.googleReviewCount,
+            averageRating: config.googleRating || 4.8,
+            totalReviews: gCount,
+            googleCount: gCount,
             trustpilotCount: 0,
-            customCount: config.customReviews.length,
+            customCount: (config.customReviews || []).length,
         }
     }
 
     if (hasTrustpilot) {
+        const tpCount = config.trustpilotReviewCount || (config.trustpilotReviews?.length || 24)
         return {
-            averageRating: config.trustpilotRating,
-            totalReviews: config.trustpilotReviewCount,
+            averageRating: config.trustpilotRating || 4.8,
+            totalReviews: tpCount,
             googleCount: 0,
-            trustpilotCount: config.trustpilotReviewCount,
-            customCount: config.customReviews.length,
+            trustpilotCount: tpCount,
+            customCount: (config.customReviews || []).length,
         }
     }
 
     return {
         averageRating: 5.0,
-        totalReviews: config.customReviews.length,
+        totalReviews: (config.customReviews || []).length,
         googleCount: 0,
         trustpilotCount: 0,
-        customCount: config.customReviews.length,
+        customCount: (config.customReviews || []).length,
     }
 }
 
@@ -152,17 +161,53 @@ export function getActiveReviews(config: ReviewConfig): ReviewItem[] {
     let list: ReviewItem[] = []
 
     const hasGoogleReviews = config.googleEnabled && Array.isArray(config.googleReviews) && config.googleReviews.length > 0
-    const hasCustomReviews = Array.isArray(config.customReviews) && config.customReviews.length > 0
     const hasGoogleConn = config.googleEnabled && Boolean(config.googleBusinessName && config.googleBusinessName !== "Company Studio")
 
-    if (hasGoogleReviews || hasCustomReviews) {
-        const gList = (config.googleEnabled && Array.isArray(config.googleReviews)) ? config.googleReviews : []
-        list = [...gList, ...(config.customReviews || [])]
-    } else if (hasGoogleConn) {
-        // Business profile is connected: generate fresh authentic reviews specifically for this business!
-        list = generateReviewsForBusiness(config.googleBusinessName, "Business", config.googleMapsUrl)
-    } else if (config.isDemoMode) {
-        list = [...DEMO_REVIEWS]
+    const hasTpReviews = config.trustpilotEnabled && Array.isArray(config.trustpilotReviews) && config.trustpilotReviews.length > 0
+    const hasTpConn = config.trustpilotEnabled && Boolean(config.trustpilotDomain && config.trustpilotDomain !== "company.com")
+
+    const hasCustomReviews = Array.isArray(config.customReviews) && config.customReviews.length > 0
+
+    const isConnected = hasGoogleReviews || hasGoogleConn || hasTpReviews || hasTpConn || hasCustomReviews
+
+    if (isConnected && !config.isDemoMode) {
+        let gList: ReviewItem[] = []
+        if (config.googleEnabled) {
+            if (hasGoogleReviews) {
+                gList = config.googleReviews
+            } else if (hasGoogleConn) {
+                gList = generateReviewsForBusiness(config.googleBusinessName, "Business", config.googleMapsUrl)
+            }
+        }
+
+        let tpList: ReviewItem[] = []
+        if (config.trustpilotEnabled) {
+            if (hasTpReviews) {
+                tpList = config.trustpilotReviews
+            } else if (hasTpConn) {
+                tpList = generateReviewsForTrustpilot(config.trustpilotDomain, 24)
+            }
+        }
+
+        const cList = config.customReviews || []
+
+        if (config.sourceMode === "google_only") {
+            list = [...gList]
+        } else if (config.sourceMode === "trustpilot_only") {
+            list = [...tpList]
+        } else if (config.sourceMode === "custom_only") {
+            list = [...cList]
+        } else {
+            // Blend / interleave Google + Trustpilot + Custom
+            const combined: ReviewItem[] = []
+            const maxLen = Math.max(gList.length, tpList.length, cList.length)
+            for (let i = 0; i < maxLen; i++) {
+                if (i < gList.length) combined.push(gList[i])
+                if (i < tpList.length) combined.push(tpList[i])
+                if (i < cList.length) combined.push(cList[i])
+            }
+            list = combined
+        }
     } else {
         list = [...DEMO_REVIEWS]
     }

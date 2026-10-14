@@ -53,6 +53,7 @@ interface ReviewficProps {
     carouselSpeed?: number
     carouselInfinite?: boolean
     marqueeSpeed?: "slow" | "normal" | "fast"
+    maxReviews?: number
     cornerRadius?: number
     sortOrder?: "newest" | "highest" | "random"
     textClamp?: boolean
@@ -83,6 +84,7 @@ export default function Reviewfic(props: ReviewficProps) {
     const carouselInfinite = props.carouselInfinite !== undefined ? props.carouselInfinite : (DEFAULT_DATA.carouselInfinite ?? true)
     const marqueeSpeed = props.marqueeSpeed || DEFAULT_DATA.marqueeSpeed || "normal"
     const cornerRadius = props.cornerRadius !== undefined ? props.cornerRadius : (DEFAULT_DATA.cornerRadius || 16)
+    const maxReviews = props.maxReviews !== undefined ? props.maxReviews : (DEFAULT_DATA.maxReviews ?? 24)
     const sortOrder = props.sortOrder || DEFAULT_DATA.sortOrder || "newest"
     const textClamp = props.textClamp !== undefined ? props.textClamp : (DEFAULT_DATA.textClamp ?? true)
     const showBrandingBadge = props.showBrandingBadge !== undefined ? props.showBrandingBadge : (DEFAULT_DATA.showBrandingBadge ?? true)
@@ -108,8 +110,11 @@ export default function Reviewfic(props: ReviewficProps) {
         } else if (sortOrder === "random") {
             list.sort((a: any, b: any) => String(a.id || "").localeCompare(String(b.id || "")))
         }
+        if (maxReviews > 0) {
+            list = list.slice(0, maxReviews)
+        }
         return list
-    }, [props.reviewsData, minRating, sortOrder])
+    }, [props.reviewsData, minRating, sortOrder, maxReviews])
 
     const stats = React.useMemo(() => {
         if (props.statsData) {
@@ -323,6 +328,7 @@ export default function Reviewfic(props: ReviewficProps) {
         ["--vr-gap" as any]: "16px",
         ["--vr-clamp" as any]: textClamp ? 4 : 100,
         ["--vr-grid-cols" as any]: gridColumns || 3,
+        ["--vr-ticker-speed" as any]: marqueeSpeed === "slow" ? "48s" : marqueeSpeed === "fast" ? "16s" : "30s",
         ["--vr-card-bg" as any]: isDark ? "#181A22" : "#FFFFFF",
         ["--vr-text-primary" as any]: isDark ? "#F3F4F6" : "#18181B",
         ["--vr-head-text" as any]: isDark ? "#F3F4F6" : "#18181B",
@@ -499,7 +505,7 @@ export default function Reviewfic(props: ReviewficProps) {
             {layout === "ticker" && (
                 <div className="vr-ticker">
                     <div className="vr-ticker-row">
-                        {[...reviews, ...reviews].map((r: any, i: number) => renderCard(r, i))}
+                        {(reviews.length > 0 ? (reviews.length < 8 ? [...reviews, ...reviews, ...reviews, ...reviews] : [...reviews, ...reviews]) : []).map((r: any, i: number) => renderCard(r, i))}
                     </div>
                 </div>
             )}
@@ -909,6 +915,14 @@ addPropertyControls(Reviewfic, {
         defaultValue: 3,
         hidden: (props: any) => props.layout !== "grid" && props.layout !== "masonry",
     },
+    maxReviews: {
+        type: ControlType.Number,
+        title: "Max Reviews",
+        min: 1,
+        max: 50,
+        step: 1,
+        defaultValue: 24,
+    },
     carouselAutoplay: {
         type: ControlType.Boolean,
         title: "Autoplay",
@@ -1032,6 +1046,7 @@ export function buildControlPayload(config: ReviewConfig) {
         carouselInfinite: config.carouselInfinite !== undefined ? config.carouselInfinite : true,
         marqueeSpeed: config.marqueeSpeed || "normal",
         cornerRadius: config.cornerRadius || 16,
+        maxReviews: config.maxReviews || 24,
         sortOrder: config.sortOrder || "newest",
         textClamp: config.textClamp !== undefined ? config.textClamp : true,
         showBrandingBadge: config.showBrandingBadge !== undefined ? config.showBrandingBadge : true,

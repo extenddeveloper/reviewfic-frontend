@@ -209,6 +209,7 @@ export function LiveStudioPreview({
         ["--vr-gap" as any]: "14px",
         ["--vr-clamp" as any]: textClamp ? 4 : 100,
         ["--vr-grid-cols" as any]: config.gridColumns || 3,
+        ["--vr-ticker-speed" as any]: config.marqueeSpeed === "slow" ? "48s" : config.marqueeSpeed === "fast" ? "16s" : "30s",
         background: config.containerBg || defaultBg,
         border: isDark ? "1px solid rgba(255, 255, 255, 0.08)" : undefined,
         borderRadius: `${cornerRadius}px`,
@@ -361,7 +362,7 @@ export function LiveStudioPreview({
             {layout === "ticker" && (
                 <div className="vr-ticker">
                     <div className="vr-ticker-row">
-                        {[...reviews, ...reviews].map((r, i) => renderCard(r, i))}
+                        {(reviews.length > 0 ? (reviews.length < 8 ? [...reviews, ...reviews, ...reviews, ...reviews] : [...reviews, ...reviews]) : []).map((r, i) => renderCard(r, i))}
                     </div>
                 </div>
             )}

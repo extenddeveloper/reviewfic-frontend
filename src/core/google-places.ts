@@ -520,304 +520,307 @@ export function generateReviewsForBusiness(businessName: string, category = "Bus
         ]
     }
 
+    const AVATARS = [
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=120&auto=format&fit=crop&q=80",
+    ]
+
+    const DATES = [
+        "Yesterday", "2 days ago", "4 days ago", "6 days ago",
+        "1 week ago", "1 week ago", "2 weeks ago", "2 weeks ago",
+        "3 weeks ago", "3 weeks ago", "4 weeks ago", "1 month ago",
+        "1 month ago", "5 weeks ago", "6 weeks ago", "2 months ago",
+        "2 months ago", "2 months ago", "3 months ago", "3 months ago",
+        "4 months ago", "4 months ago", "5 months ago", "6 months ago",
+    ]
+
+    const createPool = (templates: string[], names: string[]): ReviewItem[] => {
+        return Array.from({ length: 24 }, (_, i) => ({
+            id: `g-${now}-${i + 1}`,
+            source: "google" as const,
+            authorName: names[i % names.length],
+            authorAvatar: AVATARS[i % AVATARS.length],
+            rating: i % 7 === 4 ? 4 : 5,
+            date: DATES[i % DATES.length],
+            text: templates[i % templates.length].replace(/\{name\}/g, cleanName),
+            verified: true,
+            originalUrl: "https://maps.google.com",
+            pinned: i === 0,
+        }))
+    }
+
+    if (isCollegeOrEducation) {
+        return createPool([
+            "One of the most reputed educational institutions in the area. The faculty members at {name} are exceptionally dedicated and always guide students both academically and in extra-curricular activities. Highly disciplined campus environment.",
+            "Completed my studies here with great satisfaction. The seminar rooms, central library, and science labs at {name} are well-maintained. The administration is helpful and supportive to all students.",
+            "Good academic environment with experienced senior professors. Regular class schedules and well-organized examination management at {name}. A trustworthy institution for higher education.",
+            "Proud to be an alumnus of {name}. The teachers go out of their way to solve doubts and provide extra study materials before finals. Clean campus with an inspiring learning atmosphere.",
+            "Great college with vibrant campus life. Cultural programs, sports tournaments, and career counseling sessions at {name} really help build student confidence alongside the academic syllabus.",
+            "Excellent educational institution. The teachers are approachable, cooperative, and maintain strict academic standards. The campus location and transit access to {name} are also very convenient.",
+            "The faculty mentoring at {name} is second to none. Whenever I needed assistance with project research or syllabus guidance, professors were readily available.",
+            "Modern computer labs, updated library catalog, and a peaceful campus setting. {name} provides an ideal environment for serious students.",
+            "Remarkable institution with disciplined leadership. Extra co-curricular activities and debate competitions at {name} helped shape my overall career.",
+            "Great experience attending classes at {name}. The administrative desk is prompt with documentation and admissions queries.",
+            "Top-notch college with high academic integrity. Faculty members focus on conceptual understanding rather than rote memorization.",
+            "Affordable tuition with high quality teaching. {name} has contributed immensely to education in this region.",
+        ], [
+            "Tanvir Ahmed", "Nusrat Jahan", "Md. Rafiqul Islam", "Sadia Sultana",
+            "Ashiqur Rahman", "Farzana Akter", "Kamrul Hasan", "Tasnim Tabassum",
+            "Mahmudul Hasan", "Rehana Parvin", "Shahadat Hossain", "Jannatul Ferdous",
+            "Arifur Rahman", "Farhana Kabir", "Zubair Ahmed", "Afroza Begum",
+            "Tariqul Islam", "Sharmin Akter", "Nasir Uddin", "Samia Khan",
+            "Moniruzzaman", "Nahid Sultana", "Habibur Rahman", "Ruma Akter",
+        ])
+    }
+
+    if (isHealthOrMedical) {
+        return createPool([
+            "Exceptional medical care and prompt emergency response at {name}. The attending physicians took great care to explain treatment options, and the nursing staff was compassionate throughout.",
+            "State-of-the-art diagnostic facilities and clean wards. Scheduling appointments at {name} was effortless with minimal waiting time. Highly recommended healthcare team.",
+            "Clean, sanitary, and well-organized medical center. The staff at {name} treated my family with the utmost dignity and attentiveness during our consultation.",
+            "Doctor consultations at {name} were thorough and reassuring. They ran necessary tests quickly and provided a comprehensive care plan.",
+            "Very impressed by the hygiene protocols and friendly reception staff at {name}. Truly a benchmark for local healthcare.",
+            "Prompt triage and competent specialists. Visited {name} for an urgent checkup and received top-level clinical attention.",
+            "Modern medical equipment, courteous pharmacy staff, and transparent billing. {name} is our trusted family healthcare center.",
+            "The nursing staff at {name} are angels. Patient, gentle, and always checking in on our recovery progress.",
+            "Highly qualified consultants and speedy test report turnaround. Thank you {name} for the outstanding service.",
+            "Clean waiting lounge, digital token system, and competent doctors. Excellent experience at {name}.",
+            "Emergency wing doctors at {name} reacted instantly and saved our relative's health. Eternally grateful to the medical team.",
+            "Seamless OPD visit. Doctors at {name} listen patiently and do not prescribe unnecessary medications.",
+        ], [
+            "Dr. Ananya Roy", "Kamrul Hasan", "Sabrina Chowdhury", "Robert Hughes",
+            "Maria Garcia", "Jonathan Miller", "Clara Bennett", "Brandon Cole",
+            "Jessica Lee", "Amanda White", "David Miller", "Elena Rostova",
+            "Marcus Sterling", "Sophia Vance", "Liam Gallagher", "Emma Watson",
+            "Oliver Davies", "Chloe Dupont", "Lucas Fischer", "Hannah Schmidt",
+            "Zoe Kravitz", "James Thornton", "Maya Patel", "Samuel Reed",
+        ])
+    }
+
     if (isCivicOrGov) {
-        return [
-            {
-                id: `g-${now}-1`,
-                source: "google",
-                authorName: "Tariq Ahmed",
-                authorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
-                rating: 5,
-                date: "2 days ago",
-                text: `Commendable experience with the citizen service desk at ${cleanName}. The digital queue and prompt assistance made our official documentation renewal remarkably smooth and hassle-free.`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-            {
-                id: `g-${now}-2`,
-                source: "google",
-                authorName: "Farhana Yasmin",
-                authorAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
-                rating: 5,
-                date: "5 days ago",
-                text: `Very helpful and courteous administration. Visited the regional planning wing at ${cleanName} and the officers were attentive, professional, and clear with every requirement.`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-            {
-                id: `g-${now}-3`,
-                source: "google",
-                authorName: "Mahmudur Rahman",
-                authorAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80",
-                rating: 5,
-                date: "1 week ago",
-                text: `Huge improvements in municipal responsiveness over recent months. The helpline and grievance handling team at ${cleanName} followed up within 24 hours.`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-            {
-                id: `g-${now}-4`,
-                source: "google",
-                authorName: "Saiful Islam",
-                authorAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80",
-                rating: 4,
-                date: "2 weeks ago",
-                text: `Well-organized premises and transparent service delivery. The dedicated information desk at ${cleanName} helped answer all our questions without delays.`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-            {
-                id: `g-${now}-5`,
-                source: "google",
-                authorName: "Nusrat Jahan",
-                authorAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
-                rating: 5,
-                date: "3 weeks ago",
-                text: `Seamless interaction with the zonal division of ${cleanName}. Officers were respectful, knowledgeable, and delivered our clearance papers ahead of the estimated date.`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-            {
-                id: `g-${now}-6`,
-                source: "google",
-                authorName: "Tanvir Hossain",
-                authorAvatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=120&auto=format&fit=crop&q=80",
-                rating: 5,
-                date: "1 month ago",
-                text: `Clean environment and disciplined staff. It is great to see ${cleanName} maintaining high public service standards for residents and local businesses alike.`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-        ]
+        return createPool([
+            "Commendable experience with the citizen service desk at {name}. The digital queue and prompt assistance made our official documentation renewal remarkably smooth and hassle-free.",
+            "Very helpful and courteous administration. Visited the regional planning wing at {name} and the officers were attentive, professional, and clear with every requirement.",
+            "Huge improvements in municipal responsiveness over recent months. The helpline and grievance handling team at {name} followed up within 24 hours.",
+            "Well-organized premises and transparent service delivery. The dedicated information desk at {name} helped answer all our questions without delays.",
+            "Seamless interaction with the zonal division of {name}. Officers were respectful, knowledgeable, and delivered our clearance papers ahead of the estimated date.",
+            "Clean environment and disciplined staff. It is great to see {name} maintaining high public service standards for residents and local businesses alike.",
+            "Digital citizen portal at {name} has dramatically reduced waiting times. Applied for trade license renewal and got it processed in 2 days.",
+            "Efficient public officers who take the time to guide senior citizens through paperwork. Very grateful to the {name} desk.",
+            "Transparent procedures and zero unnecessary bureaucracy at {name}. Professional governance in action.",
+            "The sanitation and civic monitoring wing of {name} responded promptly to our locality request.",
+            "Modern service counters and comfortable waiting area at {name}. A model civic administration.",
+            "Courteous help desk personnel who clarify required documents without sending citizens in circles. Great service from {name}.",
+        ], [
+            "Tariq Ahmed", "Farhana Yasmin", "Mahmudur Rahman", "Saiful Islam",
+            "Nusrat Jahan", "Tanvir Hossain", "Abdul Mannan", "Rozina Begum",
+            "Kawsar Ali", "Shamima Nasrin", "Enamul Haque", "Salma Khatun",
+            "Mostafa Kamal", "Nasima Akter", "Delwar Hossain", "Sultana Razia",
+            "Mizanur Rahman", "Fatema Tuz Zohra", "Anwar Hossain", "Parveen Akter",
+            "Shafiqul Islam", "Morium Begum", "Rashedul Karim", "Amena Begum",
+        ])
     }
 
     if (isFoodOrCafe) {
-        return [
-            {
-                id: `g-${now}-1`,
-                source: "google",
-                authorName: "Sofia M.",
-                authorAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
-                rating: 5,
-                date: "Yesterday",
-                text: `Honestly the best coffee in the neighborhood. The flat white at ${cleanName} is perfect every single time, and the staff remembers your order after two visits.`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-            {
-                id: `g-${now}-2`,
-                source: "google",
-                authorName: "James O.",
-                authorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
-                rating: 5,
-                date: "3 days ago",
-                text: `Came for a quick espresso, stayed two hours. Beautiful interior, fast wifi, and the almond croissant at ${cleanName} deserves its own five-star review.`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-            {
-                id: `g-${now}-3`,
-                source: "google",
-                authorName: "Marion D.",
-                authorAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
-                rating: 5,
-                date: "1 week ago",
-                text: `Ordered their coffee subscription online — arrived in two days, beautifully packaged, and the beans are exceptional. Five stars for ${cleanName}!`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-            {
-                id: `g-${now}-4`,
-                source: "google",
-                authorName: "Lucas F.",
-                authorAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80",
-                rating: 5,
-                date: "2 weeks ago",
-                text: `Great atmosphere and excellent pastries. It gets busy on weekends so come early. The cold brew at ${cleanName} is top tier.`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-            {
-                id: `g-${now}-5`,
-                source: "google",
-                authorName: "Anna K.",
-                authorAvatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80",
-                rating: 5,
-                date: "1 month ago",
-                text: `Third visit to ${cleanName} and the quality is incredibly consistent. The single origin roast is the best I've had all year.`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-            {
-                id: `g-${now}-6`,
-                source: "google",
-                authorName: "Émile R.",
-                authorAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80",
-                rating: 5,
-                date: "1 month ago",
-                text: `A true neighborhood gem. The team at ${cleanName} genuinely cares — they walked me through three brewing methods before I picked my beans.`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-        ]
+        return createPool([
+            "Honestly the best coffee in the neighborhood. The flat white at {name} is perfect every single time, and the staff remembers your order after two visits.",
+            "Came for a quick espresso, stayed two hours. Beautiful interior, fast wifi, and the pastry selection at {name} deserves its own five-star review.",
+            "Ordered their specialty brew online — arrived in two days, beautifully packaged, and the beans are exceptional. Five stars for {name}!",
+            "Great atmosphere and excellent pastries. It gets busy on weekends so come early. The cold brew at {name} is top tier.",
+            "Third visit to {name} and the quality is incredibly consistent. The single origin roast is the best I've had all year.",
+            "A true neighborhood gem. The team at {name} genuinely cares — they walked me through three brewing methods before I picked my beans.",
+            "Delicious brunch menu and artisanal sourdough at {name}. The avocado toast and matcha latte are absolute must-tries.",
+            "Cozy seating, mellow music, and phenomenal baristas. {name} is my daily remote work sanctuary.",
+            "The signature desserts at {name} are heavenly. Perfect balance of sweetness and rich flavor.",
+            "Impeccable service. Even during peak rush hour, the staff at {name} remained calm, smiling, and served fresh cups swiftly.",
+            "Fresh ingredients, creative menu, and immaculate cleanliness. Highly recommend {name} for weekend family breakfasts.",
+            "Top-tier specialty coffee roasters. The aromatic notes of the pour-over at {name} are unforgettable.",
+        ], [
+            "Sofia M.", "James O.", "Marion D.", "Lucas F.",
+            "Anna K.", "Émile R.", "Clara Bennett", "Oliver Davies",
+            "Daniel Chang", "Chloe Dupont", "Emma Watson", "Liam Gallagher",
+            "Marcus Sterling", "Sophia Vance", "Alexander Wright", "Elena Rostova",
+            "Hannah Schmidt", "Benjamin Hayes", "Zoe Kravitz", "James Thornton",
+            "Maya Patel", "David Miller", "Victoria Hughes", "Samuel Reed",
+        ])
     }
 
     if (isHotelOrStay) {
-        return [
-            {
-                id: `g-${now}-1`,
-                source: "google",
-                authorName: "Victoria Sterling",
-                authorAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
-                rating: 5,
-                date: "2 days ago",
-                text: `Impeccable hospitality at ${cleanName} from check-in to check-out. The room was pristine with breathtaking skyline views and supreme soundproofing.`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-            {
-                id: `g-${now}-2`,
-                source: "google",
-                authorName: "David Evans",
-                authorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
-                rating: 5,
-                date: "5 days ago",
-                text: `Exceptional service throughout our stay. The breakfast buffet was fresh and varied, and concierge helped arrange seamless transit across the city.`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-            {
-                id: `g-${now}-3`,
-                source: "google",
-                authorName: "Chloe Dupont",
-                authorAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
-                rating: 5,
-                date: "2 weeks ago",
-                text: `Quiet, luxurious, and supremely comfortable beds. Will definitely be returning to ${cleanName} for every future trip.`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-            {
-                id: `g-${now}-4`,
-                source: "google",
-                authorName: "Marcus Sterling",
-                authorAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80",
-                rating: 4,
-                date: "3 weeks ago",
-                text: `Remarkable property with prompt room service and warm staff. ${cleanName} is centrally located and convenient for business and leisure.`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-        ]
+        return createPool([
+            "Impeccable hospitality at {name} from check-in to check-out. The room was pristine with breathtaking skyline views and supreme soundproofing.",
+            "Exceptional service throughout our stay. The breakfast buffet was fresh and varied, and concierge helped arrange seamless transit across the city.",
+            "Quiet, luxurious, and supremely comfortable beds. Will definitely be returning to {name} for every future trip.",
+            "Remarkable property with prompt room service and warm staff. {name} is centrally located and convenient for business and leisure.",
+            "The spa and rooftop pool at {name} provided the ultimate relaxing getaway. Staff was discreet, professional, and attentive.",
+            "Superb conference facilities and banquet catering. Hosted our annual executive summit at {name} with total success.",
+            "Spotlessly clean suites with plush bedding and high-speed wifi. {name} sets a gold standard for business travelers.",
+            "The front desk manager at {name} went out of their way to accommodate our early morning flight arrival.",
+            "Delicious in-house restaurant and craft cocktails. Our anniversary weekend at {name} was truly memorable.",
+            "Outstanding valet and bell service. From arrival to departure, {name} delivered luxury hospitality at its finest.",
+            "Spacious bathroom, deep soaking tub, and premium amenities. Slept like a baby at {name}.",
+            "Family-friendly resort with fantastic kids activities and attentive lifeguards. We loved our holiday at {name}.",
+        ], [
+            "Victoria Sterling", "David Evans", "Chloe Dupont", "Marcus Sterling",
+            "Sophia Vance", "Liam Gallagher", "Clara Bennett", "Oliver Davies",
+            "Emma Watson", "Daniel Chang", "Lucas Fischer", "Hannah Schmidt",
+            "Benjamin Hayes", "Zoe Kravitz", "James Thornton", "Maya Patel",
+            "Alexander Wright", "Elena Rostova", "David Miller", "Anna Lindqvist",
+            "Thomas Burke", "Emily Chen", "Gabriel Silva", "Charlotte Taylor",
+        ])
+    }
+
+    if (isRealEstateOrProperty) {
+        return createPool([
+            "Outstanding experience working with {name}. Transparent paperwork, fair valuations, and swift closing on our dream property. True professionals.",
+            "Top-tier developers with impeccable attention to structural quality and modern layouts. Very impressed with the dedication of the {name} team.",
+            "The team at {name} guided us through every step of property acquisition. Professional, reliable, and trustworthy consultants.",
+            "Flawless handover of our luxury apartment. {name} delivered ahead of schedule with all amenities functioning perfectly.",
+            "Honest real estate advisors who understand neighborhood appreciation and zoning laws. Highly recommend {name}.",
+            "The customer relationship officers at {name} kept us updated weekly with photo milestones during construction.",
+            "Prime location, earthquake-resistant design, and sustainable rainwater harvesting. Proud homeowner at {name}.",
+            "Swift lease agreement execution and smooth tenant onboarding. {name} is the best property management firm in the city.",
+            "Great commercial space with ample parking and round-the-clock security. {name} has boosted our corporate footprint.",
+            "Transparent installment schedules and zero hidden legal fees. Dealing with {name} was completely stress-free.",
+            "Meticulous interior finishes and high quality fittings throughout. {name} builds homes with genuine craft.",
+            "Prompt post-handover maintenance team. Any minor repair requests were handled by {name} within 24 hours.",
+        ], [
+            "Robert Hughes", "Maria Garcia", "Jonathan Miller", "Clara Bennett",
+            "Brandon Cole", "Jessica Lee", "Amanda White", "David Miller",
+            "Alexander Wright", "Sophia Vance", "Marcus Sterling", "Elena Rostova",
+            "Liam Gallagher", "Emma Watson", "Oliver Davies", "Chloe Dupont",
+            "Lucas Fischer", "Hannah Schmidt", "Benjamin Hayes", "Zoe Kravitz",
+            "James Thornton", "Maya Patel", "Samuel Reed", "Anna Lindqvist",
+        ])
+    }
+
+    if (isLegalOrFinance) {
+        return createPool([
+            "Exceptional counsel from {name}. Their strategic guidance and meticulous preparation gave us total confidence in our corporate transactions.",
+            "Prompt, diligent, and highly knowledgeable advisors. {name} streamlined our compliance and fiscal planning with remarkable professionalism.",
+            "The partners at {name} possess deep regulatory expertise. They resolved our cross-border dispute swiftly and cost-effectively.",
+            "Highly dependable accounting and audit practice. {name} has maintained pristine tax compliance for our company for over 4 years.",
+            "Clear communication with zero confusing legal jargon. {name} explained our risk exposures and drafted ironclad contracts.",
+            "Unwavering integrity and thorough documentation. {name} is the firm you want in your corner for critical negotiations.",
+            "Prompt response times and pragmatic business advice. {name} acted as a true strategic partner to our leadership team.",
+            "Strategic tax structuring that saved our business substantial capital legitimately. Outstanding expertise from {name}.",
+            "Meticulous due diligence conducted on our recent acquisition. {name} uncovered hidden liabilities before we signed.",
+            "Compassionate, objective, and resolute advocacy. The attorneys at {name} handled our case with extraordinary dedication.",
+            "Modern digital billing and encrypted client portal. Working with {name} is efficient and completely confidential.",
+            "First-rate legal team. Their attention to contractual nuance protected our intellectual property completely.",
+        ], [
+            "Jonathan Miller", "Clara Bennett", "Brandon Cole", "Jessica Lee",
+            "Amanda White", "David Miller", "Alexander Wright", "Sophia Vance",
+            "Marcus Sterling", "Elena Rostova", "Liam Gallagher", "Emma Watson",
+            "Oliver Davies", "Chloe Dupont", "Lucas Fischer", "Hannah Schmidt",
+            "Benjamin Hayes", "Zoe Kravitz", "James Thornton", "Maya Patel",
+            "Samuel Reed", "Anna Lindqvist", "Thomas Burke", "Emily Chen",
+        ])
+    }
+
+    if (isFitnessOrGym) {
+        return createPool([
+            "Best fitness center in town. The trainers at {name} create custom training plans that actually deliver results. Clean equipment and motivating vibe!",
+            "Spacious gym floor with premium cardio and strength machines. The group classes and shower facilities at {name} are always spotless.",
+            "Incredible community and encouraging coaches. Joined {name} 4 months ago and have already hit all my strength and mobility goals.",
+            "Clean dumbbells, well-maintained power racks, and proper rubberized flooring. {name} is a serious lifter's dream gym.",
+            "The HIIT and yoga sessions at {name} are intense and energizing. Certified instructors who check your form meticulously.",
+            "Great air conditioning, modern locker rooms, and complimentary smoothie bar. Working out at {name} is the highlight of my day.",
+            "Supportive personal training that focuses on injury prevention and longevity. Thank you {name} for transforming my health.",
+            "Uncrowded off-peak hours and 24/7 access. {name} provides unmatched flexibility for busy working professionals.",
+            "Top-of-the-line functional training turf and kettlebell zones. {name} has everything you need for athletic conditioning.",
+            "Friendly front desk staff, motivating playlist, and spotless sanitation after every workout. 5 stars for {name}!",
+            "The nutrition consultations and body scan checkups at {name} keep you accountable and progressing steadily.",
+            "Positive, inclusive environment for beginners and athletes alike. {name} is the standard for fitness clubs.",
+        ], [
+            "Brandon Cole", "Jessica Lee", "Amanda White", "David Miller",
+            "Alexander Wright", "Sophia Vance", "Marcus Sterling", "Elena Rostova",
+            "Liam Gallagher", "Emma Watson", "Oliver Davies", "Chloe Dupont",
+            "Lucas Fischer", "Hannah Schmidt", "Benjamin Hayes", "Zoe Kravitz",
+            "James Thornton", "Maya Patel", "Samuel Reed", "Anna Lindqvist",
+            "Thomas Burke", "Emily Chen", "Gabriel Silva", "Charlotte Taylor",
+        ])
+    }
+
+    if (isRetailOrShop) {
+        return createPool([
+            "Fantastic shopping experience at {name}. Wide selection of authentic products, fair pricing, and polite staff who assist you right away.",
+            "Always my go-to store. {name} consistently stocks top-quality items, and checkout is super fast even during peak weekend hours.",
+            "Clean aisles, clear pricing, and hassle-free returns. Visited {name} yesterday and found exactly what I needed in minutes.",
+            "The staff at {name} went to the stockroom to find my exact size and preference. Exceptional customer service!",
+            "Great loyalty rewards program and genuine discounts. {name} treats returning customers with real appreciation.",
+            "High quality merchandise that lasts. Purchased essentials from {name} last year and they are still in pristine condition.",
+            "Wide variety of premium local and imported brands. {name} is by far the best boutique in the district.",
+            "Smooth contactless payments and spacious shopping layout. Browsing at {name} is always a pleasure.",
+            "Neatly packaged purchases and swift order pickup. {name} has streamlined their in-store and online systems beautifully.",
+            "Attentive store assistants who give great styling and product advice without being pushy. 10/10 for {name}.",
+            "Fresh stock arrives weekly with exciting new collections. Never disappointed when visiting {name}.",
+            "Fair warranties and authentic manufacturer guarantees. You can shop at {name} with total peace of mind.",
+        ], [
+            "Amanda White", "David Miller", "Alexander Wright", "Sophia Vance",
+            "Marcus Sterling", "Elena Rostova", "Liam Gallagher", "Emma Watson",
+            "Oliver Davies", "Chloe Dupont", "Lucas Fischer", "Hannah Schmidt",
+            "Benjamin Hayes", "Zoe Kravitz", "James Thornton", "Maya Patel",
+            "Samuel Reed", "Anna Lindqvist", "Thomas Burke", "Emily Chen",
+            "Gabriel Silva", "Charlotte Taylor", "Robert Hughes", "Maria Garcia",
+        ])
     }
 
     if (isTechOrCreative) {
-        return [
-            {
-                id: `g-${now}-1`,
-                source: "google",
-                authorName: "Alexander Wright",
-                authorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
-                rating: 5,
-                date: "2 days ago",
-                text: `Outstanding collaboration with ${cleanName}. Their engineering velocity and design craft transformed our product in weeks. Highly recommend!`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-            {
-                id: `g-${now}-2`,
-                source: "google",
-                authorName: "Elena Rostova",
-                authorAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
-                rating: 5,
-                date: "4 days ago",
-                text: `Exceptional communication and seamless execution from start to finish at ${cleanName}. Everything was delivered with precision and flair.`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-            {
-                id: `g-${now}-3`,
-                source: "google",
-                authorName: "Oliver Davies",
-                authorAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80",
-                rating: 5,
-                date: "1 week ago",
-                text: `The caliber of work produced by ${cleanName} sets a genuine benchmark. Professional, transparent, and always ahead of deadlines.`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-            {
-                id: `g-${now}-4`,
-                source: "google",
-                authorName: "Maya Patel",
-                authorAvatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80",
-                rating: 5,
-                date: "2 weeks ago",
-                text: `Working with ${cleanName} was effortless. Our client engagement metrics soared right after deployment. Truly top-tier team.`,
-                verified: true,
-                originalUrl: "https://maps.google.com",
-            },
-        ]
+        return createPool([
+            "Outstanding collaboration with {name}. Their engineering velocity and design craft transformed our product in weeks. Highly recommend!",
+            "Exceptional communication and seamless execution from start to finish at {name}. Everything was delivered with precision and flair.",
+            "The caliber of work produced by {name} sets a genuine benchmark. Professional, transparent, and always ahead of deadlines.",
+            "Working with {name} was effortless. Our client engagement metrics soared right after deployment. Truly top-tier team.",
+            "Robust software architecture and modern UI design. {name} brought our vision to reality with impeccable skill.",
+            "Sprint velocity was incredible. The engineers at {name} shipped bug-free features on schedule every single sprint.",
+            "Creative genius paired with disciplined project management. {name} delivered branding and frontend code that wowed our board.",
+            "Clear technical documentation, clean git commits, and seamless CI/CD setup by {name}. Engineering at its finest.",
+            "Top-tier product strategists who challenge assumptions and build solutions users actually love. Kudos {name}!",
+            "Responsive support even post-launch. {name} monitored analytics and performance with meticulous dedication.",
+            "High aesthetic standards and rapid prototyping. {name} saved us months of trial and error.",
+            "The best digital agency partner we have engaged in the last five years. Total masters of their craft.",
+        ], [
+            "Alexander Wright", "Elena Rostova", "Oliver Davies", "Maya Patel",
+            "Sophia Vance", "Marcus Sterling", "Liam Gallagher", "Emma Watson",
+            "Daniel Chang", "Chloe Dupont", "Lucas Fischer", "Hannah Schmidt",
+            "Benjamin Hayes", "Zoe Kravitz", "James Thornton", "David Miller",
+            "Victoria Hughes", "Samuel Reed", "Anna Lindqvist", "Thomas Burke",
+            "Emily Chen", "Gabriel Silva", "Charlotte Taylor", "Robert Hughes",
+        ])
     }
 
-    // Default authentic global business reviews
-    return [
-        {
-            id: `g-${now}-1`,
-            source: "google",
-            authorName: "Tom B.",
-            authorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
-            rating: 5,
-            date: "Yesterday",
-            text: `Solid experience with ${cleanName}. Quick responses, transparent communication, and genuine attention to detail. Couldn't ask for better service.`,
-            verified: true,
-            originalUrl: "https://maps.google.com",
-        },
-        {
-            id: `g-${now}-2`,
-            source: "google",
-            authorName: "Yuki T.",
-            authorAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
-            rating: 5,
-            date: "3 days ago",
-            text: `Visited while traveling and was completely blown away by the quality at ${cleanName}. The staff genuinely care about customer satisfaction.`,
-            verified: true,
-            originalUrl: "https://maps.google.com",
-        },
-        {
-            id: `g-${now}-3`,
-            source: "google",
-            authorName: "Hannah W.",
-            authorAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
-            rating: 5,
-            date: "1 week ago",
-            text: `Consistently reliable, courteous staff, and very pleasant atmosphere. ${cleanName} is a wonderful staple that never disappoints.`,
-            verified: true,
-            originalUrl: "https://maps.google.com",
-        },
-        {
-            id: `g-${now}-4`,
-            source: "google",
-            authorName: "Daniel Chang",
-            authorAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80",
-            rating: 4,
-            date: "2 weeks ago",
-            text: `Great communication and swift fulfillment from ${cleanName}. Professional team with high standards across every interaction.`,
-            verified: true,
-            originalUrl: "https://maps.google.com",
-        },
-        {
-            id: `g-${now}-5`,
-            source: "google",
-            authorName: "Priya Sharma",
-            authorAvatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80",
-            rating: 5,
-            date: "1 month ago",
-            text: `Outstanding experience with ${cleanName}! The team was exceptionally prompt, courteous, and exceeded all our expectations.`,
-            verified: true,
-            originalUrl: "https://maps.google.com",
-        },
-    ]
+    // Default authentic global business reviews (24 items)
+    return createPool([
+        "Solid experience with {name}. Quick responses, transparent communication, and genuine attention to detail. Couldn't ask for better service.",
+        "Visited while traveling and was completely blown away by the quality at {name}. The staff genuinely care about customer satisfaction.",
+        "Consistently reliable, courteous staff, and very pleasant atmosphere. {name} is a wonderful staple that never disappoints.",
+        "Great communication and swift fulfillment from {name}. Professional team with high standards across every interaction.",
+        "Outstanding experience with {name}! The team was exceptionally prompt, courteous, and exceeded all our expectations.",
+        "A true 10/10 provider. {name} handles every customer requirement with precision, warmth, and speed.",
+        "Honest, trustworthy, and fair pricing. You can deal with {name} knowing you're in the most capable hands.",
+        "High degree of professionalism from the initial consultation through project delivery at {name}. Very pleased.",
+        "Prompt replies on WhatsApp and phone. {name} solved our inquiry within minutes and delivered exactly as agreed.",
+        "Modern facilities, disciplined workforce, and spotless premises. {name} sets a benchmark in service delivery.",
+        "Exceptional attention to small details that other companies overlook. Highly recommend {name} to everyone.",
+        "Long-time customer of {name} and they have maintained consistent five-star quality year after year.",
+    ], [
+        "Tom B.", "Yuki T.", "Hannah W.", "Daniel Chang",
+        "Priya Sharma", "Alexander Wright", "Sophia Vance", "Marcus Sterling",
+        "Elena Rostova", "Liam Gallagher", "Emma Watson", "Oliver Davies",
+        "Chloe Dupont", "Lucas Fischer", "Hannah Schmidt", "Benjamin Hayes",
+        "Zoe Kravitz", "James Thornton", "Maya Patel", "David Miller",
+        "Victoria Hughes", "Samuel Reed", "Anna Lindqvist", "Thomas Burke",
+    ])
 }
 
 /**
