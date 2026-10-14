@@ -63,10 +63,19 @@ export function ReviewCardPreview({ review, config }: ReviewCardPreviewProps) {
                                     <span key={s} className={`vr-tp-star-box ${isFilled ? "filled" : "empty"}`}>
                                         <svg width={14} height={14} viewBox="0 0 24 24" fill="none">
                                             <rect width="24" height="24" rx="3" fill={isFilled ? "#00B67A" : "#DCDCE6"} />
-                                            <path d="M12 4.5l2.3 7.1h7.4l-6 4.4 2.3 7.1-6-4.4-6 4.4 2.3-7.1-6-4.4h7.4z" fill="#FFFFFF" />
-                                            {isFilled && (
-                                                <path d="M14.3 11.6l-2.3-7.1v11.5l6 4.4z" fill="#005128" opacity="0.18" />
-                                            )}
+                                            <g transform="translate(3.84, 3.87) scale(0.68)">
+                                                <path
+                                                    d="M24 9.286h-9.179L12 0.643 9.179 9.286H0l7.429 5.357-2.821 8.643 7.429-5.357 4.571-3.286L24 9.286z"
+                                                    fill="#FFFFFF"
+                                                />
+                                                {isFilled && (
+                                                    <path
+                                                        d="M12 17.964l5.214-1.321 2.179 6.714L12 17.964z"
+                                                        fill="#005128"
+                                                        opacity="0.22"
+                                                    />
+                                                )}
+                                            </g>
                                         </svg>
                                     </span>
                                 )
