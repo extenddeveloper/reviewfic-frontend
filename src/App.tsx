@@ -76,9 +76,7 @@ export function App() {
     const [googleQuery, setGoogleQuery] = useState("")
     const [placeResults, setPlaceResults] = useState<GooglePlaceResult[]>([])
     const [isSearchingPlaces, setIsSearchingPlaces] = useState(false)
-    const [showManualGoogle, setShowManualGoogle] = useState(false)
-    const [showOverrideGoogle, setShowOverrideGoogle] = useState(false)
-    const [showOverrideTp, setShowOverrideTp] = useState(false)
+    const [tpInput, setTpInput] = useState("")
     const [updatingCanvas, setUpdatingCanvas] = useState(false)
 
     // New custom review form state
@@ -416,6 +414,31 @@ export function App() {
         }
     }
 
+    const handleConnectTrustpilot = useCallback(async (targetDomain?: string) => {
+        const input = (targetDomain || tpInput || config.trustpilotDomain || "").trim()
+        if (!input) return
+        const parsed = parseTrustpilotInput(input)
+        const domain = parsed.domain || input
+        const resolved = await resolveTrustpilotProfile(domain)
+        const fresh = generateReviewsForTrustpilot(domain, config.maxReviews || 24)
+
+        const nextConfig: ReviewConfig = {
+            ...config,
+            trustpilotDomain: domain,
+            trustpilotRating: resolved.rating,
+            trustpilotReviewCount: resolved.reviewCount,
+            trustpilotReviews: fresh,
+            trustpilotEnabled: true,
+            isDemoMode: false,
+        }
+
+        updateConfig(() => nextConfig)
+        void syncCanvasInstance(nextConfig)
+        setTpInput("")
+        setNotice(`Connected Trustpilot profile for "${domain}" (${fresh.length} reviews, ★ ${resolved.rating})!`)
+        setTimeout(() => setNotice(null), 3500)
+    }, [config, tpInput, updateConfig])
+
     const resetDefaults = () => {
         updateConfig(() => ({ ...DEFAULT_CONFIG }))
         setNotice("Settings reset to defaults.")
@@ -632,7 +655,7 @@ export function App() {
                         {/* Display Layouts (25 Presets) */}
                         <Section
                             title="Display Layouts (25 Presets)"
-                            subtitle="Categorized layout engines matching Vanssay reviews studio"
+                            subtitle="Choose from 25 curated interactive layouts"
                             icon={<IconLayoutCarousel size={15} />}
                         >
                             <div className="cf-chip-tabs">
@@ -669,12 +692,9 @@ export function App() {
                                             type="button"
                                             className={`cf-catalog-item ${isActive ? "active" : ""}`}
                                             onClick={() => updateConfig((prev) => ({ ...prev, layout: l.key }))}
+                                            title={l.desc}
                                         >
-                                            <div className="cf-catalog-item-top">
-                                                <span className="cf-catalog-item-name">{l.name}</span>
-                                                <span className={`cf-catalog-item-tier ${l.tier}`}>{l.tier}</span>
-                                            </div>
-                                            <span className="cf-catalog-item-desc">{l.desc}</span>
+                                            <span className="cf-catalog-item-name">{l.name}</span>
                                         </button>
                                     )
                                 })}
@@ -699,42 +719,25 @@ export function App() {
                                             max="12"
                                             value={config.carouselSpeed}
                                             onChange={(e) => updateConfig((prev) => ({ ...prev, carouselSpeed: Number(e.target.value) }))}
+                                            className="cf-styled-range"
                                         />
                                     </Field>
                                 </>
                             )}
 
                             {(config.layout === "grid" || config.layout === "masonry") && (
-                                <Field label="Columns per Row" hint={`Showing ${config.gridColumns || 3} columns`}>
-                                    <div className="cf-stepper-row">
-                                        <button
-                                            type="button"
-                                            className="cf-stepper-btn"
-                                            onClick={() => updateConfig((prev) => ({ ...prev, gridColumns: Math.max(1, (prev.gridColumns || 3) - 1) }))}
-                                            disabled={(config.gridColumns || 3) <= 1}
-                                            aria-label="Decrease columns"
-                                        >
-                                            -
-                                        </button>
-                                        <span className="cf-stepper-val">{config.gridColumns || 3}</span>
-                                        <button
-                                            type="button"
-                                            className="cf-stepper-btn"
-                                            onClick={() => updateConfig((prev) => ({ ...prev, gridColumns: Math.min(6, (prev.gridColumns || 3) + 1) }))}
-                                            disabled={(config.gridColumns || 3) >= 6}
-                                            aria-label="Increase columns"
-                                        >
-                                            +
-                                        </button>
-                                        <input
-                                            type="range"
-                                            min="1"
-                                            max="6"
-                                            step="1"
-                                            value={config.gridColumns || 3}
-                                            onChange={(e) => updateConfig((prev) => ({ ...prev, gridColumns: Number(e.target.value) }))}
-                                            className="cf-stepper-slider"
-                                        />
+                                <Field label="Columns per Row" hint={`Display ${config.gridColumns || 3} columns across desktop`}>
+                                    <div className="cf-columns-segmented">
+                                        {[1, 2, 3, 4, 5, 6].map((cols) => (
+                                            <button
+                                                key={cols}
+                                                type="button"
+                                                className={`cf-col-btn ${(config.gridColumns || 3) === cols ? "active" : ""}`}
+                                                onClick={() => updateConfig((prev) => ({ ...prev, gridColumns: cols }))}
+                                            >
+                                                {cols}
+                                            </button>
+                                        ))}
                                     </div>
                                 </Field>
                             )}
@@ -757,7 +760,7 @@ export function App() {
                         {/* Card Style & Aesthetics (57 Presets) */}
                         <Section
                             title="Card Style & Aesthetics (57 Presets)"
-                            subtitle="7 style families across 57 handcrafted card presets"
+                            subtitle="Choose from 57 curated design presets"
                             icon={<IconSparkles size={15} />}
                         >
                             <div className="cf-chip-tabs">
@@ -786,6 +789,7 @@ export function App() {
                                             type="button"
                                             className={`cf-preset-item ${isActive ? "active" : ""}`}
                                             onClick={() => updateConfig((prev) => ({ ...prev, cardStyle: p.id }))}
+                                            title={p.note}
                                         >
                                             <div className="cf-preset-top">
                                                 <span className="cf-preset-name">{p.name}</span>
@@ -799,9 +803,7 @@ export function App() {
                                                         <IconTrustpilot size={12} />
                                                     </span>
                                                 )}
-                                                <span className={`cf-catalog-item-tier ${p.tier}`}>{p.tier}</span>
                                             </div>
-                                            <span className="cf-preset-note">{p.note}</span>
                                         </button>
                                     )
                                 })}
@@ -846,6 +848,7 @@ export function App() {
                                     max="32"
                                     value={config.cornerRadius}
                                     onChange={(e) => updateConfig((prev) => ({ ...prev, cornerRadius: Number(e.target.value) }))}
+                                    className="cf-styled-range"
                                 />
                             </Field>
                         </Section>
@@ -922,7 +925,7 @@ export function App() {
                             />
 
                             {/* Connected Place Summary Card */}
-                            {config.googleBusinessName && config.googlePlaceId && (
+                            {config.googleBusinessName && config.googlePlaceId ? (
                                 <div className="cf-location-connected-card">
                                     <div className="cf-location-conn-head">
                                         <span className="cf-location-conn-badge">
@@ -931,7 +934,7 @@ export function App() {
                                         </span>
                                         <button
                                             type="button"
-                                            className="cf-btn-text-action"
+                                            className="cf-btn-disconnect"
                                             onClick={() => {
                                                 updateConfig((prev) => ({
                                                     ...prev,
@@ -943,6 +946,7 @@ export function App() {
                                                 }))
                                                 setGoogleQuery("")
                                             }}
+                                            title="Disconnect Google profile"
                                         >
                                             Disconnect
                                         </button>
@@ -969,43 +973,6 @@ export function App() {
                                             <span className="cf-metric-source">Verified Count</span>
                                         </div>
                                     </div>
-
-                                    {/* Optional manual override toggle */}
-                                    <button
-                                        type="button"
-                                        className="cf-btn-text-action"
-                                        onClick={() => setShowOverrideGoogle((prev) => !prev)}
-                                    >
-                                        {showOverrideGoogle ? "Hide Custom Override ▲" : "Override Rating & Count (Optional) ▼"}
-                                    </button>
-
-                                    {showOverrideGoogle && (
-                                        <div className="cf-conn-edit-row">
-                                            <div className="cf-conn-field">
-                                                <label className="cf-field-label">Custom Rating</label>
-                                                <input
-                                                    type="number"
-                                                    step="0.1"
-                                                    min="1.0"
-                                                    max="5.0"
-                                                    className="cf-input"
-                                                    value={config.googleRating}
-                                                    onChange={(e) => updateConfig((prev) => ({ ...prev, googleRating: Number(e.target.value) }))}
-                                                />
-                                            </div>
-                                            <div className="cf-conn-field">
-                                                <label className="cf-field-label">Custom Review Count</label>
-                                                <input
-                                                    type="number"
-                                                    step="1"
-                                                    min="1"
-                                                    className="cf-input"
-                                                    value={config.googleReviewCount}
-                                                    onChange={(e) => updateConfig((prev) => ({ ...prev, googleReviewCount: Number(e.target.value) }))}
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
 
                                     <button
                                         type="button"
@@ -1036,139 +1003,87 @@ export function App() {
                                         Fetches authentic reviews for {config.googleBusinessName} and syncs them live to your canvas component.
                                     </p>
                                 </div>
-                            )}
-
-                            {/* Live Search & Maps URL Resolver */}
-                            <div className="cf-location-search-wrap">
-                                <label className="cf-field-label">
-                                    Live Search Location or Paste Maps URL / Place ID
-                                </label>
-                                <div className="cf-location-input-row">
-                                    <span className="cf-location-input-icon">
-                                        <IconSearch size={14} />
-                                    </span>
-                                    <input
-                                        type="text"
-                                        className="cf-location-input"
-                                        placeholder="Type 'Gazipur City Corporation', 'Hilton London', 'Blue Bottle Coffee'..."
-                                        value={googleQuery}
-                                        onChange={(e) => handleGoogleSearchInput(e.target.value)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === "Enter") {
-                                                if (placeResults.length > 0) {
-                                                    handleSelectPlace(placeResults[0])
-                                                } else {
-                                                    handleResolveGoogleInput()
-                                                }
-                                            }
-                                        }}
-                                    />
-                                    {isSearchingPlaces && <span className="cf-location-spinner" />}
-                                </div>
-
-                                {/* Autocomplete Dropdown */}
-                                {placeResults.length > 0 && (
-                                    <div className="cf-location-dropdown">
-                                        {placeResults.map((p) => (
-                                            <button
-                                                key={p.placeId}
-                                                type="button"
-                                                className="cf-location-item"
-                                                onMouseDown={(e) => {
-                                                    e.preventDefault()
-                                                    handleSelectPlace(p)
-                                                }}
-                                                onClick={() => handleSelectPlace(p)}
-                                            >
-                                                <div className="cf-location-item-top">
-                                                    <span className="cf-location-item-name">{p.name}</span>
-                                                    <span className="cf-location-item-rating">★ {p.rating} ({p.reviewCount})</span>
-                                                </div>
-                                                <span className="cf-location-item-addr">{p.address}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Quick Demo Locations */}
-                            {!config.googleBusinessName && (
-                                <div className="cf-quick-suggestions">
-                                    <span className="cf-field-hint">Popular global locations:</span>
-                                    <div className="cf-suggestion-chips">
-                                        {["Themefic", "Google London", "Blue Bottle Coffee", "The French Laundry"].map((loc) => (
-                                            <button
-                                                key={loc}
-                                                type="button"
-                                                className="cf-chip-tab"
-                                                onClick={() => handleQuickSelectLocation(loc)}
-                                            >
-                                                <span>{loc}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Collapsible Manual Settings */}
-                            <button
-                                type="button"
-                                className="cf-btn-text-action"
-                                onClick={() => setShowManualGoogle((prev) => !prev)}
-                            >
-                                {showManualGoogle ? "Hide Manual Fields ▲" : "Edit Name, Rating & Counts Manually ▼"}
-                            </button>
-
-                            {showManualGoogle && (
+                            ) : (
                                 <>
-                                    <Field label="Google Business Name">
-                                        <input
-                                            type="text"
-                                            className="cf-input"
-                                            placeholder="e.g. Acme Studio London"
-                                            value={config.googleBusinessName}
-                                            onChange={(e) => updateConfig((prev) => ({ ...prev, googleBusinessName: e.target.value }))}
-                                        />
-                                    </Field>
-                                    <Field label="Google Maps URL / Place ID" hint="Accepts maps.google.com links, CID, or Place IDs">
-                                        <input
-                                            type="text"
-                                            className="cf-input"
-                                            placeholder="https://maps.google.com/?cid=... or ChIJ..."
-                                            value={config.googleMapsUrl}
-                                            onChange={(e) => updateConfig((prev) => ({ ...prev, googleMapsUrl: e.target.value }))}
-                                        />
-                                    </Field>
-                                    <div className="cf-conn-edit-row">
-                                        <Field label="Rating">
+                                    {/* Live Search & Maps URL Resolver */}
+                                    <div className="cf-location-search-wrap">
+                                        <label className="cf-field-label">
+                                            Live Search Location or Paste Maps URL / Place ID
+                                        </label>
+                                        <div className="cf-location-input-row">
+                                            <span className="cf-location-input-icon">
+                                                <IconSearch size={14} />
+                                            </span>
                                             <input
-                                                type="number"
-                                                step="0.1"
-                                                min="1"
-                                                max="5"
-                                                className="cf-input"
-                                                value={config.googleRating}
-                                                onChange={(e) => updateConfig((prev) => ({ ...prev, googleRating: Number(e.target.value) }))}
+                                                type="text"
+                                                className="cf-location-input"
+                                                placeholder="Type 'Themefic', 'Google London', 'Blue Bottle Coffee'..."
+                                                value={googleQuery}
+                                                onChange={(e) => handleGoogleSearchInput(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        if (placeResults.length > 0) {
+                                                            handleSelectPlace(placeResults[0])
+                                                        } else {
+                                                            handleResolveGoogleInput()
+                                                        }
+                                                    }
+                                                }}
                                             />
-                                        </Field>
-                                        <Field label="Review Count">
-                                            <input
-                                                type="number"
-                                                step="1"
-                                                min="1"
-                                                className="cf-input"
-                                                value={config.googleReviewCount}
-                                                onChange={(e) => updateConfig((prev) => ({ ...prev, googleReviewCount: Number(e.target.value) }))}
-                                            />
-                                        </Field>
+                                            {isSearchingPlaces && <span className="cf-location-spinner" />}
+                                        </div>
+
+                                        {/* Autocomplete Dropdown */}
+                                        {placeResults.length > 0 && (
+                                            <div className="cf-location-dropdown">
+                                                {placeResults.map((p) => (
+                                                    <button
+                                                        key={p.placeId}
+                                                        type="button"
+                                                        className="cf-location-item"
+                                                        onMouseDown={(e) => {
+                                                            e.preventDefault()
+                                                            handleSelectPlace(p)
+                                                        }}
+                                                        onClick={() => handleSelectPlace(p)}
+                                                    >
+                                                        <div className="cf-location-item-top">
+                                                            <span className="cf-location-item-name">{p.name}</span>
+                                                            <span className="cf-location-item-rating">★ {p.rating} ({p.reviewCount})</span>
+                                                        </div>
+                                                        <span className="cf-location-item-addr">{p.address}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Quick Demo Locations */}
+                                    <div className="cf-quick-suggestions">
+                                        <span className="cf-field-hint">Popular global locations:</span>
+                                        <div className="cf-suggestion-chips">
+                                            {["Themefic", "Google London", "Blue Bottle Coffee", "The French Laundry"].map((loc) => (
+                                                <button
+                                                    key={loc}
+                                                    type="button"
+                                                    className="cf-chip-tab"
+                                                    onClick={() => handleQuickSelectLocation(loc)}
+                                                >
+                                                    <span>{loc}</span>
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
                                 </>
                             )}
                         </Section>
 
-
                         {/* Trustpilot Connection */}
-                        <Section title="Trustpilot Profile" subtitle="Connect your Trustpilot reviews" icon={<IconTrustpilot size={15} />}>
+                        <Section
+                            title="Trustpilot Profile"
+                            subtitle={config.trustpilotDomain && config.trustpilotDomain !== "company.com" ? `Connected: ${config.trustpilotDomain}` : "Connect your Trustpilot reviews"}
+                            icon={<IconTrustpilot size={15} />}
+                        >
                             <Switch
                                 label="Enable Trustpilot Reviews"
                                 checked={config.trustpilotEnabled}
@@ -1181,8 +1096,8 @@ export function App() {
                             />
 
                             {/* Connected Profile Card */}
-                            {config.trustpilotDomain && config.trustpilotDomain !== "company.com" && (
-                                <div className="cf-google-conn-card">
+                            {config.trustpilotDomain && config.trustpilotDomain !== "company.com" ? (
+                                <div className="cf-tp-connected-card">
                                     <div className="cf-conn-header">
                                         <div className="cf-conn-identity">
                                             <div className="cf-conn-logo cf-conn-logo-tp">
@@ -1190,7 +1105,10 @@ export function App() {
                                             </div>
                                             <div>
                                                 <div className="cf-conn-name">{config.trustpilotDomain}</div>
-                                                <div className="cf-conn-sub">Trustpilot Verified Profile</div>
+                                                <div className="cf-tp-badge-tag">
+                                                    <IconCheck size={12} />
+                                                    <span>Verified TrustScore</span>
+                                                </div>
                                             </div>
                                         </div>
                                         <button
@@ -1211,14 +1129,6 @@ export function App() {
                                         </button>
                                     </div>
 
-                                    <div className="cf-conn-badges-row">
-                                        <span>★ {config.trustpilotRating} Score</span>
-                                        <span>•</span>
-                                        <span>{config.trustpilotReviewCount}+ Reviews</span>
-                                        <span>•</span>
-                                        <span>Verified TrustScore</span>
-                                    </div>
-
                                     {/* Live Verified Trustpilot Metrics */}
                                     <div className="cf-conn-metrics-row">
                                         <div className="cf-conn-metric-card">
@@ -1232,43 +1142,6 @@ export function App() {
                                             <span className="cf-metric-source">TrustScore Pool</span>
                                         </div>
                                     </div>
-
-                                    {/* Optional manual override toggle */}
-                                    <button
-                                        type="button"
-                                        className="cf-btn-text-action"
-                                        onClick={() => setShowOverrideTp((prev) => !prev)}
-                                    >
-                                        {showOverrideTp ? "Hide Custom Override ▲" : "Override Rating & Count (Optional) ▼"}
-                                    </button>
-
-                                    {showOverrideTp && (
-                                        <div className="cf-conn-edit-row">
-                                            <div className="cf-conn-field">
-                                                <label className="cf-field-label">Custom TrustScore</label>
-                                                <input
-                                                    type="number"
-                                                    step="0.1"
-                                                    min="1.0"
-                                                    max="5.0"
-                                                    className="cf-input"
-                                                    value={config.trustpilotRating}
-                                                    onChange={(e) => updateConfig((prev) => ({ ...prev, trustpilotRating: Number(e.target.value) }))}
-                                                />
-                                            </div>
-                                            <div className="cf-conn-field">
-                                                <label className="cf-field-label">Custom Review Count</label>
-                                                <input
-                                                    type="number"
-                                                    step="1"
-                                                    min="1"
-                                                    className="cf-input"
-                                                    value={config.trustpilotReviewCount}
-                                                    onChange={(e) => updateConfig((prev) => ({ ...prev, trustpilotReviewCount: Number(e.target.value) }))}
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
 
                                     <button
                                         type="button"
@@ -1298,28 +1171,53 @@ export function App() {
                                         Fetches authentic reviews for {config.trustpilotDomain} and syncs them live to your canvas component.
                                     </p>
                                 </div>
-                            )}
+                            ) : (
+                                <div className="cf-tp-connect-wrap">
+                                    <Field label="Trustpilot Domain or URL" hint="Enter domain (e.g. themefic.com) or trustpilot.com URL">
+                                        <div className="cf-tp-input-row">
+                                            <span className="cf-tp-input-icon">
+                                                <IconTrustpilot size={15} />
+                                            </span>
+                                            <input
+                                                type="text"
+                                                className="cf-input cf-tp-input"
+                                                placeholder="e.g. themefic.com or trustpilot.com/review/..."
+                                                value={tpInput}
+                                                onChange={(e) => setTpInput(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                        void handleConnectTrustpilot()
+                                                    }
+                                                }}
+                                            />
+                                            <button
+                                                type="button"
+                                                className="cf-btn-connect-sm"
+                                                onClick={() => void handleConnectTrustpilot()}
+                                                disabled={!tpInput.trim()}
+                                            >
+                                                Connect
+                                            </button>
+                                        </div>
+                                    </Field>
 
-                            <Field label="Trustpilot Domain / Profile URL" hint="Enter domain (e.g. stripe.com) or trustpilot.com URL">
-                                <input
-                                    type="text"
-                                    className="cf-input"
-                                    placeholder="e.g. company.com or trustpilot.com/review/company.com"
-                                    value={config.trustpilotDomain}
-                                    onChange={(e) => {
-                                        const val = e.target.value
-                                        const parsed = parseTrustpilotInput(val)
-                                        const domain = parsed.cleanDomain || val
-                                        const resolved = resolveTrustpilotProfile(domain)
-                                        updateConfig((prev) => ({
-                                            ...prev,
-                                            trustpilotDomain: val,
-                                            trustpilotRating: resolved.rating,
-                                            trustpilotReviewCount: resolved.reviewCount,
-                                        }))
-                                    }}
-                                />
-                            </Field>
+                                    <div className="cf-quick-suggestions">
+                                        <span className="cf-field-hint">Popular brands:</span>
+                                        <div className="cf-suggestion-chips">
+                                            {["themefic.com", "spotify.com", "stripe.com", "canva.com"].map((dom) => (
+                                                <button
+                                                    key={dom}
+                                                    type="button"
+                                                    className="cf-chip-tab"
+                                                    onClick={() => void handleConnectTrustpilot(dom)}
+                                                >
+                                                    <span>{dom}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </Section>
 
                         {/* Custom / Manual Reviews */}
@@ -1390,165 +1288,169 @@ export function App() {
                             </button>
                         </Section>
 
-                        {/* CSV Import & Export */}
+                        {/* Advanced Data & CMS Tools */}
                         <Section
-                            title="CSV Import & Export"
-                            subtitle="Bulk import client testimonials or export active reviews"
-                            icon={<IconFileText size={15} />}
-                        >
-                            {/* Feedback messages */}
-                            {csvSuccess && (
-                                <div className="cf-alert-msg success">
-                                    <IconCheck size={14} />
-                                    <span>{csvSuccess}</span>
-                                </div>
-                            )}
-                            {csvError && (
-                                <div className="cf-alert-msg error">
-                                    <IconTrash size={14} />
-                                    <span>{csvError}</span>
-                                </div>
-                            )}
-
-                            {/* Export and Sample Buttons */}
-                            <div className="cf-csv-grid">
-                                <button
-                                    type="button"
-                                    className="cf-btn-csv-action"
-                                    onClick={handleExportCSV}
-                                    title="Export active reviews to CSV file"
-                                >
-                                    <IconDownload size={13} />
-                                    <span>Export Reviews (.csv)</span>
-                                </button>
-                                <button
-                                    type="button"
-                                    className="cf-btn-csv-action"
-                                    onClick={handleDownloadSampleCSV}
-                                    title="Download CSV format template"
-                                >
-                                    <IconFileText size={13} />
-                                    <span>Download Template</span>
-                                </button>
-                            </div>
-
-                            {/* Upload Drop Target */}
-                            <label className="cf-csv-upload-box">
-                                <input
-                                    type="file"
-                                    accept=".csv"
-                                    className="cf-csv-file-input"
-                                    onChange={handleFileUploadCSV}
-                                />
-                                <IconUpload size={20} />
-                                <span className="cf-csv-upload-title">Click to browse or drop CSV file</span>
-                                <span className="cf-csv-upload-hint">Supports columns: Author, Rating, Review Text, Date, Source, Verified, Avatar</span>
-                            </label>
-
-                            {/* Paste text toggle */}
-                            <button
-                                type="button"
-                                className="cf-btn-text-action"
-                                onClick={() => setShowCsvPaste((prev) => !prev)}
-                            >
-                                {showCsvPaste ? "Hide Raw Paste Area ▲" : "Paste CSV / Spreadsheet rows directly ▼"}
-                            </button>
-
-                            {showCsvPaste && (
-                                <div className="cf-csv-paste-wrap">
-                                    <textarea
-                                        className="cf-input"
-                                        rows={4}
-                                        placeholder={`Author,Rating,Review Text\n"John Doe",5,"Fantastic product!"\n"Jane Smith",5,"Super responsive team!"`}
-                                        value={csvPasteText}
-                                        onChange={(e) => setCsvPasteText(e.target.value)}
-                                    />
-                                    <button
-                                        type="button"
-                                        className="secondary-cta"
-                                        onClick={handlePasteCSVSubmit}
-                                        disabled={!csvPasteText.trim()}
-                                    >
-                                        <IconPlus size={13} />
-                                        <span>Import Pasted Reviews</span>
-                                    </button>
-                                </div>
-                            )}
-                        </Section>
-
-                        {/* Framer CMS Collection Sync */}
-                        <Section
-                            title="Framer CMS Collection Sync"
-                            subtitle="Sync reviews into Framer CMS for static, crawlable SEO pages"
+                            title="Advanced Data & CMS Tools (Optional)"
+                            subtitle="CSV bulk import/export and Framer CMS Collection sync"
                             icon={<IconDatabase size={15} />}
+                            defaultOpen={false}
                         >
-                            <div className="cf-cms-card">
-                                <div className="cf-cms-card-header">
-                                    <span className="cf-cms-badge">
-                                        <IconDatabase size={11} />
-                                        <span>Framer CMS Sync</span>
-                                    </span>
-                                    <span className="cf-cms-count-pill">
-                                        {activeReviews.length} Reviews Active
-                                    </span>
-                                </div>
+                            <div className="cf-advanced-tools-group">
+                                <h4 className="cf-subgroup-title">CSV Bulk Import &amp; Export</h4>
+                                <p className="cf-subgroup-desc">Bulk import client testimonials or export active reviews.</p>
 
-                                <h4 className="cf-cms-title">Reviewfic Reviews Collection</h4>
-                                <p className="cf-cms-desc">
-                                    Sync your active Google, Trustpilot, and custom testimonials directly into a native Framer CMS Collection. Build static review lists, detail pages, and gain 100% crawlable SEO social proof.
-                                </p>
-
-                                <div className="cf-cms-features-list">
-                                    <div className="cf-cms-feature-item">
-                                        <IconCheck size={12} />
-                                        <span>Server-rendered &amp; indexable for Google SEO</span>
+                                {/* Feedback messages */}
+                                {csvSuccess && (
+                                    <div className="cf-alert-msg success">
+                                        <IconCheck size={14} />
+                                        <span>{csvSuccess}</span>
                                     </div>
-                                    <div className="cf-cms-feature-item">
-                                        <IconCheck size={12} />
-                                        <span>Full design freedom with native Framer CMS Collection Lists</span>
-                                    </div>
-                                    <div className="cf-cms-feature-item">
-                                        <IconCheck size={12} />
-                                        <span>Auto-generates Author, Rating, Date, Avatar, and Verified fields</span>
-                                    </div>
-                                </div>
-
-                                {cmsSyncMsg && (
-                                    <div className={`cf-alert-msg ${cmsSyncMsg.ok ? "success" : "error"}`}>
-                                        {cmsSyncMsg.ok ? <IconCheck size={14} /> : <IconTrash size={14} />}
-                                        <span>{cmsSyncMsg.text}</span>
+                                )}
+                                {csvError && (
+                                    <div className="cf-alert-msg error">
+                                        <IconTrash size={14} />
+                                        <span>{csvError}</span>
                                     </div>
                                 )}
 
-                                <div className="cf-cms-buttons-row">
+                                {/* Export and Sample Buttons */}
+                                <div className="cf-csv-grid">
                                     <button
                                         type="button"
-                                        className="cf-btn-cms-sync"
-                                        onClick={handleSyncCMS}
-                                        disabled={isSyncingCMS || activeReviews.length === 0}
-                                    >
-                                        {isSyncingCMS ? (
-                                            <>
-                                                <IconRefresh size={14} />
-                                                <span>Syncing to Framer CMS...</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <IconDatabase size={14} />
-                                                <span>Sync to Framer CMS Collection</span>
-                                            </>
-                                        )}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="cf-btn-cms-secondary"
-                                        onClick={handleExportFramerCMSCSV}
-                                        disabled={activeReviews.length === 0}
-                                        title="Download pre-mapped CSV ready for Framer CMS import"
+                                        className="cf-btn-csv-action"
+                                        onClick={handleExportCSV}
+                                        title="Export active reviews to CSV file"
                                     >
                                         <IconDownload size={13} />
-                                        <span>Export for Framer CMS (.csv)</span>
+                                        <span>Export Reviews (.csv)</span>
                                     </button>
+                                    <button
+                                        type="button"
+                                        className="cf-btn-csv-action"
+                                        onClick={handleDownloadSampleCSV}
+                                        title="Download CSV format template"
+                                    >
+                                        <IconFileText size={13} />
+                                        <span>Download Template</span>
+                                    </button>
+                                </div>
+
+                                {/* Upload Drop Target */}
+                                <label className="cf-csv-upload-box">
+                                    <input
+                                        type="file"
+                                        accept=".csv"
+                                        className="cf-csv-file-input"
+                                        onChange={handleFileUploadCSV}
+                                    />
+                                    <IconUpload size={20} />
+                                    <span className="cf-csv-upload-title">Click to browse or drop CSV file</span>
+                                    <span className="cf-csv-upload-hint">Supports columns: Author, Rating, Review Text, Date, Source, Verified, Avatar</span>
+                                </label>
+
+                                {/* Paste text toggle */}
+                                <button
+                                    type="button"
+                                    className="cf-btn-text-action"
+                                    onClick={() => setShowCsvPaste((prev) => !prev)}
+                                >
+                                    {showCsvPaste ? "Hide Raw Paste Area ▲" : "Paste CSV / Spreadsheet rows directly ▼"}
+                                </button>
+
+                                {showCsvPaste && (
+                                    <div className="cf-csv-paste-wrap">
+                                        <textarea
+                                            className="cf-input"
+                                            rows={4}
+                                            placeholder={`Author,Rating,Review Text\n"John Doe",5,"Fantastic product!"\n"Jane Smith",5,"Super responsive team!"`}
+                                            value={csvPasteText}
+                                            onChange={(e) => setCsvPasteText(e.target.value)}
+                                        />
+                                        <button
+                                            type="button"
+                                            className="secondary-cta"
+                                            onClick={handlePasteCSVSubmit}
+                                            disabled={!csvPasteText.trim()}
+                                        >
+                                            <IconPlus size={13} />
+                                            <span>Import Pasted Reviews</span>
+                                        </button>
+                                    </div>
+                                )}
+
+                                <div className="cf-subgroup-divider" />
+
+                                <h4 className="cf-subgroup-title">Framer CMS Collection Sync</h4>
+                                <p className="cf-subgroup-desc">Sync reviews into Framer CMS for static, crawlable SEO pages.</p>
+
+                                <div className="cf-cms-card">
+                                    <div className="cf-cms-card-header">
+                                        <span className="cf-cms-badge">
+                                            <IconDatabase size={11} />
+                                            <span>Framer CMS Sync</span>
+                                        </span>
+                                        <span className="cf-cms-count-pill">
+                                            {activeReviews.length} Reviews Active
+                                        </span>
+                                    </div>
+
+                                    <h4 className="cf-cms-title">Reviewfic Reviews Collection</h4>
+                                    <p className="cf-cms-desc">
+                                        Sync your active Google, Trustpilot, and custom testimonials directly into a native Framer CMS Collection. Build static review lists, detail pages, and gain 100% crawlable SEO social proof.
+                                    </p>
+
+                                    <div className="cf-cms-features-list">
+                                        <div className="cf-cms-feature-item">
+                                            <IconCheck size={12} />
+                                            <span>Server-rendered &amp; indexable for Google SEO</span>
+                                        </div>
+                                        <div className="cf-cms-feature-item">
+                                            <IconCheck size={12} />
+                                            <span>Full design freedom with native Framer CMS Collection Lists</span>
+                                        </div>
+                                        <div className="cf-cms-feature-item">
+                                            <IconCheck size={12} />
+                                            <span>Auto-generates Author, Rating, Date, Avatar, and Verified fields</span>
+                                        </div>
+                                    </div>
+
+                                    {cmsSyncMsg && (
+                                        <div className={`cf-alert-msg ${cmsSyncMsg.ok ? "success" : "error"}`}>
+                                            {cmsSyncMsg.ok ? <IconCheck size={14} /> : <IconTrash size={14} />}
+                                            <span>{cmsSyncMsg.text}</span>
+                                        </div>
+                                    )}
+
+                                    <div className="cf-cms-buttons-row">
+                                        <button
+                                            type="button"
+                                            className="cf-btn-cms-sync"
+                                            onClick={handleSyncCMS}
+                                            disabled={isSyncingCMS || activeReviews.length === 0}
+                                        >
+                                            {isSyncingCMS ? (
+                                                <>
+                                                    <IconRefresh size={14} />
+                                                    <span>Syncing to Framer CMS...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <IconDatabase size={14} />
+                                                    <span>Sync to Framer CMS Collection</span>
+                                                </>
+                                            )}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="cf-btn-cms-secondary"
+                                            onClick={handleExportFramerCMSCSV}
+                                            disabled={activeReviews.length === 0}
+                                            title="Download pre-mapped CSV ready for Framer CMS import"
+                                        >
+                                            <IconDownload size={13} />
+                                            <span>Export for Framer CMS (.csv)</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </Section>
@@ -1603,6 +1505,7 @@ export function App() {
                                     step="3"
                                     value={config.maxReviews}
                                     onChange={(e) => updateConfig((prev) => ({ ...prev, maxReviews: Number(e.target.value) }))}
+                                    className="cf-styled-range"
                                 />
                             </Field>
                         </Section>
