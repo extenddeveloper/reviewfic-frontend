@@ -90,6 +90,11 @@ export default function Reviewfic(props: ReviewficProps) {
     const textClamp = props.textClamp !== undefined ? props.textClamp : (DEFAULT_DATA.textClamp ?? true)
     const showBrandingBadge = props.showBrandingBadge !== undefined ? props.showBrandingBadge : (DEFAULT_DATA.showBrandingBadge ?? true)
     const trustpilotStarStyle = props.trustpilotStarStyle !== undefined ? props.trustpilotStarStyle : (DEFAULT_DATA.trustpilotStarStyle ?? true)
+    const writeReviewUrl = DEFAULT_DATA.writeReviewGoogleUrl || (
+        DEFAULT_DATA.googlePlaceId && DEFAULT_DATA.googlePlaceId.startsWith("ChIJ")
+            ? "https://search.google.com/local/writereview?placeid=" + DEFAULT_DATA.googlePlaceId
+            : (DEFAULT_DATA.googleMapsUrl || (DEFAULT_DATA.googleBusinessName && DEFAULT_DATA.googleBusinessName !== "Company Studio" ? "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(DEFAULT_DATA.googleBusinessName) : (DEFAULT_DATA.trustpilotDomain && DEFAULT_DATA.trustpilotDomain !== "company.com" ? "https://www.trustpilot.com/evaluate/" + DEFAULT_DATA.trustpilotDomain : "https://www.google.com/maps")))
+    )
 
     const reviews = React.useMemo(() => {
         let list: any[] = []
@@ -420,7 +425,7 @@ export default function Reviewfic(props: ReviewficProps) {
 
                     {showWriteReview && (
                         <a
-                            href={DEFAULT_DATA.writeReviewGoogleUrl || DEFAULT_DATA.writeReviewTrustpilotUrl || "https://google.com"}
+                            href={writeReviewUrl}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="vr-cta"
@@ -934,9 +939,10 @@ addPropertyControls(Reviewfic, {
         type: ControlType.Number,
         title: "Columns",
         min: 1,
-        max: 4,
+        max: 6,
         step: 1,
         defaultValue: 3,
+        displayStepper: true,
         hidden: (props: any) => props.layout !== "grid" && props.layout !== "masonry",
     },
     maxReviews: {

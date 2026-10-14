@@ -108,9 +108,9 @@ export function calculateBlendedStats(config: ReviewConfig, _activeReviews?: Rev
         }
     }
 
-    // Live mode blended calculation
-    const hasGoogle = config.googleEnabled && (config.googleReviewCount > 0 || hasLiveGoogle)
-    const hasTrustpilot = config.trustpilotEnabled && (config.trustpilotReviewCount > 0 || hasLiveTp)
+    // Live mode blended calculation - only count sources that are enabled AND actually connected
+    const hasGoogle = config.googleEnabled && hasLiveGoogle
+    const hasTrustpilot = config.trustpilotEnabled && hasLiveTp
 
     if (hasGoogle && hasTrustpilot) {
         const gCount = config.googleReviewCount || (config.googleReviews?.length || 24)
@@ -132,7 +132,7 @@ export function calculateBlendedStats(config: ReviewConfig, _activeReviews?: Rev
         const gCount = config.googleReviewCount || (config.googleReviews?.length || 24)
         return {
             averageRating: config.googleRating || 4.8,
-            totalReviews: gCount,
+            totalReviews: gCount + (config.customReviews || []).length,
             googleCount: gCount,
             trustpilotCount: 0,
             customCount: (config.customReviews || []).length,
@@ -143,7 +143,7 @@ export function calculateBlendedStats(config: ReviewConfig, _activeReviews?: Rev
         const tpCount = config.trustpilotReviewCount || (config.trustpilotReviews?.length || 24)
         return {
             averageRating: config.trustpilotRating || 4.8,
-            totalReviews: tpCount,
+            totalReviews: tpCount + (config.customReviews || []).length,
             googleCount: 0,
             trustpilotCount: tpCount,
             customCount: (config.customReviews || []).length,

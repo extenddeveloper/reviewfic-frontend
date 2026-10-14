@@ -169,9 +169,15 @@ export function LiveStudioPreview({
         return (
             <article key={cardId} className={`vr-card vrp-${cardStyle} ${extraClass}`}>
                 <div className="vr-id">
-                    <span className="vr-avatar" style={avatarBgStyle}>
-                        {getInitials(r.authorName)}
-                    </span>
+                    {showAvatar && (
+                        <span className="vr-avatar" style={r.authorAvatar ? undefined : avatarBgStyle}>
+                            {r.authorAvatar ? (
+                                <img src={r.authorAvatar} alt={r.authorName} loading="lazy" />
+                            ) : (
+                                getInitials(r.authorName)
+                            )}
+                        </span>
+                    )}
                     <span className="vr-name">{getShortName(r.authorName)}</span>
                 </div>
 
@@ -240,6 +246,12 @@ export function LiveStudioPreview({
         boxSizing: "border-box" as any,
     }
 
+    const writeReviewUrl = config.writeReviewGoogleUrl || (
+        config.googlePlaceId?.startsWith("ChIJ")
+            ? `https://search.google.com/local/writereview?placeid=${config.googlePlaceId}`
+            : (config.googleMapsUrl || (config.googleBusinessName && config.googleBusinessName !== "Company Studio" ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(config.googleBusinessName)}` : (config.trustpilotDomain && config.trustpilotDomain !== "company.com" ? `https://www.trustpilot.com/evaluate/${config.trustpilotDomain}` : "https://www.google.com/maps")))
+    )
+
     if (reviews.length === 0) {
         return (
             <div className={`vr-root vr-empty-box ${stageTheme}`} style={rootStyleObj}>
@@ -270,18 +282,29 @@ export function LiveStudioPreview({
                     </div>
 
                     <div className="vr-chips">
-                        <span className="vr-chip">
-                            <IconGoogle size={12} />
-                            <span>Google ({stats.googleCount})</span>
-                        </span>
-                        <span className="vr-chip">
-                            <IconTrustpilot size={12} />
-                            <span>Trustpilot ({stats.trustpilotCount})</span>
-                        </span>
+                        {config.googleEnabled && stats.googleCount > 0 && (
+                            <span className="vr-chip">
+                                <IconGoogle size={12} />
+                                <span>Google ({stats.googleCount})</span>
+                            </span>
+                        )}
+                        {config.trustpilotEnabled && stats.trustpilotCount > 0 && (
+                            <span className="vr-chip">
+                                <IconTrustpilot size={12} />
+                                <span>Trustpilot ({stats.trustpilotCount})</span>
+                            </span>
+                        )}
                     </div>
 
                     {showWriteReview && (
-                        <span className="vr-write-cta">Write a Review ↗</span>
+                        <a
+                            href={writeReviewUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="vr-write-cta"
+                        >
+                            Write a Review ↗
+                        </a>
                     )}
                 </div>
             )}
@@ -431,9 +454,15 @@ export function LiveStudioPreview({
                         const avStyle = { background: PASTELS[i % PASTELS.length] }
                         return (
                             <div key={r.id || i} className="vr-crow">
-                                <span className="vr-avatar" style={avStyle}>
-                                    {getInitials(r.authorName)}
-                                </span>
+                                {showAvatar && (
+                                    <span className="vr-avatar" style={r.authorAvatar ? undefined : avStyle}>
+                                        {r.authorAvatar ? (
+                                            <img src={r.authorAvatar} alt={r.authorName} loading="lazy" />
+                                        ) : (
+                                            getInitials(r.authorName)
+                                        )}
+                                    </span>
+                                )}
                                 <div className="vr-cwho">
                                     <span className="vr-name">{getShortName(r.authorName)}</span>
                                     <span className="vr-cq">{r.text}</span>
@@ -456,9 +485,15 @@ export function LiveStudioPreview({
                             <div key={r.id || i} className="vr-split-row">
                                 <div className="vr-split-who">
                                     <span className="vr-split-id">
-                                        <span className="vr-avatar" style={avStyle}>
-                                            {getInitials(r.authorName)}
-                                        </span>
+                                        {showAvatar && (
+                                            <span className="vr-avatar" style={r.authorAvatar ? undefined : avStyle}>
+                                                {r.authorAvatar ? (
+                                                    <img src={r.authorAvatar} alt={r.authorName} loading="lazy" />
+                                                ) : (
+                                                    getInitials(r.authorName)
+                                                )}
+                                            </span>
+                                        )}
                                         <span className="vr-name">{getShortName(r.authorName)}</span>
                                     </span>
                                     {renderStars(r.rating, 12, r.source)}
@@ -619,14 +654,18 @@ export function LiveStudioPreview({
                         </div>
                     </div>
                     <div className="vr-badge-chips">
-                        <span className="vr-chip">
-                            <IconGoogle size={13} />
-                            <span>Google ({stats.googleCount})</span>
-                        </span>
-                        <span className="vr-chip">
-                            <IconTrustpilot size={13} />
-                            <span>Trustpilot ({stats.trustpilotCount})</span>
-                        </span>
+                        {config.googleEnabled && stats.googleCount > 0 && (
+                            <span className="vr-chip">
+                                <IconGoogle size={13} />
+                                <span>Google ({stats.googleCount})</span>
+                            </span>
+                        )}
+                        {config.trustpilotEnabled && stats.trustpilotCount > 0 && (
+                            <span className="vr-chip">
+                                <IconTrustpilot size={13} />
+                                <span>Trustpilot ({stats.trustpilotCount})</span>
+                            </span>
+                        )}
                     </div>
                 </div>
             )}
@@ -641,8 +680,12 @@ export function LiveStudioPreview({
                             }
                             return (
                                 <span key={r.id || i} className="vr-tb-av">
-                                    <span className="vr-avatar" style={avStyle}>
-                                        {getInitials(r.authorName)}
+                                    <span className="vr-avatar" style={r.authorAvatar ? undefined : avStyle}>
+                                        {r.authorAvatar ? (
+                                            <img src={r.authorAvatar} alt={r.authorName} />
+                                        ) : (
+                                            getInitials(r.authorName)
+                                        )}
                                     </span>
                                 </span>
                             )

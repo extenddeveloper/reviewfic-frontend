@@ -339,6 +339,10 @@ export function App() {
             ? place.reviews
             : generateReviewsForBusiness(place.name, place.category || "Business", place.address)
 
+        const writeReviewUrl = place.placeId?.startsWith("ChIJ")
+            ? `https://search.google.com/local/writereview?placeid=${place.placeId}`
+            : (place.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}`)
+
         const nextConfig: ReviewConfig = {
             ...config,
             googleBusinessName: place.name,
@@ -347,6 +351,7 @@ export function App() {
             googleRating: place.rating,
             googleReviewCount: place.reviewCount,
             googleReviews: authenticReviews,
+            writeReviewGoogleUrl: writeReviewUrl,
             googleEnabled: true,
             isDemoMode: false,
             trustpilotEnabled: config.trustpilotDomain && config.trustpilotDomain !== "company.com" ? config.trustpilotEnabled : false,
@@ -679,14 +684,37 @@ export function App() {
                             )}
 
                             {(config.layout === "grid" || config.layout === "masonry") && (
-                                <Field label={`Grid Columns: ${config.gridColumns}`}>
-                                    <input
-                                        type="range"
-                                        min="1"
-                                        max="4"
-                                        value={config.gridColumns}
-                                        onChange={(e) => updateConfig((prev) => ({ ...prev, gridColumns: Number(e.target.value) }))}
-                                    />
+                                <Field label="Columns per Row" hint={`Showing ${config.gridColumns || 3} columns`}>
+                                    <div className="cf-stepper-row">
+                                        <button
+                                            type="button"
+                                            className="cf-stepper-btn"
+                                            onClick={() => updateConfig((prev) => ({ ...prev, gridColumns: Math.max(1, (prev.gridColumns || 3) - 1) }))}
+                                            disabled={(config.gridColumns || 3) <= 1}
+                                            aria-label="Decrease columns"
+                                        >
+                                            -
+                                        </button>
+                                        <span className="cf-stepper-val">{config.gridColumns || 3}</span>
+                                        <button
+                                            type="button"
+                                            className="cf-stepper-btn"
+                                            onClick={() => updateConfig((prev) => ({ ...prev, gridColumns: Math.min(6, (prev.gridColumns || 3) + 1) }))}
+                                            disabled={(config.gridColumns || 3) >= 6}
+                                            aria-label="Increase columns"
+                                        >
+                                            +
+                                        </button>
+                                        <input
+                                            type="range"
+                                            min="1"
+                                            max="6"
+                                            step="1"
+                                            value={config.gridColumns || 3}
+                                            onChange={(e) => updateConfig((prev) => ({ ...prev, gridColumns: Number(e.target.value) }))}
+                                            className="cf-stepper-slider"
+                                        />
+                                    </div>
                                 </Field>
                             )}
 
@@ -1023,7 +1051,7 @@ export function App() {
                                 <div className="cf-quick-suggestions">
                                     <span className="cf-field-hint">Popular global locations:</span>
                                     <div className="cf-suggestion-chips">
-                                        {["Google London", "Blue Bottle Coffee", "The French Laundry"].map((loc) => (
+                                        {["Themefic", "Google London", "Blue Bottle Coffee", "The French Laundry"].map((loc) => (
                                             <button
                                                 key={loc}
                                                 type="button"

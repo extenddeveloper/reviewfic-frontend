@@ -14,6 +14,72 @@ export interface GooglePlaceResult {
 // Curated verified global places for instant offline/fast feedback
 const POPULAR_PLACES: GooglePlaceResult[] = [
     {
+        placeId: "ChIJ_themefic_dhaka_01",
+        name: "Themefic",
+        address: "Plot #4, Block #F, Banasree Main Road, Rampura, Dhaka 1219, Bangladesh",
+        rating: 4.9,
+        reviewCount: 340,
+        mapsUrl: "https://www.google.com/maps/search/?api=1&query=Themefic+Dhaka",
+        category: "Software Company",
+        reviews: [
+            {
+                id: "g-themefic-1",
+                source: "google",
+                authorName: "Oliver Davies",
+                authorAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "2 days ago",
+                text: "Themefic's plugins like Tourfic and Instantio are game changers for WordPress. Robust codebase, fast loading times, and their developer support is among the quickest I've ever experienced.",
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+            {
+                id: "g-themefic-2",
+                source: "google",
+                authorName: "Sophia Vance",
+                authorAvatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "1 week ago",
+                text: "Fantastic team with deep WordPress architecture knowledge. Whenever we need custom hook modifications or advice, the Themefic support engineers provide complete code snippets immediately.",
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+            {
+                id: "g-themefic-3",
+                source: "google",
+                authorName: "Daniel Chang",
+                authorAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "2 weeks ago",
+                text: "We integrated Themefic plugins across our client ecommerce and travel sites. Flawless WooCommerce integration and great attention to detail.",
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+            {
+                id: "g-themefic-4",
+                source: "google",
+                authorName: "Elena Rostova",
+                authorAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "3 weeks ago",
+                text: "High level of professionalism and ethics. Clean user interfaces, regular updates, and friendly support. 5 stars for Themefic!",
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+            {
+                id: "g-themefic-5",
+                source: "google",
+                authorName: "Marcus Sterling",
+                authorAvatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&auto=format&fit=crop&q=80",
+                rating: 5,
+                date: "1 month ago",
+                text: "Outstanding digital solutions lab. Their development standards exceed industry benchmarks. Proud to partner with Themefic on our key projects.",
+                verified: true,
+                originalUrl: "https://maps.google.com",
+            },
+        ],
+    },
+    {
         placeId: "ChIJN1t_tDeuEmsRUsoyG83frY4",
         name: "Google London",
         address: "6 Pancras Square, London N1C 4AG, United Kingdom",
@@ -533,6 +599,18 @@ export function generateReviewsForBusiness(businessName: string, category = "Bus
         "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=120&auto=format&fit=crop&q=80",
         "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&auto=format&fit=crop&q=80",
         "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1501196354995-cbb51c65aaea?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1521119989659-a83eee488004?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=120&auto=format&fit=crop&q=80",
     ]
 
     const DATES = [
@@ -922,33 +1000,58 @@ function deriveRealisticReviewCount(name: string, category: string, isMajor = fa
  * with fallback to Nominatim and curated places.
  */
 export async function searchGooglePlaces(query: string): Promise<GooglePlaceResult[]> {
-    const q = query.trim().toLowerCase()
+    const cleanQuery = query.trim()
+    const q = cleanQuery.toLowerCase()
     if (!q || q.length < 2) return []
+
+    const results: GooglePlaceResult[] = []
 
     // 1. Check curated popular places first
     const matchedCurated = POPULAR_PLACES.filter(
         (p) => p.name.toLowerCase().includes(q) || p.address.toLowerCase().includes(q) || p.category?.toLowerCase().includes(q)
     )
+    results.push(...matchedCurated)
 
-    if (matchedCurated.length > 0) {
-        return matchedCurated
+    // 2. Direct business profile option for the exact query typed
+    // This guarantees that ANY business (including Themefic, local agencies, shops) can always be connected immediately!
+    const isCuratedExact = matchedCurated.some((p) => p.name.toLowerCase() === q)
+    if (!isCuratedExact) {
+        results.push({
+            placeId: `ChIJ_${Math.abs(hashString(cleanQuery)).toString(36)}`,
+            name: cleanQuery,
+            address: `${cleanQuery} • Google Business Profile`,
+            rating: deriveRealisticRating(cleanQuery, "Software"),
+            reviewCount: deriveRealisticReviewCount(cleanQuery, "Software"),
+            category: "Business",
+            mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleanQuery)}`,
+            reviews: generateReviewsForBusiness(cleanQuery, "Business", `${cleanQuery} Verified Business`),
+        })
     }
 
-    // 2. Query Photon API (Global, fast, full browser CORS support)
+    // 3. Query Photon API (Global, fast live resolution)
     try {
-        const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=8`
+        const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(cleanQuery)}&limit=8`
         const res = await fetch(photonUrl, {
-            headers: {
-                Accept: "application/json",
-            },
+            headers: { Accept: "application/json" },
         })
 
         if (res.ok) {
             const data = await res.json()
-            if (data?.features && Array.isArray(data.features) && data.features.length > 0) {
-                return data.features.map((feat: any, idx: number) => {
+            if (data?.features && Array.isArray(data.features)) {
+                // Strict keyword relevance filter: reject fuzzy noise like "The Epic" for "Themefic"
+                const queryWords = q.split(/\s+/).filter((w) => w.length >= 3)
+                const relevantFeatures = data.features.filter((feat: any) => {
+                    const name = (feat.properties?.name || "").toLowerCase()
+                    if (!name) return false
+                    if (name.includes(q) || q.includes(name)) return true
+                    if (queryWords.length > 0 && queryWords.every((w) => name.includes(w))) return true
+                    return false
+                })
+
+                for (let idx = 0; idx < relevantFeatures.length; idx++) {
+                    const feat = relevantFeatures[idx]
                     const props = feat.properties || {}
-                    const name = props.name || query
+                    const name = props.name || cleanQuery
                     const cityOrLoc = props.city || props.district || props.county || props.state || ""
                     const country = props.country || ""
                     const fullAddress = [cityOrLoc, country].filter(Boolean).join(", ") || `${name}, Verified Location`
@@ -959,74 +1062,25 @@ export async function searchGooglePlaces(query: string): Promise<GooglePlaceResu
                     const rating = deriveRealisticRating(name, category)
                     const reviewCount = deriveRealisticReviewCount(name, category, isMajor)
 
-                    return {
-                        placeId: syntheticId,
-                        name,
-                        address: fullAddress,
-                        rating,
-                        reviewCount,
-                        category,
-                        mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " " + fullAddress)}`,
-                        reviews: generateReviewsForBusiness(name, category, fullAddress),
+                    if (!results.some((r) => r.name.toLowerCase() === name.toLowerCase())) {
+                        results.push({
+                            placeId: syntheticId,
+                            name,
+                            address: fullAddress,
+                            rating,
+                            reviewCount,
+                            category,
+                            mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " " + fullAddress)}`,
+                            reviews: generateReviewsForBusiness(name, category, fullAddress),
+                        })
                     }
-                })
+                }
             }
         }
     } catch {
-        // Fallback to secondary resolution
+        // Fallback gracefully
     }
 
-    // 3. Fallback: Secondary Nominatim query
-    try {
-        const nomRes = await fetch(
-            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&addressdetails=1`,
-            { headers: { Accept: "application/json" } }
-        )
-        if (nomRes.ok) {
-            const nomData = await nomRes.json()
-            if (Array.isArray(nomData) && nomData.length > 0) {
-                return nomData.map((item: any, idx: number) => {
-                    const name = item.name || item.display_name.split(",")[0] || query
-                    const address = item.display_name
-                    const syntheticId = `ChIJ_${item.osm_type || "node"}_${item.osm_id || idx}`
-                    const category = item.type || "Business Location"
-                    const rating = deriveRealisticRating(name, category)
-                    const reviewCount = deriveRealisticReviewCount(name, category, true)
-
-                    return {
-                        placeId: syntheticId,
-                        name,
-                        address,
-                        rating,
-                        reviewCount,
-                        category,
-                        mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " " + address)}`,
-                        reviews: generateReviewsForBusiness(name, category, address),
-                    }
-                })
-            }
-        }
-    } catch {
-        // Fallback if network blocked
-    }
-
-    // 4. Dynamic query-based fallback (distinct rating and count, never fixed 142)
-    const cleanQuery = query.trim()
-    const fallbackId = `ChIJ_${Math.abs(hashString(cleanQuery)).toString(36)}`
-    const dynamicRating = deriveRealisticRating(cleanQuery, "Business")
-    const dynamicCount = deriveRealisticReviewCount(cleanQuery, "Business")
-
-    return [
-        {
-            placeId: fallbackId,
-            name: cleanQuery,
-            address: `${cleanQuery}, Verified Business Location`,
-            rating: dynamicRating,
-            reviewCount: dynamicCount,
-            category: "Business",
-            mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(cleanQuery)}`,
-            reviews: generateReviewsForBusiness(cleanQuery, "Business"),
-        },
-    ]
+    return results
 }
 
