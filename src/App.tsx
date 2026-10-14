@@ -36,7 +36,7 @@ import {
     generateSampleCSV,
     parseCSVToReviews,
 } from "./core/csv-service"
-import { syncReviewsToFramerCMS } from "./framer/cms-sync-service"
+import { syncReviewsToFramerCMS, exportReviewsForFramerCMS } from "./framer/cms-sync-service"
 import {
     searchGooglePlaces,
     parseGoogleMapsInput,
@@ -268,13 +268,27 @@ export function App() {
         setCmsSyncMsg(null)
         try {
             const res = await syncReviewsToFramerCMS(activeReviews)
-            setCmsSyncMsg({ text: res.message, ok: res.success })
+            setCmsSyncMsg({ text: res.message, ok: res.success || Boolean(res.isCanvasMode) })
         } catch (err: any) {
             setCmsSyncMsg({ text: err?.message || "Failed to sync to Framer CMS.", ok: false })
         } finally {
             setIsSyncingCMS(false)
-            setTimeout(() => setCmsSyncMsg(null), 5000)
+            setTimeout(() => setCmsSyncMsg(null), 8000)
         }
+    }, [activeReviews])
+
+    const handleExportFramerCMSCSV = useCallback(() => {
+        if (activeReviews.length === 0) {
+            setCmsSyncMsg({ text: "No reviews to export.", ok: false })
+            setTimeout(() => setCmsSyncMsg(null), 3000)
+            return
+        }
+        exportReviewsForFramerCMS(activeReviews)
+        setCmsSyncMsg({
+            text: `Downloaded Framer CMS CSV (${activeReviews.length} reviews)! In Framer: Open CMS in left sidebar → Click Import CSV to load in 1 click.`,
+            ok: true,
+        })
+        setTimeout(() => setCmsSyncMsg(null), 8000)
     }, [activeReviews])
 
     const handleGoogleSearchInput = (val: string) => {
@@ -636,6 +650,11 @@ export function App() {
                                         label="Autoplay Slides"
                                         checked={config.carouselAutoplay}
                                         onChange={(v) => updateConfig((prev) => ({ ...prev, carouselAutoplay: v }))}
+                                    />
+                                    <Switch
+                                        label="Infinite Loop Scroll"
+                                        checked={config.carouselInfinite !== false}
+                                        onChange={(v) => updateConfig((prev) => ({ ...prev, carouselInfinite: v }))}
                                     />
                                     <Field label={`Autoplay Interval: ${config.carouselSpeed}s`}>
                                         <input
@@ -1268,24 +1287,36 @@ export function App() {
                                     </div>
                                 )}
 
-                                <button
-                                    type="button"
-                                    className="cf-btn-cms-sync"
-                                    onClick={handleSyncCMS}
-                                    disabled={isSyncingCMS || activeReviews.length === 0}
-                                >
-                                    {isSyncingCMS ? (
-                                        <>
-                                            <IconRefresh size={14} />
-                                            <span>Syncing to Framer CMS...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <IconDatabase size={14} />
-                                            <span>Sync to Framer CMS Collection</span>
-                                        </>
-                                    )}
-                                </button>
+                                <div className="cf-cms-buttons-row">
+                                    <button
+                                        type="button"
+                                        className="cf-btn-cms-sync"
+                                        onClick={handleSyncCMS}
+                                        disabled={isSyncingCMS || activeReviews.length === 0}
+                                    >
+                                        {isSyncingCMS ? (
+                                            <>
+                                                <IconRefresh size={14} />
+                                                <span>Syncing to Framer CMS...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <IconDatabase size={14} />
+                                                <span>Sync to Framer CMS Collection</span>
+                                            </>
+                                        )}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="cf-btn-cms-secondary"
+                                        onClick={handleExportFramerCMSCSV}
+                                        disabled={activeReviews.length === 0}
+                                        title="Download pre-mapped CSV ready for Framer CMS import"
+                                    >
+                                        <IconDownload size={13} />
+                                        <span>Export for Framer CMS (.csv)</span>
+                                    </button>
+                                </div>
                             </div>
                         </Section>
                     </>

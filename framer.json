@@ -2,7 +2,10 @@
   "id": "8f7cf3",
   "name": "Reviewfic - Google & Trustpilot Reviews",
   "modes": [
-    "canvas"
+    "canvas",
+    "collection",
+    "syncManagedCollection",
+    "configureManagedCollection"
   ],
   "icon": "/icon.svg"
 }

@@ -77,6 +77,7 @@ export interface ReviewConfig {
     // Engine options
     carouselAutoplay: boolean
     carouselSpeed: number // in seconds
+    carouselInfinite: boolean // infinite slide scroll option
     marqueeSpeed: MarqueeSpeed
 
     // Styling metrics

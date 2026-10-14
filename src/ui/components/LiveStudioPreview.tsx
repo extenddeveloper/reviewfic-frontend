@@ -11,7 +11,6 @@ export interface LiveStudioPreviewProps {
     stageTheme?: "auto" | "light" | "dark"
 }
 
-const PASTELS = ["#fde68a", "#bfdbfe", "#c7d2fe", "#fbcfe8", "#bbf7d0", "#fed7aa"]
 
 function getInitials(name: string): string {
     const parts = (name || "").trim().split(/\s+/).filter(Boolean)
@@ -54,8 +53,20 @@ export function LiveStudioPreview({
         if (!trackRef.current) return
         const firstCard = trackRef.current.firstElementChild as HTMLElement | null
         const cardWidth = firstCard?.clientWidth || 280
-        trackRef.current.scrollBy({ left: direction * (cardWidth + 16), behavior: "smooth" })
-    }, [])
+        const track = trackRef.current
+        const maxScroll = track.scrollWidth - track.clientWidth
+        if (config.carouselInfinite) {
+            if (direction > 0 && track.scrollLeft >= maxScroll - 15) {
+                track.scrollTo({ left: 0, behavior: "smooth" })
+                return
+            }
+            if (direction < 0 && track.scrollLeft <= 15) {
+                track.scrollTo({ left: maxScroll, behavior: "smooth" })
+                return
+            }
+        }
+        track.scrollBy({ left: direction * (cardWidth + 16), behavior: "smooth" })
+    }, [config.carouselInfinite])
 
     const toggleExpand = (id: string) => {
         setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }))
@@ -68,13 +79,15 @@ export function LiveStudioPreview({
             if (!trackRef.current) return
             const maxScroll = trackRef.current.scrollWidth - trackRef.current.clientWidth
             if (trackRef.current.scrollLeft >= maxScroll - 15) {
-                trackRef.current.scrollTo({ left: 0, behavior: "smooth" })
+                if (config.carouselInfinite) {
+                    trackRef.current.scrollTo({ left: 0, behavior: "smooth" })
+                }
             } else {
                 scrollTrack(1)
             }
         }, Math.max(2, config.carouselSpeed || 5) * 1000)
         return () => clearInterval(t)
-    }, [layout, config.carouselAutoplay, config.carouselSpeed, reviews.length, scrollTrack])
+    }, [layout, config.carouselAutoplay, config.carouselSpeed, config.carouselInfinite, reviews.length, scrollTrack])
 
     // Auto-rotate spotlight
     useEffect(() => {
@@ -180,6 +193,8 @@ export function LiveStudioPreview({
     }
 
     const isDark = stageTheme === "dark" || (stageTheme === "auto" && config.themeMode === "dark")
+    const isBadge = ["badge", "avatars", "ratingcard", "gbadge", "trustpilot"].includes(layout)
+    const defaultBg = isDark ? "#0F1117" : (isBadge ? "transparent" : "#FFFFFF")
     const rootStyleObj = {
         ["--vr-star" as any]: starColor,
         ["--vr-radius" as any]: `${cornerRadius}px`,
@@ -193,6 +208,9 @@ export function LiveStudioPreview({
         ["--vr-gap" as any]: "14px",
         ["--vr-clamp" as any]: textClamp ? 4 : 100,
         ["--vr-grid-cols" as any]: config.gridColumns || 3,
+        background: config.containerBg || defaultBg,
+        border: isDark ? "1px solid rgba(255, 255, 255, 0.08)" : undefined,
+        borderRadius: `${cornerRadius}px`,
         width: "100%",
         minWidth: "320px",
         boxSizing: "border-box" as any,
@@ -314,7 +332,7 @@ export function LiveStudioPreview({
             {layout === "carousel" && (
                 <div className="vr-carousel-wrapper">
                     <div className="vr-track" ref={trackRef}>
-                        {reviews.map((r, i) => renderCard(r, i))}
+                        {(config.carouselInfinite && reviews.length > 2 ? [...reviews, ...reviews] : reviews).map((r, i) => renderCard(r, i))}
                     </div>
                     {reviews.length > 1 && (
                         <div className="vr-arrows">
@@ -490,7 +508,7 @@ export function LiveStudioPreview({
                     <div className="vr-ribbon-slot">
                         {reviews[ribbonIdx] && (
                             <div className="vr-ribbon-q">
-                                <span className="vr-ribbon-t">{reviews[ribbonIdx].text}</span>
+                                <p className="vr-ribbon-t">{reviews[ribbonIdx].text}</p>
                                 <span className="vr-ribbon-w">— {getShortName(reviews[ribbonIdx].authorName)}</span>
                             </div>
                         )}
@@ -512,22 +530,23 @@ export function LiveStudioPreview({
                         )}
                     </div>
                     <div className="vr-gal-faces">
-                        {reviews.slice(0, 8).map((r, i) => {
-                            const avStyle = { background: PASTELS[i % PASTELS.length] }
-                            return (
-                                <button
-                                    key={r.id || i}
-                                    type="button"
-                                    className={`vr-gal-face ${i === galleryIdx ? "on" : ""}`}
-                                    onClick={() => setGalleryIdx(i)}
-                                    title={r.authorName}
-                                >
-                                    <span className="vr-avatar" style={avStyle}>
-                                        {getInitials(r.authorName)}
-                                    </span>
-                                </button>
-                            )
-                        })}
+                        {reviews.slice(0, 8).map((r, i) => (
+                            <button
+                                key={r.id || i}
+                                type="button"
+                                className={`vr-gal-face color-${i % 8}${i === galleryIdx ? " on" : ""}`}
+                                onClick={() => setGalleryIdx(i)}
+                                title={r.authorName}
+                            >
+                                <span className="vr-avatar">
+                                    {r.authorAvatar ? (
+                                        <img src={r.authorAvatar} alt={r.authorName} />
+                                    ) : (
+                                        getInitials(r.authorName)
+                                    )}
+                                </span>
+                            </button>
+                        ))}
                     </div>
                 </div>
             )}
@@ -536,32 +555,31 @@ export function LiveStudioPreview({
                 <div className="vr-orbit">
                     <div className="vr-orbit-ring" />
                     <div className="vr-orbit-mid">
-                        <span className="vr-orbit-n">{stats.averageRating}</span>
-                        {renderStars(stats.averageRating, 15)}
+                        <span className="vr-orbit-n">{(reviews[orbitIdx]?.rating || stats.averageRating).toFixed(1)}</span>
+                        {renderStars(reviews[orbitIdx]?.rating || stats.averageRating, 16)}
                         {reviews[orbitIdx] && (
-                            <div className="vr-orbit-slot">
-                                <p className="vr-orbit-q">"{reviews[orbitIdx].text}"</p>
-                                <span className="vr-orbit-who">— {getShortName(reviews[orbitIdx].authorName)}</span>
-                            </div>
+                            <p className="vr-orbit-q">"{reviews[orbitIdx].text}"</p>
                         )}
+                        <span className="vr-orbit-who">{reviews[orbitIdx]?.authorName || "Customer"}</span>
                     </div>
                     <div className="vr-orbit-faces-row">
-                        {reviews.slice(0, 8).map((r, i) => {
-                            const avStyle = { background: PASTELS[i % PASTELS.length] }
-                            return (
-                                <button
-                                    key={r.id || i}
-                                    type="button"
-                                    className={`vr-orbit-face ${i === orbitIdx ? "on" : ""}`}
-                                    onClick={() => setOrbitIdx(i)}
-                                    title={r.authorName}
-                                >
-                                    <span className="vr-avatar" style={avStyle}>
-                                        {getInitials(r.authorName)}
-                                    </span>
-                                </button>
-                            )
-                        })}
+                        {reviews.slice(0, 8).map((r, i) => (
+                            <button
+                                key={r.id || i}
+                                type="button"
+                                className={`vr-orbit-face pos-${i % 8} color-${i % 8}${i === orbitIdx ? " on" : ""}`}
+                                onClick={() => setOrbitIdx(i)}
+                                title={r.authorName}
+                            >
+                                <span className="vr-avatar">
+                                    {r.authorAvatar ? (
+                                        <img src={r.authorAvatar} alt={r.authorName} />
+                                    ) : (
+                                        getInitials(r.authorName)
+                                    )}
+                                </span>
+                            </button>
+                        ))}
                     </div>
                 </div>
             )}

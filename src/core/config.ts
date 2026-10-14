@@ -50,6 +50,7 @@ export const DEFAULT_CONFIG: ReviewConfig = {
     // Engine
     carouselAutoplay: true,
     carouselSpeed: 5,
+    carouselInfinite: true,
     marqueeSpeed: "normal",
 
     // Styling

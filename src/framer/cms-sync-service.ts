@@ -1,11 +1,49 @@
 import { framer } from "@framer/plugin"
 import { ReviewItem } from "../core/types"
+import { downloadCSV } from "../core/csv-service"
 
 export interface CMSSyncResult {
     success: boolean
     message: string
+    isCanvasMode?: boolean
     collectionName?: string
     itemsCount?: number
+}
+
+function escapeCSVCell(val: any): string {
+    if (val === null || val === undefined) return '""'
+    const str = String(val).replace(/"/g, '""')
+    return `"${str}"`
+}
+
+/**
+ * Generates and triggers download of a CSV pre-mapped specifically for Framer CMS.
+ * Headers match Framer's default CMS field detection for seamless 1-click import.
+ */
+export function exportReviewsForFramerCMS(reviews: ReviewItem[], filename = "reviewfic-framer-cms.csv"): void {
+    const headers = [
+        "Title",
+        "Author Name",
+        "Star Rating",
+        "Review Text",
+        "Platform Source",
+        "Review Date",
+        "Verified Customer",
+        "Avatar URL",
+    ]
+    const rows = reviews.map((r, i) => [
+        escapeCSVCell(`${r.authorName || "Customer"} - Review #${i + 1}`),
+        escapeCSVCell(r.authorName),
+        escapeCSVCell(r.rating),
+        escapeCSVCell(r.text),
+        escapeCSVCell(r.source),
+        escapeCSVCell(r.date),
+        escapeCSVCell(r.verified ? "true" : "false"),
+        escapeCSVCell(r.authorAvatar || ""),
+    ])
+
+    const csvContent = [headers.join(","), ...rows.map((row) => row.join(","))].join("\r\n")
+    downloadCSV(filename, csvContent)
 }
 
 function slugify(text: string): string {
@@ -31,14 +69,20 @@ export async function syncReviewsToFramerCMS(
         }
     }
 
-    try {
-        // Request permissions if isAllowedTo is present
-        if (typeof (framer as any).isAllowedTo === "function") {
-            try {
-                await (framer as any).isAllowedTo("createManagedCollection", "getManagedCollections", "getCollections", "createCollection")
-            } catch {}
-        }
+    const currentMode = (framer as any).mode
 
+    // If running in canvas mode, Framer restricts direct CMS collection API calls
+    if (currentMode === "canvas") {
+        exportReviewsForFramerCMS(reviews)
+        return {
+            success: false,
+            isCanvasMode: true,
+            message: `Framer restricts direct collection creation in Canvas mode. Pre-mapped CSV downloaded! In Framer's left sidebar, click CMS → Import CSV to import all ${reviews.length} reviews in 1 click.`,
+            itemsCount: reviews.length,
+        }
+    }
+
+    try {
         let targetCollection: any = null
 
         // 1. Try finding existing managed collection
@@ -46,7 +90,7 @@ export async function syncReviewsToFramerCMS(
             try {
                 const managedCollections = await (framer as any).getManagedCollections()
                 targetCollection = managedCollections?.find((c: any) => c.name === collectionTitle)
-            } catch {}
+            } catch (e) {}
         }
 
         // 2. If not found, try creating managed collection
@@ -54,15 +98,16 @@ export async function syncReviewsToFramerCMS(
             try {
                 targetCollection = await (framer as any).createManagedCollection(collectionTitle)
             } catch (err: any) {
-                // If it already exists or rejected
-                if (typeof (framer as any).getManagedCollections === "function") {
-                    const managed = await (framer as any).getManagedCollections()
-                    targetCollection = managed?.find((c: any) => c.name === collectionTitle)
-                }
+                try {
+                    if (typeof (framer as any).getManagedCollections === "function") {
+                        const managed = await (framer as any).getManagedCollections()
+                        targetCollection = managed?.find((c: any) => c.name === collectionTitle)
+                    }
+                } catch (e) {}
             }
         }
 
-        // 3. Fallback to standard Collection API if managed is unavailable
+        // 3. Fallback to standard Collection API
         if (!targetCollection && typeof (framer as any).getCollections === "function") {
             try {
                 const collections = await (framer as any).getCollections()
@@ -70,17 +115,20 @@ export async function syncReviewsToFramerCMS(
                 if (!targetCollection && typeof (framer as any).createCollection === "function") {
                     targetCollection = await (framer as any).createCollection(collectionTitle)
                 }
-            } catch {}
+            } catch (e) {}
         }
 
         if (!targetCollection) {
+            exportReviewsForFramerCMS(reviews)
             return {
                 success: false,
-                message: "Framer CMS is not available in the current project or requires a CMS plan.",
+                isCanvasMode: true,
+                message: `Direct CMS API not permitted in this mode. Downloaded pre-mapped CSV! Open CMS in left sidebar → Import CSV to import ${reviews.length} reviews.`,
+                itemsCount: reviews.length,
             }
         }
 
-        // Configure CMS schema fields if setFields is supported
+        // Configure CMS schema fields
         if (typeof targetCollection.setFields === "function") {
             try {
                 await targetCollection.setFields([
@@ -92,9 +140,7 @@ export async function syncReviewsToFramerCMS(
                     { id: "verified", type: "boolean", name: "Verified Customer" },
                     { id: "avatar", type: "string", name: "Avatar URL" },
                 ])
-            } catch (fieldErr) {
-                // Non-fatal if fields already exist
-            }
+            } catch (fieldErr) {}
         }
 
         // Prepare item payload
@@ -115,12 +161,10 @@ export async function syncReviewsToFramerCMS(
             }
         })
 
-        // Upsert items into CMS Collection
         if (typeof targetCollection.addItems === "function") {
             await targetCollection.addItems(cmsItems)
         }
 
-        // Set as active view in Framer UI
         if (typeof targetCollection.setAsActive === "function") {
             try {
                 await targetCollection.setAsActive()
@@ -134,9 +178,11 @@ export async function syncReviewsToFramerCMS(
             itemsCount: cmsItems.length,
         }
     } catch (error: any) {
+        exportReviewsForFramerCMS(reviews)
         return {
             success: false,
-            message: error?.message || "Failed to synchronize reviews with Framer CMS.",
+            message: "Framer CMS API restricted in this view. Downloaded pre-mapped CSV for 1-click import into Framer CMS (press C in Framer)!",
+            itemsCount: reviews.length,
         }
     }
 }

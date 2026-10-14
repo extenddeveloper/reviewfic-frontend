@@ -22,6 +22,9 @@
   color:var(--vr-text-primary);box-sizing:border-box;
 }
 .vr-root.dark,.vr-root[data-theme="dark"]{
+  background:var(--vr-section-bg,#0F1117);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:var(--vr-radius,16px);
   --vr-card-bg:#181A22;--vr-text-primary:#F3F4F6;--vr-head-text:#F3F4F6;
   --vr-card-border:rgba(255,255,255,0.12);
   --vr-shadow:0 2px 8px rgba(0,0,0,.35);--vr-shadow-hover:0 8px 24px rgba(0,0,0,.5);
@@ -661,3 +664,223 @@ a.vr-chip:hover,a.vr-badge:hover{border-color:var(--vr-accent);opacity:1;}
 .vrp-gilt .vr-src{justify-self:center;}
 .vrp-hotel .vr-id,.vrp-hotel .vr-bl,.vrp-hotel .vr-br{justify-content:center;}
 .vrp-hotel .vr-src{justify-self:center;}
+
+/* Orbit Radial Layout — 8 Positions matching Image 3 */
+.vr-orbit {
+  position: relative;
+  width: min(100%, 460px);
+  height: 440px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--vr-radius);
+  background: var(--vr-card-bg);
+}
+.vr-orbit-ring {
+  position: absolute;
+  width: 330px;
+  height: 330px;
+  border-radius: 50%;
+  border: 1.5px dashed var(--vr-card-border);
+  pointer-events: none;
+}
+.vr-orbit-mid {
+  position: relative;
+  z-index: 2;
+  width: 250px;
+  max-width: 65%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: auto;
+}
+.vr-orbit-n {
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+  color: var(--vr-text-primary);
+}
+.vr-orbit-q {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--vr-text-secondary);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  overflow: hidden;
+  margin: 4px 0 0;
+}
+.vr-orbit-who {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--vr-text-primary);
+  margin-top: 2px;
+}
+.vr-orbit-faces-row {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.vr-orbit-face {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin: -20px 0 0 -20px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.3, 1), opacity 0.25s ease;
+  opacity: 0.75;
+  pointer-events: auto;
+}
+.vr-orbit-face:hover {
+  opacity: 1;
+}
+.vr-orbit-face.on {
+  opacity: 1;
+  z-index: 5;
+}
+.vr-orbit-face .vr-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: box-shadow 0.25s ease;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+.vr-orbit-face.on .vr-avatar {
+  box-shadow: 0 0 0 3px var(--vr-card-bg, #FFFFFF), 0 0 0 5.5px var(--vr-accent, #0099FF);
+  border-color: transparent;
+}
+.vr-orbit-face.pos-0 { transform: translate(0px, -165px); }
+.vr-orbit-face.pos-0.on { transform: translate(0px, -165px) scale(1.15); }
+.vr-orbit-face.pos-1 { transform: translate(117px, -117px); }
+.vr-orbit-face.pos-1.on { transform: translate(117px, -117px) scale(1.15); }
+.vr-orbit-face.pos-2 { transform: translate(165px, 0px); }
+.vr-orbit-face.pos-2.on { transform: translate(165px, 0px) scale(1.15); }
+.vr-orbit-face.pos-3 { transform: translate(117px, 117px); }
+.vr-orbit-face.pos-3.on { transform: translate(117px, 117px) scale(1.15); }
+.vr-orbit-face.pos-4 { transform: translate(0px, 165px); }
+.vr-orbit-face.pos-4.on { transform: translate(0px, 165px) scale(1.15); }
+.vr-orbit-face.pos-5 { transform: translate(-117px, 117px); }
+.vr-orbit-face.pos-5.on { transform: translate(-117px, 117px) scale(1.15); }
+.vr-orbit-face.pos-6 { transform: translate(-165px, 0px); }
+.vr-orbit-face.pos-6.on { transform: translate(-165px, 0px) scale(1.15); }
+.vr-orbit-face.pos-7 { transform: translate(-117px, -117px); }
+.vr-orbit-face.pos-7.on { transform: translate(-117px, -117px) scale(1.15); }
+
+.vr-orbit-face.color-0 .vr-avatar { background: #DBEAFE; color: #1E40AF; }
+.vr-orbit-face.color-1 .vr-avatar { background: #FFEDD5; color: #9A3412; }
+.vr-orbit-face.color-2 .vr-avatar { background: #FCE7F3; color: #9D174D; }
+.vr-orbit-face.color-3 .vr-avatar { background: #F3E8FF; color: #6B21A8; }
+.vr-orbit-face.color-4 .vr-avatar { background: #FEF9C3; color: #854D0E; }
+.vr-orbit-face.color-5 .vr-avatar { background: #E0F2FE; color: #0369A1; }
+.vr-orbit-face.color-6 .vr-avatar { background: #DCFCE7; color: #166534; }
+.vr-orbit-face.color-7 .vr-avatar { background: #EDE9FE; color: #5B21B6; }
+
+/* Ribbon Quote Layout Clamping & Overlap Fix */
+.vr-ribbon {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 18px 24px;
+  border-radius: 14px;
+  background: var(--vr-card-bg);
+  border: 1px solid var(--vr-card-border);
+  box-shadow: var(--vr-shadow);
+  overflow: hidden;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+.vr-ribbon-score {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 0 0 auto;
+  padding-right: 22px;
+  border-right: 1px solid var(--vr-card-border);
+}
+.vr-ribbon-n {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--vr-text-primary);
+}
+.vr-ribbon-c {
+  font-size: 11.5px;
+  color: var(--vr-text-muted);
+}
+.vr-ribbon-slot {
+  flex: 1 1 0%;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.vr-ribbon-q {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+.vr-ribbon-t {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--vr-text-secondary);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-word;
+  white-space: normal;
+  margin: 0;
+}
+.vr-ribbon-w {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--vr-text-primary);
+}
+
+/* Card Backdrops for Reading & Motion Layouts */
+.vr-gal-card {
+  background: var(--vr-card-bg);
+  border: 1px solid var(--vr-card-border);
+  border-radius: var(--vr-radius);
+  padding: 24px 20px;
+  box-shadow: var(--vr-shadow);
+  margin-bottom: 20px;
+}
+.vr-spot {
+  background: var(--vr-card-bg);
+  border: 1px solid var(--vr-card-border);
+  border-radius: var(--vr-radius);
+  padding: 28px 20px;
+  box-shadow: var(--vr-shadow);
+}
+.vr-break {
+  background: var(--vr-card-bg);
+  border: 1px solid var(--vr-card-border);
+  border-radius: var(--vr-radius);
+  padding: 28px 22px;
+  box-shadow: var(--vr-shadow);
+}
+

@@ -39,6 +39,7 @@ interface ReviewficProps {
     layout?: ReviewLayout
     cardStyle?: CardStyle
     themeMode?: "auto" | "light" | "dark"
+    containerBg?: string
     starColor?: string
     gridColumns?: number
     showStars?: boolean
@@ -50,6 +51,7 @@ interface ReviewficProps {
     minRating?: number
     carouselAutoplay?: boolean
     carouselSpeed?: number
+    carouselInfinite?: boolean
     marqueeSpeed?: "slow" | "normal" | "fast"
     cornerRadius?: number
     sortOrder?: "newest" | "highest" | "random"
@@ -64,6 +66,7 @@ export default function Reviewfic(props: ReviewficProps) {
     const layout = props.layout ?? DEFAULT_DATA.layout ?? "carousel"
     const cardStyle = props.cardStyle ?? DEFAULT_DATA.cardStyle ?? "elevated"
     const themeMode = props.themeMode ?? DEFAULT_DATA.themeMode ?? "auto"
+    const containerBg = props.containerBg || DEFAULT_DATA.containerBg || ""
     const starColor = props.starColor ?? DEFAULT_DATA.starColor ?? "#FBBC05"
     const gridColumns = props.gridColumns ?? DEFAULT_DATA.gridColumns ?? 3
     const showStars = props.showStars !== undefined ? props.showStars : (DEFAULT_DATA.showStars ?? true)
@@ -75,6 +78,7 @@ export default function Reviewfic(props: ReviewficProps) {
     const minRating = props.minRating !== undefined ? props.minRating : (DEFAULT_DATA.minRatingFilter || 0)
     const carouselAutoplay = props.carouselAutoplay !== undefined ? props.carouselAutoplay : (DEFAULT_DATA.carouselAutoplay ?? true)
     const carouselSpeed = props.carouselSpeed || DEFAULT_DATA.carouselSpeed || 5
+    const carouselInfinite = props.carouselInfinite !== undefined ? props.carouselInfinite : (DEFAULT_DATA.carouselInfinite ?? true)
     const marqueeSpeed = props.marqueeSpeed || DEFAULT_DATA.marqueeSpeed || "normal"
     const cornerRadius = props.cornerRadius !== undefined ? props.cornerRadius : (DEFAULT_DATA.cornerRadius || 16)
     const sortOrder = props.sortOrder || DEFAULT_DATA.sortOrder || "newest"
@@ -109,13 +113,31 @@ export default function Reviewfic(props: ReviewficProps) {
     const [isHovered, setIsHovered] = React.useState(false)
     const [expandedCards, setExpandedCards] = React.useState<Record<string, boolean>>({})
 
+    const getInitials = (name: string) => {
+        const parts = (name || "").trim().split(/\s+/).filter(Boolean)
+        if (!parts.length) return "?"
+        return parts.length === 1 ? parts[0].slice(0, 2).toUpperCase() : (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    }
+
     const trackRef = React.useRef<HTMLDivElement>(null)
     const scrollTrack = React.useCallback((direction: number) => {
         if (!trackRef.current) return
         const firstCard = trackRef.current.firstElementChild as HTMLElement | null
         const cardWidth = firstCard?.clientWidth || 300
-        trackRef.current.scrollBy({ left: direction * (cardWidth + 16), behavior: "smooth" })
-    }, [])
+        const track = trackRef.current
+        const maxScroll = track.scrollWidth - track.clientWidth
+        if (carouselInfinite) {
+            if (direction > 0 && track.scrollLeft >= maxScroll - 15) {
+                track.scrollTo({ left: 0, behavior: "smooth" })
+                return
+            }
+            if (direction < 0 && track.scrollLeft <= 15) {
+                track.scrollTo({ left: maxScroll, behavior: "smooth" })
+                return
+            }
+        }
+        track.scrollBy({ left: direction * (cardWidth + 16), behavior: "smooth" })
+    }, [carouselInfinite])
 
     const toggleExpand = React.useCallback((id: string) => {
         setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }))
@@ -126,15 +148,18 @@ export default function Reviewfic(props: ReviewficProps) {
         if (layout !== "carousel" || !carouselAutoplay || isHovered || reviews.length <= 1) return
         const timer = setInterval(() => {
             if (!trackRef.current) return
-            const maxScroll = trackRef.current.scrollWidth - trackRef.current.clientWidth
-            if (trackRef.current.scrollLeft >= maxScroll - 15) {
-                trackRef.current.scrollTo({ left: 0, behavior: "smooth" })
+            const track = trackRef.current
+            const maxScroll = track.scrollWidth - track.clientWidth
+            if (track.scrollLeft >= maxScroll - 15) {
+                if (carouselInfinite) {
+                    track.scrollTo({ left: 0, behavior: "smooth" })
+                }
             } else {
                 scrollTrack(1)
             }
         }, Math.max(2, carouselSpeed) * 1000)
         return () => clearInterval(timer)
-    }, [layout, carouselAutoplay, carouselSpeed, isHovered, reviews.length, scrollTrack])
+    }, [layout, carouselAutoplay, carouselSpeed, isHovered, reviews.length, scrollTrack, carouselInfinite])
 
     // Spotlight autoplay
     React.useEffect(() => {
@@ -265,6 +290,8 @@ export default function Reviewfic(props: ReviewficProps) {
     }
 
     const isDark = themeMode === "dark"
+    const isBadge = ["badge", "avatars", "ratingcard", "gbadge", "trustpilot"].includes(layout)
+    const defaultBg = isDark ? "#0F1117" : (isBadge ? "transparent" : "#FFFFFF")
     const rootStyleObj = {
         ["--vr-star" as any]: starColor,
         ["--vr-radius" as any]: cornerRadius + "px",
@@ -278,6 +305,9 @@ export default function Reviewfic(props: ReviewficProps) {
         ["--vr-text-primary" as any]: isDark ? "#F3F4F6" : "#18181B",
         ["--vr-head-text" as any]: isDark ? "#F3F4F6" : "#18181B",
         ["--vr-card-border" as any]: isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.08)",
+        background: containerBg || defaultBg,
+        border: isDark ? "1px solid rgba(255, 255, 255, 0.08)" : undefined,
+        borderRadius: cornerRadius + "px",
         width: "100%",
         minWidth: "320px",
         boxSizing: "border-box" as any,
@@ -419,7 +449,7 @@ export default function Reviewfic(props: ReviewficProps) {
             {layout === "carousel" && (
                 <div className="vr-carousel-wrapper">
                     <div className="vr-track" ref={trackRef}>
-                        {reviews.map((r: any, i: number) => renderCard(r, i))}
+                        {(carouselInfinite && reviews.length > 2 ? [...reviews, ...reviews] : reviews).map((r: any, i: number) => renderCard(r, i))}
                     </div>
                     {reviews.length > 1 && (
                         <div className="vr-arrows">
@@ -587,7 +617,7 @@ export default function Reviewfic(props: ReviewficProps) {
                     <div className="vr-ribbon-slot">
                         {reviews[ribbonIndex] && (
                             <div className="vr-ribbon-q">
-                                <span className="vr-ribbon-t">{reviews[ribbonIndex].text}</span>
+                                <p className="vr-ribbon-t">{reviews[ribbonIndex].text}</p>
                                 <span className="vr-ribbon-w">— {reviews[ribbonIndex].authorName}</span>
                             </div>
                         )}
@@ -634,31 +664,29 @@ export default function Reviewfic(props: ReviewficProps) {
                 <div className="vr-orbit">
                     <div className="vr-orbit-ring" />
                     <div className="vr-orbit-mid">
-                        <span className="vr-orbit-n">{stats.averageRating}</span>
-                        {renderStars(stats.averageRating, 15)}
+                        <span className="vr-orbit-n">{(reviews[orbitIndex]?.rating || stats.averageRating).toFixed(1)}</span>
+                        {renderStars(reviews[orbitIndex]?.rating || stats.averageRating, 16)}
                         {reviews[orbitIndex] && (
-                            <div className="vr-orbit-slot">
-                                <p className="vr-orbit-q">"{reviews[orbitIndex].text}"</p>
-                                <span className="vr-orbit-who">— {reviews[orbitIndex].authorName}</span>
-                            </div>
+                            <p className="vr-orbit-q">"{reviews[orbitIndex].text}"</p>
                         )}
+                        <span className="vr-orbit-who">{reviews[orbitIndex]?.authorName || "Customer"}</span>
                     </div>
                     <div className="vr-orbit-faces-row">
                         {reviews.slice(0, 8).map((r: any, i: number) => (
                             <button
                                 key={r.id || i}
                                 type="button"
-                                className={"vr-orbit-face" + (i === orbitIndex ? " on" : "")}
+                                className={"vr-orbit-face pos-" + (i % 8) + " color-" + (i % 8) + (i === orbitIndex ? " on" : "")}
                                 onClick={() => setOrbitIndex(i)}
                                 title={r.authorName}
                             >
-                                <div className="vr-avatar">
+                                <span className="vr-avatar">
                                     {r.authorAvatar ? (
                                         <img src={r.authorAvatar} alt={r.authorName} />
                                     ) : (
-                                        <div className="vr-avatar-fallback">{r.authorName.charAt(0)}</div>
+                                        getInitials(r.authorName)
                                     )}
-                                </div>
+                                </span>
                             </button>
                         ))}
                     </div>
@@ -763,6 +791,7 @@ Reviewfic.defaultProps = {
     layout: "carousel",
     cardStyle: "elevated",
     themeMode: "auto",
+    containerBg: "",
     starColor: "#FBBC05",
     gridColumns: 3,
     showStars: true,
@@ -774,6 +803,7 @@ Reviewfic.defaultProps = {
     minRating: 0,
     carouselAutoplay: true,
     carouselSpeed: 5,
+    carouselInfinite: true,
     marqueeSpeed: "normal",
     cornerRadius: 16,
     sortOrder: "newest",
@@ -831,6 +861,11 @@ addPropertyControls(Reviewfic, {
         optionTitles: ["Auto (Site Theme)", "Light Mode", "Dark Mode"],
         defaultValue: "auto",
     },
+    containerBg: {
+        type: ControlType.Color,
+        title: "Container Bg",
+        defaultValue: "",
+    },
     starColor: {
         type: ControlType.Color,
         title: "Star Color",
@@ -865,6 +900,12 @@ addPropertyControls(Reviewfic, {
         max: 15,
         step: 1,
         defaultValue: 5,
+        hidden: (props: any) => props.layout !== "carousel",
+    },
+    carouselInfinite: {
+        type: ControlType.Boolean,
+        title: "Infinite Loop",
+        defaultValue: true,
         hidden: (props: any) => props.layout !== "carousel",
     },
     marqueeSpeed: {
@@ -939,6 +980,7 @@ export function buildControlPayload(config: ReviewConfig) {
         layout: config.layout || "carousel",
         cardStyle: config.cardStyle || "elevated",
         themeMode: config.themeMode || "auto",
+        containerBg: config.containerBg || "",
         starColor: config.starColor || "#FBBC05",
         gridColumns: config.gridColumns || 3,
         showStars: config.showStars !== undefined ? config.showStars : true,
@@ -950,6 +992,7 @@ export function buildControlPayload(config: ReviewConfig) {
         minRating: config.minRatingFilter || 0,
         carouselAutoplay: config.carouselAutoplay !== undefined ? config.carouselAutoplay : true,
         carouselSpeed: config.carouselSpeed || 5,
+        carouselInfinite: config.carouselInfinite !== undefined ? config.carouselInfinite : true,
         marqueeSpeed: config.marqueeSpeed || "normal",
         cornerRadius: config.cornerRadius || 16,
         sortOrder: config.sortOrder || "newest",
