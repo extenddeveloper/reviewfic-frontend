@@ -69,8 +69,8 @@ export function App() {
 
     // Phase 2 Studio states
     const [stageTheme, setStageTheme] = useState<"soft" | "dark" | "light">("soft")
-    const [selectedLayoutGroup, setSelectedLayoutGroup] = useState<string>("all")
-    const [selectedCardFamily, setSelectedCardFamily] = useState<CardFamily>("modern")
+    const [selectedLayoutGroup, setSelectedLayoutGroup] = useState<string>("cards")
+    const [selectedCardFamily, setSelectedCardFamily] = useState<CardFamily | "all">("modern")
 
     // Google Places Search & Resolver states
     const [googleQuery, setGoogleQuery] = useState("")
@@ -99,6 +99,14 @@ export function App() {
         async function init() {
             const loaded = await loadReviewConfig()
             if (!isMounted) return
+            if (loaded.trustpilotDomain && (loaded.trustpilotDomain.includes("http") || loaded.trustpilotDomain.includes("trustpilot.com"))) {
+                const parsed = parseTrustpilotInput(loaded.trustpilotDomain)
+                if (parsed.domain) loaded.trustpilotDomain = parsed.domain
+            }
+            const lGroup = ALL_LAYOUTS.find((l) => l.key === loaded.layout)?.group
+            if (lGroup) setSelectedLayoutGroup(lGroup)
+            const cFamily = ALL_CARD_PRESETS.find((p) => p.id === loaded.cardStyle)?.family
+            if (cFamily) setSelectedCardFamily(cFamily)
             setConfig(loaded)
 
             const count = await getCanvasInstancesCount()
@@ -128,6 +136,12 @@ export function App() {
         })
     }, [updateConfig])
 
+    const tpDomainClean = useMemo(() => {
+        if (!config.trustpilotDomain || config.trustpilotDomain === "company.com") return ""
+        const parsed = parseTrustpilotInput(config.trustpilotDomain)
+        return parsed.domain || config.trustpilotDomain
+    }, [config.trustpilotDomain])
+
     const activeReviews = useMemo(() => getActiveReviews(config), [config])
     const stats = useMemo(() => calculateBlendedStats(config, activeReviews), [config, activeReviews])
 
@@ -137,6 +151,7 @@ export function App() {
     }, [selectedLayoutGroup])
 
     const filteredPresets = useMemo(() => {
+        if ((selectedCardFamily as any) === "all") return ALL_CARD_PRESETS
         return ALL_CARD_PRESETS.filter((p) => p.family === selectedCardFamily)
     }, [selectedCardFamily])
 
@@ -658,30 +673,46 @@ export function App() {
                             subtitle="Choose from 25 curated interactive layouts"
                             icon={<IconLayoutCarousel size={15} />}
                         >
-                            <div className="cf-chip-tabs">
-                                <button
-                                    type="button"
-                                    className={`cf-chip-tab ${selectedLayoutGroup === "all" ? "active" : ""}`}
-                                    onClick={() => setSelectedLayoutGroup("all")}
+                            <Field label="Layout Category (Group)" hint="Filter layouts by category">
+                                <select
+                                    className="cf-select"
+                                    value={selectedLayoutGroup}
+                                    onChange={(e) => setSelectedLayoutGroup(e.target.value)}
                                 >
-                                    <span>All Layouts</span>
-                                    <span className="cf-chip-tab-count">25</span>
-                                </button>
-                                {LAYOUT_GROUPS.map((g) => {
-                                    const count = ALL_LAYOUTS.filter((l) => l.group === g.id).length
-                                    return (
-                                        <button
-                                            key={g.id}
-                                            type="button"
-                                            className={`cf-chip-tab ${selectedLayoutGroup === g.id ? "active" : ""}`}
-                                            onClick={() => setSelectedLayoutGroup(g.id)}
-                                        >
-                                            <span>{g.name}</span>
-                                            <span className="cf-chip-tab-count">{count}</span>
-                                        </button>
-                                    )
-                                })}
-                            </div>
+                                    <option value="all">All Categories (25 Layouts)</option>
+                                    {LAYOUT_GROUPS.map((g) => {
+                                        const count = ALL_LAYOUTS.filter((l) => l.group === g.id).length
+                                        return (
+                                            <option key={g.id} value={g.id}>
+                                                {g.name} ({count} Layouts)
+                                            </option>
+                                        )
+                                    })}
+                                </select>
+                            </Field>
+
+                            <Field label="Select Layout Preset" hint="Pick any layout across all groups">
+                                <select
+                                    className="cf-select"
+                                    value={config.layout}
+                                    onChange={(e) => {
+                                        const nextKey = e.target.value as ReviewLayout
+                                        const item = ALL_LAYOUTS.find((l) => l.key === nextKey)
+                                        if (item) setSelectedLayoutGroup(item.group)
+                                        updateConfig((prev) => ({ ...prev, layout: nextKey }))
+                                    }}
+                                >
+                                    {LAYOUT_GROUPS.map((g) => (
+                                        <optgroup key={g.id} label={`${g.name} (${ALL_LAYOUTS.filter((l) => l.group === g.id).length})`}>
+                                            {ALL_LAYOUTS.filter((l) => l.group === g.id).map((l) => (
+                                                <option key={l.key} value={l.key}>
+                                                    {l.name} {l.tier === "pro" ? "✦ PRO" : ""} — {l.desc}
+                                                </option>
+                                            ))}
+                                        </optgroup>
+                                    ))}
+                                </select>
+                            </Field>
 
                             <div className="cf-catalog-grid">
                                 {filteredLayouts.map((l) => {
@@ -691,7 +722,10 @@ export function App() {
                                             key={l.key}
                                             type="button"
                                             className={`cf-catalog-item ${isActive ? "active" : ""}`}
-                                            onClick={() => updateConfig((prev) => ({ ...prev, layout: l.key }))}
+                                            onClick={() => {
+                                                setSelectedLayoutGroup(l.group)
+                                                updateConfig((prev) => ({ ...prev, layout: l.key }))
+                                            }}
                                             title={l.desc}
                                         >
                                             <span className="cf-catalog-item-name">{l.name}</span>
@@ -763,22 +797,49 @@ export function App() {
                             subtitle="Choose from 57 curated design presets"
                             icon={<IconSparkles size={15} />}
                         >
-                            <div className="cf-chip-tabs">
-                                {CARD_FAMILIES.map((f) => {
-                                    const count = ALL_CARD_PRESETS.filter((p) => p.family === f.id).length
-                                    return (
-                                        <button
-                                            key={f.id}
-                                            type="button"
-                                            className={`cf-chip-tab ${selectedCardFamily === f.id ? "active" : ""}`}
-                                            onClick={() => setSelectedCardFamily(f.id)}
-                                        >
-                                            <span>{f.name}</span>
-                                            <span className="cf-chip-tab-count">{count}</span>
-                                        </button>
-                                    )
-                                })}
-                            </div>
+                            <Field label="Style Family (Group)" hint="Filter card presets by style family">
+                                <select
+                                    className="cf-select"
+                                    value={selectedCardFamily}
+                                    onChange={(e) => setSelectedCardFamily(e.target.value as any)}
+                                >
+                                    <option value="all">All Families (57 Presets)</option>
+                                    {CARD_FAMILIES.map((f) => {
+                                        const count = ALL_CARD_PRESETS.filter((p) => p.family === f.id).length
+                                        return (
+                                            <option key={f.id} value={f.id}>
+                                                {f.name} ({count} Presets)
+                                            </option>
+                                        )
+                                    })}
+                                </select>
+                            </Field>
+
+                            <Field label="Select Card Style Preset" hint="Pick any card style preset across all families">
+                                <select
+                                    className="cf-select"
+                                    value={config.cardStyle}
+                                    onChange={(e) => {
+                                        const nextId = e.target.value as any
+                                        const preset = ALL_CARD_PRESETS.find((p) => p.id === nextId)
+                                        if (preset) setSelectedCardFamily(preset.family)
+                                        updateConfig((prev) => ({ ...prev, cardStyle: nextId }))
+                                    }}
+                                >
+                                    {CARD_FAMILIES.map((f) => {
+                                        const items = ALL_CARD_PRESETS.filter((p) => p.family === f.id)
+                                        return (
+                                            <optgroup key={f.id} label={`${f.name} (${items.length})`}>
+                                                {items.map((p) => (
+                                                    <option key={p.id} value={p.id}>
+                                                        {p.name} {p.platform ? `[${p.platform.toUpperCase()}]` : ""} {p.tier === "pro" ? "✦ PRO" : ""} — {p.note}
+                                                    </option>
+                                                ))}
+                                            </optgroup>
+                                        )
+                                    })}
+                                </select>
+                            </Field>
 
                             <div className="cf-presets-grid">
                                 {filteredPresets.map((p) => {
@@ -788,7 +849,10 @@ export function App() {
                                             key={p.id}
                                             type="button"
                                             className={`cf-preset-item ${isActive ? "active" : ""}`}
-                                            onClick={() => updateConfig((prev) => ({ ...prev, cardStyle: p.id }))}
+                                            onClick={() => {
+                                                setSelectedCardFamily(p.family)
+                                                updateConfig((prev) => ({ ...prev, cardStyle: p.id }))
+                                            }}
                                             title={p.note}
                                         >
                                             <div className="cf-preset-top">
@@ -1081,7 +1145,7 @@ export function App() {
                         {/* Trustpilot Connection */}
                         <Section
                             title="Trustpilot Profile"
-                            subtitle={config.trustpilotDomain && config.trustpilotDomain !== "company.com" ? `Connected: ${config.trustpilotDomain}` : "Connect your Trustpilot reviews"}
+                            subtitle={tpDomainClean ? `Connected: ${tpDomainClean}` : "Connect your Trustpilot reviews"}
                             icon={<IconTrustpilot size={15} />}
                         >
                             <Switch
@@ -1096,7 +1160,7 @@ export function App() {
                             />
 
                             {/* Connected Profile Card */}
-                            {config.trustpilotDomain && config.trustpilotDomain !== "company.com" ? (
+                            {tpDomainClean ? (
                                 <div className="cf-tp-connected-card">
                                     <div className="cf-conn-header">
                                         <div className="cf-conn-identity">
@@ -1104,7 +1168,7 @@ export function App() {
                                                 <IconTrustpilot size={16} />
                                             </div>
                                             <div>
-                                                <div className="cf-conn-name">{config.trustpilotDomain}</div>
+                                                <div className="cf-conn-name">{tpDomainClean}</div>
                                                 <div className="cf-tp-badge-tag">
                                                     <IconCheck size={12} />
                                                     <span>Verified TrustScore</span>
@@ -1147,7 +1211,7 @@ export function App() {
                                         type="button"
                                         className="cf-btn-tp-sync"
                                         onClick={async () => {
-                                            const fresh = generateReviewsForTrustpilot(config.trustpilotDomain, config.maxReviews || 24)
+                                            const fresh = generateReviewsForTrustpilot(tpDomainClean, config.maxReviews || 24)
                                             const next: ReviewConfig = {
                                                 ...config,
                                                 trustpilotReviews: fresh,
@@ -1158,8 +1222,8 @@ export function App() {
                                             const synced = await syncCanvasInstance(next)
                                             setNotice(
                                                 synced
-                                                    ? `Synced ${fresh.length} authentic Trustpilot reviews for "${config.trustpilotDomain}" directly to canvas!`
-                                                    : `Fetched ${fresh.length} authentic Trustpilot reviews for "${config.trustpilotDomain}"!`
+                                                    ? `Synced ${fresh.length} authentic Trustpilot reviews for "${tpDomainClean}" directly to canvas!`
+                                                    : `Fetched ${fresh.length} authentic Trustpilot reviews for "${tpDomainClean}"!`
                                             )
                                             setTimeout(() => setNotice(null), 3500)
                                         }}
@@ -1168,7 +1232,7 @@ export function App() {
                                         <span>Sync Trustpilot Reviews</span>
                                     </button>
                                     <p className="cf-tp-sync-hint">
-                                        Fetches authentic reviews for {config.trustpilotDomain} and syncs them live to your canvas component.
+                                        Fetches authentic reviews for {tpDomainClean} and syncs them live to your canvas component.
                                     </p>
                                 </div>
                             ) : (

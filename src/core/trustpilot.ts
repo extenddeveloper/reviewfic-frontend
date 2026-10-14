@@ -103,7 +103,7 @@ const TP_DATES = [
  * Generates an extensive pool of authentic Trustpilot reviews (up to 24 items).
  */
 export function generateReviewsForTrustpilot(domain: string, count = 24): ReviewItem[] {
-    const { businessName } = parseTrustpilotInput(domain)
+    const { domain: cleanDomain, businessName } = parseTrustpilotInput(domain)
     const brand = businessName || "Company"
     const now = Date.now()
     const targetCount = Math.min(Math.max(count, 6), 24)
@@ -125,7 +125,7 @@ export function generateReviewsForTrustpilot(domain: string, count = 24): Review
             date,
             text: template(brand),
             verified: true,
-            originalUrl: `https://www.trustpilot.com/review/${domain || "company.com"}`,
+            originalUrl: `https://www.trustpilot.com/review/${cleanDomain || "company.com"}`,
             pinned: i === 0,
         }
     })

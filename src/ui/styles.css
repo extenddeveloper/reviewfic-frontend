@@ -489,6 +489,15 @@ select option {
     padding: 8px 12px !important;
 }
 
+select optgroup {
+    background-color: var(--cf-bg-tertiary) !important;
+    color: var(--cf-accent) !important;
+    font-weight: 700 !important;
+    font-size: 11.5px !important;
+    padding: 6px 10px !important;
+    font-style: normal !important;
+}
+
 .cf-input:focus,
 input.cf-input:focus,
 select.cf-input:focus,
@@ -2525,15 +2534,20 @@ button.cf-btn-tp-sync:disabled {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    padding: 4px 10px !important;
-    font-size: 11px !important;
+    padding: 5px 12px !important;
+    font-size: 11.5px !important;
     font-weight: 600 !important;
     color: var(--cf-text-secondary, #9CA3AF) !important;
     background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid var(--cf-border, rgba(255, 255, 255, 0.1)) !important;
+    border: 1px solid var(--cf-border, rgba(255, 255, 255, 0.12)) !important;
     border-radius: var(--cf-radius-sm, 6px) !important;
     cursor: pointer !important;
     transition: all 0.15s ease !important;
+    flex: 0 0 auto !important;
+    flex-shrink: 0 !important;
+    min-width: max-content !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
 }
 
 .cf-btn-disconnect:hover {
@@ -2547,7 +2561,7 @@ button.cf-btn-tp-sync:disabled {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 8px !important;
+    gap: 12px !important;
     width: 100% !important;
 }
 
@@ -2555,6 +2569,15 @@ button.cf-btn-tp-sync:disabled {
     display: flex !important;
     align-items: center !important;
     gap: 10px !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    overflow: hidden !important;
+}
+
+.cf-conn-identity > div {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    overflow: hidden !important;
 }
 
 .cf-conn-logo {
@@ -2576,6 +2599,10 @@ button.cf-btn-tp-sync:disabled {
     font-size: 13px !important;
     font-weight: 700 !important;
     color: var(--cf-text-primary, #F3F4F6) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.3 !important;
 }
 
 /* Columns Segmented Picker */
