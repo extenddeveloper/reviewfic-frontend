@@ -668,17 +668,19 @@ a.vr-chip:hover,a.vr-badge:hover{border-color:var(--vr-accent);opacity:1;}
   background: var(--vr-card-bg);
 }
 .vr-orbit-ring {
-  position: absolute !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  width: 330px !important;
-  height: 330px !important;
-  border-radius: 50% !important;
-  border: 1.5px dashed var(--vr-card-border, rgba(0, 0, 0, 0.12)) !important;
-  pointer-events: none !important;
-  box-sizing: border-box !important;
-  margin: 0 !important;
+  position: absolute;
+  inset: 24px;
+  border-radius: 50%;
+  border: 1px dashed color-mix(in srgb,var(--vr-text-primary) 12%,transparent);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% - 48px);
+  height: calc(100% - 48px);
+  max-width: 330px;
+  max-height: 330px;
+  pointer-events: none;
+  box-sizing: border-box;
 }
 .vr-orbit-mid {
   position: relative;
