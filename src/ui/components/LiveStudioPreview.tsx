@@ -36,6 +36,7 @@ export function LiveStudioPreview({
         starColor = "#FBBC05",
         showStars = true,
         showSourceIcon = true,
+        showAvatar = true,
         showDate = true,
         showWriteReview = true,
         textClamp = true,
