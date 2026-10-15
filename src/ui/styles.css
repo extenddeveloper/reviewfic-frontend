@@ -32,7 +32,7 @@ body,
 
     --cf-accent: #0099FF;
     --cf-accent-hover: #0088EE;
-    --cf-accent-gradient: linear-gradient(180deg, #0099FF 0%, #0077E6 100%);
+    --cf-accent-gradient: linear-gradient(#5271FF, #3b51b8) padding-box;
     --cf-accent-glow: rgba(0, 153, 255, 0.25);
 
     --cf-success: #10B981;
@@ -102,7 +102,8 @@ body,
     box-sizing: border-box;
 }
 
-body, html {
+body,
+html {
     margin: 0;
     padding: 0;
     font-family: var(--font-sans);
@@ -550,12 +551,12 @@ textarea.cf-input::placeholder {
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.cf-switch-input:checked + .cf-switch-slider {
+.cf-switch-input:checked+.cf-switch-slider {
     background: var(--cf-accent);
     border-color: var(--cf-accent);
 }
 
-.cf-switch-input:checked + .cf-switch-slider::after {
+.cf-switch-input:checked+.cf-switch-slider::after {
     transform: translateX(16px);
 }
 
@@ -876,6 +877,7 @@ button.cf-btn-icon-del:hover {
     width: 100%;
     padding: 12px 18px;
     background: var(--cf-accent-gradient);
+    border: 2px solid transparent !important;
     color: #FFFFFF;
     font-family: inherit;
     font-size: 13.5px;
@@ -1571,7 +1573,9 @@ button.cf-chip-tab.active {
 }
 
 @keyframes cf-spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .cf-location-dropdown {
@@ -2083,7 +2087,7 @@ button.cf-btn-tp-sync:disabled {
     position: absolute;
     inset: 24px;
     border-radius: 50%;
-    border: 1px dashed color-mix(in srgb,var(--vr-text-primary) 12%,transparent);
+    border: 1px dashed color-mix(in srgb, var(--vr-text-primary) 12%, transparent);
     top: 50% !important;
     left: 50% !important;
     transform: translate(-50%, -50%);
@@ -2183,39 +2187,110 @@ button.cf-btn-tp-sync:disabled {
 }
 
 /* 8 Radial Positions (r = 165px) */
-.vr-orbit-face.pos-0 { transform: translate(0px, -165px); }
-.vr-orbit-face.pos-0.on { transform: translate(0px, -165px) scale(1.15); }
+.vr-orbit-face.pos-0 {
+    transform: translate(0px, -165px);
+}
 
-.vr-orbit-face.pos-1 { transform: translate(117px, -117px); }
-.vr-orbit-face.pos-1.on { transform: translate(117px, -117px) scale(1.15); }
+.vr-orbit-face.pos-0.on {
+    transform: translate(0px, -165px) scale(1.15);
+}
 
-.vr-orbit-face.pos-2 { transform: translate(165px, 0px); }
-.vr-orbit-face.pos-2.on { transform: translate(165px, 0px) scale(1.15); }
+.vr-orbit-face.pos-1 {
+    transform: translate(117px, -117px);
+}
 
-.vr-orbit-face.pos-3 { transform: translate(117px, 117px); }
-.vr-orbit-face.pos-3.on { transform: translate(117px, 117px) scale(1.15); }
+.vr-orbit-face.pos-1.on {
+    transform: translate(117px, -117px) scale(1.15);
+}
 
-.vr-orbit-face.pos-4 { transform: translate(0px, 165px); }
-.vr-orbit-face.pos-4.on { transform: translate(0px, 165px) scale(1.15); }
+.vr-orbit-face.pos-2 {
+    transform: translate(165px, 0px);
+}
 
-.vr-orbit-face.pos-5 { transform: translate(-117px, 117px); }
-.vr-orbit-face.pos-5.on { transform: translate(-117px, 117px) scale(1.15); }
+.vr-orbit-face.pos-2.on {
+    transform: translate(165px, 0px) scale(1.15);
+}
 
-.vr-orbit-face.pos-6 { transform: translate(-165px, 0px); }
-.vr-orbit-face.pos-6.on { transform: translate(-165px, 0px) scale(1.15); }
+.vr-orbit-face.pos-3 {
+    transform: translate(117px, 117px);
+}
 
-.vr-orbit-face.pos-7 { transform: translate(-117px, -117px); }
-.vr-orbit-face.pos-7.on { transform: translate(-117px, -117px) scale(1.15); }
+.vr-orbit-face.pos-3.on {
+    transform: translate(117px, 117px) scale(1.15);
+}
+
+.vr-orbit-face.pos-4 {
+    transform: translate(0px, 165px);
+}
+
+.vr-orbit-face.pos-4.on {
+    transform: translate(0px, 165px) scale(1.15);
+}
+
+.vr-orbit-face.pos-5 {
+    transform: translate(-117px, 117px);
+}
+
+.vr-orbit-face.pos-5.on {
+    transform: translate(-117px, 117px) scale(1.15);
+}
+
+.vr-orbit-face.pos-6 {
+    transform: translate(-165px, 0px);
+}
+
+.vr-orbit-face.pos-6.on {
+    transform: translate(-165px, 0px) scale(1.15);
+}
+
+.vr-orbit-face.pos-7 {
+    transform: translate(-117px, -117px);
+}
+
+.vr-orbit-face.pos-7.on {
+    transform: translate(-117px, -117px) scale(1.15);
+}
 
 /* Pastel Avatar Themes */
-.vr-orbit-face.color-0 .vr-avatar { background: #DBEAFE; color: #1E40AF; }
-.vr-orbit-face.color-1 .vr-avatar { background: #FFEDD5; color: #9A3412; }
-.vr-orbit-face.color-2 .vr-avatar { background: #FCE7F3; color: #9D174D; }
-.vr-orbit-face.color-3 .vr-avatar { background: #F3E8FF; color: #6B21A8; }
-.vr-orbit-face.color-4 .vr-avatar { background: #FEF9C3; color: #854D0E; }
-.vr-orbit-face.color-5 .vr-avatar { background: #E0F2FE; color: #0369A1; }
-.vr-orbit-face.color-6 .vr-avatar { background: #DCFCE7; color: #166534; }
-.vr-orbit-face.color-7 .vr-avatar { background: #EDE9FE; color: #5B21B6; }
+.vr-orbit-face.color-0 .vr-avatar {
+    background: #DBEAFE;
+    color: #1E40AF;
+}
+
+.vr-orbit-face.color-1 .vr-avatar {
+    background: #FFEDD5;
+    color: #9A3412;
+}
+
+.vr-orbit-face.color-2 .vr-avatar {
+    background: #FCE7F3;
+    color: #9D174D;
+}
+
+.vr-orbit-face.color-3 .vr-avatar {
+    background: #F3E8FF;
+    color: #6B21A8;
+}
+
+.vr-orbit-face.color-4 .vr-avatar {
+    background: #FEF9C3;
+    color: #854D0E;
+}
+
+.vr-orbit-face.color-5 .vr-avatar {
+    background: #E0F2FE;
+    color: #0369A1;
+}
+
+.vr-orbit-face.color-6 .vr-avatar {
+    background: #DCFCE7;
+    color: #166534;
+}
+
+.vr-orbit-face.color-7 .vr-avatar {
+    background: #EDE9FE;
+    color: #5B21B6;
+}
 
 /* Ribbon Quote Overlap Fixes */
 .vr-ribbon {
@@ -2321,8 +2396,13 @@ button.cf-btn-tp-sync:disabled {
 
 /* Ticker Marquee Motion Animation */
 @keyframes vrticker {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
 }
 
 .vr-ticker {
@@ -2574,7 +2654,7 @@ button.cf-btn-tp-sync:disabled {
     overflow: hidden !important;
 }
 
-.cf-conn-identity > div {
+.cf-conn-identity>div {
     min-width: 0 !important;
     flex: 1 1 auto !important;
     overflow: hidden !important;
@@ -2819,4 +2899,3 @@ button.cf-btn-tp-sync:disabled {
     background: var(--cf-border, rgba(255, 255, 255, 0.08)) !important;
     margin: 8px 0 !important;
 }
-
