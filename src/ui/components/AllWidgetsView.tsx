@@ -1,7 +1,34 @@
 import React, { useState } from "react"
 import { ConnectedBusiness, ReviewWidget, ReviewLayout, CardStyle } from "../../core/types"
 import { DeleteWidgetModal } from "./DeleteWidgetModal"
-import { IconPlus, IconSparkles, IconSliders, IconTrash, IconExternalLink, IconGoogle, IconTrustpilot } from "../icons"
+import {
+    IconPlus,
+    IconSparkles,
+    IconSliders,
+    IconTrash,
+    IconExternalLink,
+    IconGoogle,
+    IconTrustpilot,
+    IconLayoutCarousel,
+    IconLayoutGrid,
+    IconLayoutMasonry,
+    IconLayoutMarquee,
+    IconBadge,
+    IconX,
+} from "../icons"
+
+const MODAL_LAYOUT_OPTIONS: Array<{
+    id: ReviewLayout
+    name: string
+    icon: React.ReactNode
+}> = [
+    { id: "carousel", name: "Carousel", icon: <IconLayoutCarousel size={14} /> },
+    { id: "grid", name: "Grid", icon: <IconLayoutGrid size={14} /> },
+    { id: "masonry", name: "Masonry", icon: <IconLayoutMasonry size={14} /> },
+    { id: "ticker", name: "Ticker Marquee", icon: <IconLayoutMarquee size={14} /> },
+    { id: "badge", name: "Rating Badge", icon: <IconBadge size={14} /> },
+    { id: "spotlight", name: "Spotlight Hero", icon: <IconSparkles size={14} /> },
+]
 
 interface AllWidgetsViewProps {
     business: ConnectedBusiness
@@ -27,20 +54,18 @@ export function AllWidgetsView({
     const [isCreating, setIsCreating] = useState(false)
     const [newWidgetName, setNewWidgetName] = useState("")
     const [newWidgetLayout, setNewWidgetLayout] = useState<ReviewLayout>("carousel")
-    const [newWidgetCardStyle, setNewWidgetCardStyle] = useState<CardStyle>("elevated")
     const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
 
     const handleOpenCreate = () => {
         setNewWidgetName(`Showcase ${widgets.length + 1}`)
         setNewWidgetLayout("carousel")
-        setNewWidgetCardStyle("elevated")
         setIsCreating(true)
     }
 
     const handleSubmitCreate = (e: React.FormEvent) => {
         e.preventDefault()
         const name = newWidgetName.trim() || `Showcase ${widgets.length + 1}`
-        onCreateWidget(name, newWidgetLayout, newWidgetCardStyle)
+        onCreateWidget(name, newWidgetLayout, "elevated")
         setIsCreating(false)
     }
 
@@ -128,9 +153,6 @@ export function AllWidgetsView({
                                             )}
                                         </div>
                                     </div>
-                                    <div className="cf-widget-item-meta">
-                                        ID: <code className="cf-widget-id-code">{widget.id}</code>
-                                    </div>
                                 </div>
 
                                 <div className="cf-widget-item-actions">
@@ -174,6 +196,14 @@ export function AllWidgetsView({
                         <form onSubmit={handleSubmitCreate}>
                             <div className="cf-modal-header">
                                 <h3 className="cf-modal-title">Create New Widget</h3>
+                                <button
+                                    type="button"
+                                    className="cf-modal-close-btn"
+                                    onClick={() => setIsCreating(false)}
+                                    aria-label="Close modal"
+                                >
+                                    <IconX size={14} />
+                                </button>
                             </div>
                             <div className="cf-modal-body">
                                 <div className="cf-form-group">
@@ -189,48 +219,32 @@ export function AllWidgetsView({
                                 </div>
 
                                 <div className="cf-form-group">
-                                    <label className="cf-form-label">Initial Layout</label>
-                                    <select
-                                        className="cf-form-select"
-                                        value={newWidgetLayout}
-                                        onChange={(e) => setNewWidgetLayout(e.target.value as ReviewLayout)}
-                                    >
-                                        <option value="carousel">Carousel (Interactive Slide Show)</option>
-                                        <option value="grid">Grid (Columns Showcase)</option>
-                                        <option value="masonry">Masonry (Dynamic Heights)</option>
-                                        <option value="ticker">Ticker (Continuous Marquee)</option>
-                                        <option value="highlight">Highlight (Featured Hero Review)</option>
-                                        <option value="badge">Badge (Google/Trustpilot Score)</option>
-                                        <option value="spotlight">Spotlight (Hero Focus)</option>
-                                    </select>
-                                </div>
-
-                                <div className="cf-form-group">
-                                    <label className="cf-form-label">Initial Card Style</label>
-                                    <select
-                                        className="cf-form-select"
-                                        value={newWidgetCardStyle}
-                                        onChange={(e) => setNewWidgetCardStyle(e.target.value as CardStyle)}
-                                    >
-                                        <option value="elevated">Elevated (Modern Shadow & Border)</option>
-                                        <option value="glass">Glass (Glassmorphism Frosted)</option>
-                                        <option value="bento">Bento (Structured Card)</option>
-                                        <option value="google">Google Native</option>
-                                        <option value="tp">Trustpilot Verified</option>
-                                        <option value="minimal">Minimal / Clean</option>
-                                    </select>
+                                    <label className="cf-form-label">Widget Layout</label>
+                                    <div className="cf-modal-layouts-grid">
+                                        {MODAL_LAYOUT_OPTIONS.map((opt) => (
+                                            <button
+                                                key={opt.id}
+                                                type="button"
+                                                className={`cf-modal-layout-chip ${newWidgetLayout === opt.id ? "active" : ""}`}
+                                                onClick={() => setNewWidgetLayout(opt.id)}
+                                            >
+                                                <span className="cf-modal-layout-icon">{opt.icon}</span>
+                                                <span className="cf-modal-layout-name">{opt.name}</span>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                             <div className="cf-modal-footer">
                                 <button
                                     type="button"
-                                    className="cf-modal-btn cancel"
+                                    className="secondary-cta cf-modal-footer-btn"
                                     onClick={() => setIsCreating(false)}
                                 >
                                     Cancel
                                 </button>
-                                <button type="submit" className="cf-modal-btn primary">
-                                    Create & Customize →
+                                <button type="submit" className="primary-cta cf-modal-footer-btn">
+                                    Create &amp; Customize →
                                 </button>
                             </div>
                         </form>
