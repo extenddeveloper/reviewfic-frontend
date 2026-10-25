@@ -100,8 +100,9 @@ export interface ReviewConfig {
     // Branding & Compliance
     showBrandingBadge: boolean
 
-    // SEO
-    enableJsonLdSchema: boolean
+    // Widget & Business Linking
+    widgetId?: string
+    businessId?: string
 }
 
 export interface BlendedStats {
@@ -111,3 +112,36 @@ export interface BlendedStats {
     trustpilotCount: number
     customCount: number
 }
+
+export interface ConnectedBusiness {
+    id: string
+    name: string
+    googlePlaceId?: string
+    googleBusinessName?: string
+    googleMapsUrl?: string
+    googleRating?: number
+    googleReviewCount?: number
+    googleReviews?: ReviewItem[]
+    googleEnabled?: boolean
+
+    trustpilotDomain?: string
+    trustpilotRating?: number
+    trustpilotReviewCount?: number
+    trustpilotReviews?: ReviewItem[]
+    trustpilotEnabled?: boolean
+
+    customReviews?: ReviewItem[]
+    lastSync?: string // e.g. "Just now", "2 min ago"
+    viewsThisMonth?: number
+    createdAt: number
+}
+
+export interface ReviewWidget {
+    id: string
+    businessId: string
+    name: string
+    config: ReviewConfig
+    createdAt: number
+    updatedAt: number
+}
+

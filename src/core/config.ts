@@ -1,4 +1,4 @@
-import { BlendedStats, ReviewConfig, ReviewItem } from "./types"
+import { BlendedStats, ReviewConfig, ReviewItem, ConnectedBusiness, ReviewWidget } from "./types"
 import { DEMO_REVIEWS } from "./mock-data"
 import { generateReviewsForBusiness } from "./google-places"
 import { generateReviewsForTrustpilot } from "./trustpilot"
@@ -256,3 +256,100 @@ export function getActiveReviews(config: ReviewConfig): ReviewItem[] {
 
     return list
 }
+
+export function createDefaultBusiness(
+    name = "Gazipur City Corporation",
+    googleData?: {
+        name: string
+        placeId: string
+        mapsUrl?: string
+        rating?: number
+        reviewCount?: number
+        reviews?: ReviewItem[]
+    },
+    trustpilotData?: {
+        domain: string
+        rating?: number
+        reviewCount?: number
+        reviews?: ReviewItem[]
+    }
+): ConnectedBusiness {
+    const id = `biz_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
+    const gName = googleData?.name || name
+    const tpDomain = trustpilotData?.domain || ""
+
+    return {
+        id,
+        name: gName,
+        googlePlaceId: googleData?.placeId || `ChIJ_${Date.now()}`,
+        googleBusinessName: gName,
+        googleMapsUrl: googleData?.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gName)}`,
+        googleRating: googleData?.rating ?? 4.9,
+        googleReviewCount: googleData?.reviewCount ?? 156,
+        googleReviews: googleData?.reviews || generateReviewsForBusiness(gName),
+        googleEnabled: Boolean(googleData || !trustpilotData),
+
+        trustpilotDomain: tpDomain,
+        trustpilotRating: trustpilotData?.rating ?? 4.8,
+        trustpilotReviewCount: trustpilotData?.reviewCount ?? 120,
+        trustpilotReviews: tpDomain ? (trustpilotData?.reviews || generateReviewsForTrustpilot(tpDomain, 20)) : [],
+        trustpilotEnabled: Boolean(tpDomain),
+
+        customReviews: [],
+        lastSync: "Just now",
+        viewsThisMonth: 0,
+        createdAt: Date.now(),
+    }
+}
+
+export function createDefaultWidget(
+    businessId: string,
+    name = "Review Showcase",
+    layout: ReviewConfig["layout"] = "carousel",
+    cardStyle: ReviewConfig["cardStyle"] = "elevated"
+): ReviewWidget {
+    const id = `widget_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
+    return {
+        id,
+        businessId,
+        name,
+        config: {
+            ...DEFAULT_CONFIG,
+            widgetId: id,
+            businessId,
+            layout,
+            cardStyle,
+            isDemoMode: false,
+        },
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+    }
+}
+
+export function mergeBusinessIntoConfig(
+    business: ConnectedBusiness,
+    widgetConfig: ReviewConfig
+): ReviewConfig {
+    return {
+        ...widgetConfig,
+        businessId: business.id,
+        widgetId: widgetConfig.widgetId,
+        isDemoMode: false,
+        googleBusinessName: business.googleBusinessName || business.name,
+        googlePlaceId: business.googlePlaceId || "",
+        googleMapsUrl: business.googleMapsUrl || "",
+        googleRating: business.googleRating || 5,
+        googleReviewCount: business.googleReviewCount || 0,
+        googleReviews: business.googleReviews || [],
+        googleEnabled: business.googleEnabled ?? true,
+
+        trustpilotDomain: business.trustpilotDomain || "",
+        trustpilotRating: business.trustpilotRating || 5,
+        trustpilotReviewCount: business.trustpilotReviewCount || 0,
+        trustpilotReviews: business.trustpilotReviews || [],
+        trustpilotEnabled: business.trustpilotEnabled ?? false,
+
+        customReviews: business.customReviews || [],
+    }
+}
+

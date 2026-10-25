@@ -3945,3 +3945,1399 @@ button.cf-btn-tp-sync:disabled {
     line-height: 1.4 !important;
     max-width: 260px;
 }
+
+/* ==========================================================================
+   MULTI-BUSINESS & MULTI-WIDGET STYLES (Framer BEAF & Vanssay Standard)
+   ========================================================================== */
+
+/* 1. Connect Reviews View (Onboarding & Business Connect) */
+.cf-connect-container {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.cf-connect-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.cf-connect-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--cf-text);
+    margin: 0 0 4px 0;
+    letter-spacing: -0.3px;
+}
+
+.cf-connect-subtitle {
+    font-size: 13px;
+    color: var(--cf-text-secondary);
+    margin: 0;
+    line-height: 1.45;
+}
+
+.cf-connect-back-btn {
+    all: unset;
+    cursor: pointer;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--Secondary-Default, #5271FF);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background-color 0.15s ease;
+}
+
+.cf-connect-back-btn:hover {
+    background-color: var(--cf-tint-subtle);
+}
+
+.cf-connect-platforms {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.cf-connect-card {
+    background: var(--cf-bg-secondary);
+    border: 1px solid var(--cf-border);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cf-connect-card.cf-connect-card-connected {
+    border: 1.5px solid #22c55e !important;
+    background: var(--cf-bg-secondary);
+}
+
+.cf-connect-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cf-connect-card-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cf-connect-badge-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    color: #ffffff;
+}
+
+.cf-connect-badge-icon.google {
+    background: #4285F4;
+}
+
+.cf-connect-badge-icon.trustpilot {
+    background: #00B67A;
+}
+
+.cf-connect-brand-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cf-text);
+}
+
+.cf-connect-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(34, 197, 94, 0.16);
+    color: #22c55e;
+}
+
+.cf-connect-biz-name {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--cf-text);
+}
+
+.cf-connect-biz-rating {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+}
+
+.cf-connect-stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.cf-connect-rating-score {
+    font-weight: 600;
+    color: var(--cf-text);
+}
+
+.cf-connect-review-count {
+    color: var(--cf-text-secondary);
+}
+
+.cf-connect-change-btn,
+.cf-connect-cancel-change-btn {
+    all: unset;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--Secondary-Default, #5271FF);
+    align-self: flex-start;
+    padding: 2px 0;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.cf-connect-input-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cf-connect-input-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+    color: var(--cf-text-secondary);
+    text-transform: uppercase;
+}
+
+.cf-connect-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.cf-connect-input-icon {
+    position: absolute;
+    left: 12px;
+    color: var(--cf-text-tertiary);
+    pointer-events: none;
+}
+
+.cf-connect-input {
+    width: 100%;
+    height: 40px;
+    background: var(--cf-bg);
+    border: 1px solid var(--cf-border);
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 13px;
+    color: var(--cf-text);
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cf-connect-input-wrapper .cf-connect-input {
+    padding-left: 34px;
+}
+
+.cf-connect-input:focus {
+    outline: none;
+    border-color: var(--Secondary-Default, #5271FF);
+    box-shadow: 0 0 0 2px var(--cf-tint-subtle);
+}
+
+.cf-connect-field-desc {
+    font-size: 11px;
+    color: var(--cf-text-tertiary);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.cf-connect-error-msg {
+    font-size: 11.5px;
+    color: var(--cf-danger, #ef4444);
+    margin: 0;
+}
+
+.cf-connect-verify-btn {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 36px;
+    background: var(--cf-bg-tertiary);
+    border: 1px solid var(--cf-border);
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--cf-text);
+    box-sizing: border-box;
+    transition: all 0.15s ease;
+}
+
+.cf-connect-verify-btn:hover:not(:disabled) {
+    background: var(--cf-control-hover);
+    border-color: var(--cf-border-hover);
+}
+
+.cf-connect-verify-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.cf-connect-results-dropdown {
+    max-height: 180px;
+    overflow-y: auto;
+    background: var(--cf-bg);
+    border: 1px solid var(--cf-border);
+    border-radius: 8px;
+    margin-top: 4px;
+}
+
+.cf-connect-result-row {
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    border-bottom: 1px solid var(--cf-border);
+    transition: background-color 0.15s ease;
+}
+
+.cf-connect-result-row:last-child {
+    border-bottom: none;
+}
+
+.cf-connect-result-row:hover {
+    background-color: var(--cf-bg-tertiary);
+}
+
+.cf-connect-result-name {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--cf-text);
+}
+
+.cf-connect-result-meta {
+    font-size: 11px;
+    color: var(--cf-text-secondary);
+    margin-top: 2px;
+}
+
+.cf-connect-result-select {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--Secondary-Default, #5271FF);
+}
+
+.cf-connect-footer {
+    margin-top: 8px;
+}
+
+.cf-connect-continue-btn {
+    all: unset;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 42px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 10px;
+    box-sizing: border-box;
+    transition: background-color 0.15s ease, transform 0.05s ease;
+}
+
+.cf-connect-continue-btn:hover:not(:disabled) {
+    background: #1d4ed8;
+}
+
+.cf-connect-continue-btn:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.cf-connect-continue-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* 2. Businesses List View (Screenshot 3) */
+.cf-biz-container {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.cf-biz-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.cf-biz-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--cf-text);
+    margin: 0 0 4px 0;
+    letter-spacing: -0.3px;
+}
+
+.cf-biz-subtitle {
+    font-size: 12.5px;
+    color: var(--cf-text-secondary);
+    margin: 0;
+    line-height: 1.45;
+    max-width: 480px;
+}
+
+.cf-biz-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.cf-biz-btn-secondary {
+    all: unset;
+    cursor: pointer;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 500;
+    background: var(--cf-bg-secondary);
+    border: 1px solid var(--cf-border);
+    color: var(--cf-text);
+    box-sizing: border-box;
+    transition: background-color 0.15s ease;
+}
+
+.cf-biz-btn-secondary:hover {
+    background: var(--cf-control-hover);
+}
+
+.cf-biz-btn-primary {
+    all: unset;
+    cursor: pointer;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+    background: #2563eb;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-sizing: border-box;
+    transition: background-color 0.15s ease;
+}
+
+.cf-biz-btn-primary:hover {
+    background: #1d4ed8;
+}
+
+.cf-biz-table-wrapper {
+    background: var(--cf-bg-secondary);
+    border: 1px solid var(--cf-border);
+    border-radius: 12px;
+    overflow-x: auto;
+}
+
+.cf-biz-table-header {
+    display: grid;
+    grid-template-columns: 1.8fr 1.6fr 1fr 1fr auto;
+    padding: 10px 14px;
+    background: var(--cf-bg-tertiary);
+    border-bottom: 1px solid var(--cf-border);
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--cf-text-tertiary);
+    letter-spacing: 0.5px;
+    min-width: 480px;
+}
+
+.cf-biz-table-body {
+    display: flex;
+    flex-direction: column;
+    min-width: 480px;
+}
+
+.cf-biz-table-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.8fr 1.6fr 1fr 1fr auto;
+    align-items: center;
+    padding: 14px;
+    border-bottom: 1px solid var(--cf-border);
+    gap: 10px;
+    transition: background-color 0.15s ease;
+}
+
+.cf-biz-table-row:last-child {
+    border-bottom: none;
+}
+
+.cf-biz-table-row.is-active {
+    background-color: rgba(37, 99, 235, 0.04);
+}
+
+.cf-biz-table-row.is-active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3.5px;
+    background: #2563eb;
+    border-top-left-radius: 2px;
+    border-bottom-left-radius: 2px;
+}
+
+.cf-biz-name-text {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--cf-text);
+    margin-right: 8px;
+}
+
+.cf-biz-current-pill {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 9999px;
+    font-size: 9.5px;
+    font-weight: 700;
+    background: rgba(37, 99, 235, 0.15);
+    color: #3b82f6;
+    letter-spacing: 0.3px;
+}
+
+.cf-biz-source-chips {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cf-biz-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 7px;
+    border-radius: 6px;
+    font-size: 11px;
+    background: var(--cf-bg-tertiary);
+    border: 1px solid var(--cf-border);
+    color: var(--cf-text);
+}
+
+.cf-biz-chip.google {
+    color: #4285F4;
+}
+
+.cf-biz-chip.trustpilot {
+    color: #00B67A;
+}
+
+.cf-biz-chip-count {
+    font-weight: 600;
+    color: var(--cf-text);
+}
+
+.cf-biz-chip-rating {
+    font-weight: 500;
+    color: var(--cf-text-secondary);
+}
+
+.cf-biz-meta-text {
+    font-size: 12px;
+    color: var(--cf-text-secondary);
+}
+
+.cf-biz-views-num {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cf-text);
+}
+
+.cf-biz-col-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cf-biz-row-btn {
+    all: unset;
+    cursor: pointer;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 500;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: background-color 0.15s ease;
+}
+
+.cf-biz-row-btn.sync {
+    background: var(--cf-bg-tertiary);
+    border: 1px solid var(--cf-border);
+    color: var(--cf-text);
+}
+
+.cf-biz-row-btn.sync:hover {
+    background: var(--cf-control-hover);
+}
+
+.cf-biz-row-btn.open {
+    background: #2563eb;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.cf-biz-row-btn.open:hover {
+    background: #1d4ed8;
+}
+
+.cf-biz-arrow {
+    font-size: 13px;
+}
+
+.cf-biz-footer-meter {
+    background: var(--cf-bg-secondary);
+    border: 1px solid var(--cf-border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.cf-biz-meter-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.cf-biz-meter-label {
+    color: var(--cf-text-secondary);
+}
+
+.cf-biz-meter-count {
+    font-weight: 600;
+    color: var(--cf-text);
+}
+
+.cf-biz-meter-track {
+    width: 100%;
+    height: 5px;
+    border-radius: 9999px;
+    background: var(--cf-bg-tertiary);
+    overflow: hidden;
+}
+
+.cf-biz-meter-bar {
+    height: 100%;
+    width: 27%;
+    border-radius: 9999px;
+    background: #2563eb;
+    transition: width 0.3s ease;
+}
+
+.cf-biz-meter-note {
+    font-size: 10.5px;
+    color: var(--cf-text-tertiary);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* 3. Manage Businesses View (Screenshots 4 & 5) */
+.cf-manage-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.cf-manage-back-btn {
+    all: unset;
+    cursor: pointer;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--Secondary-Default, #5271FF);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    align-self: flex-start;
+}
+
+.cf-manage-header {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.cf-manage-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--cf-text);
+    margin: 0;
+}
+
+.cf-manage-subtitle {
+    font-size: 12.5px;
+    color: var(--cf-text-secondary);
+    margin: 0;
+}
+
+.cf-manage-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cf-manage-card {
+    background: var(--cf-bg-secondary);
+    border: 1px solid var(--cf-border);
+    border-radius: 10px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.cf-manage-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cf-manage-card-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.cf-manage-biz-title {
+    margin: 0;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--cf-text);
+}
+
+.cf-manage-badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cf-manage-badge {
+    padding: 2px 7px;
+    border-radius: 9999px;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.cf-manage-badge.active {
+    background: rgba(37, 99, 235, 0.15);
+    color: #3b82f6;
+    border: 1px solid rgba(37, 99, 235, 0.3);
+}
+
+.cf-manage-badge.google {
+    background: rgba(66, 133, 244, 0.12);
+    color: #60a5fa;
+}
+
+.cf-manage-badge.trustpilot {
+    background: rgba(0, 182, 122, 0.12);
+    color: #34d399;
+}
+
+.cf-manage-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cf-manage-btn {
+    all: unset;
+    cursor: pointer;
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--cf-bg-tertiary);
+    border: 1px solid var(--cf-border);
+    color: var(--cf-text);
+    box-sizing: border-box;
+    transition: background-color 0.15s ease;
+}
+
+.cf-manage-btn:hover:not(:disabled) {
+    background: var(--cf-control-hover);
+}
+
+.cf-manage-btn.danger {
+    color: #ef4444;
+}
+
+.cf-manage-btn.danger:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.12);
+}
+
+.cf-manage-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.cf-manage-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--cf-border);
+}
+
+.cf-manage-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.cf-manage-form-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--cf-text-secondary);
+    text-transform: uppercase;
+}
+
+.cf-manage-form-input {
+    width: 100%;
+    height: 36px;
+    background: var(--cf-bg);
+    border: 1px solid var(--cf-border);
+    border-radius: 6px;
+    padding: 0 10px;
+    font-size: 12.5px;
+    color: var(--cf-text);
+    box-sizing: border-box;
+}
+
+.cf-manage-form-input:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+.cf-manage-form-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.cf-manage-save-btn {
+    all: unset;
+    cursor: pointer;
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #2563eb;
+    color: #ffffff;
+    box-sizing: border-box;
+}
+
+.cf-manage-save-btn:hover {
+    background: #1d4ed8;
+}
+
+.cf-manage-cancel-btn {
+    all: unset;
+    cursor: pointer;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    background: var(--cf-bg-tertiary);
+    border: 1px solid var(--cf-border);
+    color: var(--cf-text);
+    box-sizing: border-box;
+}
+
+.cf-manage-add-dashed-box {
+    all: unset;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 14px;
+    border: 1px dashed var(--cf-border);
+    border-radius: 10px;
+    background: var(--cf-bg-secondary);
+    color: var(--cf-text);
+    font-size: 13px;
+    font-weight: 500;
+    box-sizing: border-box;
+    transition: all 0.15s ease;
+}
+
+.cf-manage-add-dashed-box:hover {
+    border-color: var(--Secondary-Default, #5271FF);
+    color: var(--Secondary-Default, #5271FF);
+    background: var(--cf-bg-tertiary);
+}
+
+/* 4. All Widgets View (Framer BEAF Standard) */
+.cf-widgets-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.cf-widgets-biz-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--cf-bg-secondary);
+    border: 1px solid var(--cf-border);
+    border-radius: 8px;
+}
+
+.cf-widgets-biz-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cf-widgets-biz-label {
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--cf-text-tertiary);
+}
+
+.cf-widgets-biz-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cf-text);
+}
+
+.cf-widgets-switch-biz-btn {
+    all: unset;
+    cursor: pointer;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--Secondary-Default, #5271FF);
+}
+
+.cf-widgets-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.cf-widgets-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--cf-text);
+    margin: 0 0 4px 0;
+}
+
+.cf-widgets-subtitle {
+    font-size: 12.5px;
+    color: var(--cf-text-secondary);
+    margin: 0;
+}
+
+.cf-widgets-add-btn {
+    all: unset;
+    cursor: pointer;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #2563eb;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    box-sizing: border-box;
+}
+
+.cf-widgets-add-btn:hover {
+    background: #1d4ed8;
+}
+
+.cf-widgets-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--cf-bg-secondary);
+    border: 1px dashed var(--cf-border);
+    border-radius: 12px;
+    gap: 10px;
+}
+
+.cf-widgets-empty-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(37, 99, 235, 0.12);
+    color: #3b82f6;
+    margin-bottom: 4px;
+}
+
+.cf-widgets-empty-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--cf-text);
+    margin: 0;
+}
+
+.cf-widgets-empty-desc {
+    font-size: 12px;
+    color: var(--cf-text-secondary);
+    margin: 0;
+    max-width: 280px;
+}
+
+.cf-widgets-empty-cta-btn {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 8px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 12.5px;
+    font-weight: 600;
+    margin-top: 6px;
+}
+
+.cf-widgets-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.cf-widget-item-card {
+    background: var(--cf-bg-secondary);
+    border: 1px solid var(--cf-border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.cf-widget-item-card:hover {
+    border-color: var(--cf-border-hover);
+    background-color: var(--cf-bg-tertiary);
+}
+
+.cf-widget-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.cf-widget-item-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.cf-widget-item-name {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--cf-text);
+    cursor: pointer;
+}
+
+.cf-widget-item-name:hover {
+    color: var(--Secondary-Default, #5271FF);
+}
+
+.cf-widget-item-tags {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.cf-widget-tag {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 500;
+    background: var(--cf-control);
+    color: var(--cf-text-secondary);
+    border: 1px solid var(--cf-border);
+}
+
+.cf-widget-tag.canvas-live {
+    background: rgba(34, 197, 94, 0.12);
+    color: #22c55e;
+    border-color: rgba(34, 197, 94, 0.25);
+    font-weight: 600;
+}
+
+.cf-widget-tag.canvas-draft {
+    background: var(--cf-bg-tertiary);
+    color: var(--cf-text-tertiary);
+}
+
+.cf-widget-item-meta {
+    font-size: 10.5px;
+    color: var(--cf-text-tertiary);
+}
+
+.cf-widget-id-code {
+    font-family: monospace;
+    font-size: 10px;
+    color: var(--cf-text-secondary);
+}
+
+.cf-widget-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.cf-widget-action-btn {
+    all: unset;
+    cursor: pointer;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    box-sizing: border-box;
+    transition: all 0.15s ease;
+}
+
+.cf-widget-action-btn.edit {
+    background: var(--cf-bg);
+    border: 1px solid var(--cf-border);
+    color: var(--cf-text);
+}
+
+.cf-widget-action-btn.edit:hover {
+    background: var(--cf-control-hover);
+}
+
+.cf-widget-action-btn.insert {
+    background: #2563eb;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.cf-widget-action-btn.insert:hover {
+    background: #1d4ed8;
+}
+
+.cf-widget-action-btn.delete {
+    background: var(--cf-bg);
+    border: 1px solid var(--cf-border);
+    color: #ef4444;
+    padding: 0 8px;
+}
+
+.cf-widget-action-btn.delete:hover {
+    background: rgba(239, 68, 68, 0.12);
+}
+
+/* 5. Modals (Create Widget & Delete Confirmation) */
+.cf-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 16px;
+    box-sizing: border-box;
+    animation: cfModalFadeIn 0.15s ease-out;
+}
+
+@keyframes cfModalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.cf-modal-dialog {
+    width: 100%;
+    max-width: 360px;
+    background: var(--cf-bg-secondary);
+    border: 1px solid var(--cf-border);
+    border-radius: 14px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.cf-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--cf-border);
+}
+
+.cf-modal-icon-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+}
+
+.cf-modal-icon-wrap.danger {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+}
+
+.cf-modal-close-btn {
+    all: unset;
+    cursor: pointer;
+    color: var(--cf-text-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+}
+
+.cf-modal-close-btn:hover {
+    color: var(--cf-text);
+    background: var(--cf-control-hover);
+}
+
+.cf-modal-body {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cf-modal-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--cf-text);
+    margin: 0;
+}
+
+.cf-modal-desc {
+    font-size: 12.5px;
+    color: var(--cf-text-secondary);
+    margin: 0;
+    line-height: 1.45;
+}
+
+.cf-modal-highlight {
+    color: var(--cf-text);
+}
+
+.cf-modal-canvas-warning {
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: rgba(234, 179, 8, 0.12);
+    border: 1px solid rgba(234, 179, 8, 0.25);
+    font-size: 11px;
+    color: #eab308;
+    line-height: 1.4;
+}
+
+.cf-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cf-form-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--cf-text-secondary);
+}
+
+.cf-form-input,
+.cf-form-select {
+    width: 100%;
+    height: 36px;
+    background: var(--cf-bg);
+    border: 1px solid var(--cf-border);
+    border-radius: 8px;
+    padding: 0 10px;
+    font-size: 12.5px;
+    color: var(--cf-text);
+    box-sizing: border-box;
+}
+
+.cf-form-input:focus,
+.cf-form-select:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+.cf-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 16px;
+    background: var(--cf-bg-tertiary);
+    border-top: 1px solid var(--cf-border);
+}
+
+.cf-modal-btn {
+    all: unset;
+    cursor: pointer;
+    height: 32px;
+    padding: 0 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    box-sizing: border-box;
+}
+
+.cf-modal-btn.cancel {
+    background: var(--cf-bg-secondary);
+    border: 1px solid var(--cf-border);
+    color: var(--cf-text);
+}
+
+.cf-modal-btn.cancel:hover {
+    background: var(--cf-control-hover);
+}
+
+.cf-modal-btn.primary {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.cf-modal-btn.primary:hover {
+    background: #1d4ed8;
+}
+
+.cf-modal-btn.danger {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+.cf-modal-btn.danger:hover {
+    background: #dc2626;
+}
+
+/* 6. Builder Header & Top Bar */
+.cf-builder-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--cf-bg-secondary);
+    border: 1px solid var(--cf-border);
+    border-radius: 10px;
+    margin-bottom: 12px;
+}
+
+.cf-builder-back-btn {
+    all: unset;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--Secondary-Default, #5271FF);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: opacity 0.15s;
+}
+
+.cf-builder-back-btn:hover {
+    opacity: 0.8;
+}
+
+.cf-builder-title-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+}
+
+.cf-builder-active-label {
+    color: var(--cf-text-secondary);
+}
+
+.cf-builder-widget-name {
+    font-weight: 600;
+    color: var(--cf-text);
+}
+
+.cf-builder-widget-id {
+    font-size: 10px;
+    color: var(--cf-text-tertiary);
+    font-family: monospace;
+}
+

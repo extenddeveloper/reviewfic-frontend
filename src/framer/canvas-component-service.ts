@@ -1,6 +1,6 @@
 import { framer } from "@framer/plugin"
-import { ReviewConfig } from "../core/types"
-import { calculateBlendedStats, getActiveReviews } from "../core/config"
+import { ReviewConfig, ReviewWidget, ConnectedBusiness } from "../core/types"
+import { calculateBlendedStats, getActiveReviews, mergeBusinessIntoConfig } from "../core/config"
 import { WIDGET_BUNDLE_CSS } from "./widget-styles-const"
 
 export function generateReviewficComponentCode(config: ReviewConfig): string {
@@ -1333,3 +1333,86 @@ export async function removeAllCanvasInstances(): Promise<number> {
         return 0
     }
 }
+
+export async function getCanvasWidgetId(node: any): Promise<string | null> {
+    if (!node) return null
+    if (node.controls && typeof node.controls.widgetId === "string" && node.controls.widgetId) {
+        return node.controls.widgetId
+    }
+    try {
+        if (typeof (framer as any).getPluginDataForNode === "function") {
+            const val = await (framer as any).getPluginDataForNode(node.id, "reviewfic_widget_id")
+            if (val) return val
+        }
+    } catch {}
+    return null
+}
+
+export async function insertCanvasWidget(
+    widget: ReviewWidget,
+    business: ConnectedBusiness,
+    options?: { updateExistingOnly?: boolean }
+): Promise<{ success: boolean; message: string; instanceId?: string }> {
+    const mergedConfig = mergeBusinessIntoConfig(business, widget.config)
+    mergedConfig.widgetId = widget.id
+    mergedConfig.businessId = business.id
+
+    const res = await insertCanvasComponent(mergedConfig, options)
+    try {
+        const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
+        const target = instances?.find((inst) => isReviewficInstance(inst) && (!inst.controls?.widgetId || inst.controls?.widgetId === widget.id))
+        if (target && typeof (framer as any).setPluginDataForNode === "function") {
+            await (framer as any).setPluginDataForNode(target.id, "reviewfic_widget_id", widget.id)
+            await (framer as any).setPluginDataForNode(target.id, "reviewfic_business_id", business.id)
+        }
+    } catch {}
+    return res
+}
+
+export async function syncCanvasWidget(
+    widget: ReviewWidget,
+    business: ConnectedBusiness
+): Promise<boolean> {
+    const mergedConfig = mergeBusinessIntoConfig(business, widget.config)
+    mergedConfig.widgetId = widget.id
+    mergedConfig.businessId = business.id
+    return syncCanvasInstance(mergedConfig)
+}
+
+export async function countCanvasInstancesForWidget(widgetId: string): Promise<number> {
+    try {
+        const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
+        if (!instances) return 0
+        let count = 0
+        for (const inst of instances) {
+            if (!isReviewficInstance(inst)) continue
+            const wId = await getCanvasWidgetId(inst)
+            if (wId === widgetId) {
+                count++
+            }
+        }
+        return count
+    } catch {
+        return 0
+    }
+}
+
+export async function deleteCanvasInstancesForWidget(widgetId: string): Promise<number> {
+    try {
+        const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
+        if (!instances) return 0
+        let count = 0
+        for (const inst of instances) {
+            if (!isReviewficInstance(inst)) continue
+            const wId = await getCanvasWidgetId(inst)
+            if (wId === widgetId && typeof inst.remove === "function") {
+                await inst.remove()
+                count++
+            }
+        }
+        return count
+    } catch {
+        return 0
+    }
+}
+
