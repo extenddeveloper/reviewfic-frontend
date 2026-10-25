@@ -52,57 +52,25 @@ export function BusinessesListView({
                 </div>
             </div>
 
-            <div className="cf-biz-table-wrapper">
-                <div className="cf-biz-table-header">
-                    <div className="cf-biz-col-name">BUSINESS</div>
-                    <div className="cf-biz-col-sources">SOURCES</div>
-                    <div className="cf-biz-col-sync">LAST SYNC</div>
-                    <div className="cf-biz-col-views">VIEWS THIS MONTH</div>
-                    <div className="cf-biz-col-actions"></div>
-                </div>
+            <div className="cf-biz-card-list">
+                {businesses.map((biz) => {
+                    const isActive = biz.id === activeBusinessId
 
-                <div className="cf-biz-table-body">
-                    {businesses.map((biz) => {
-                        const isActive = biz.id === activeBusinessId
-
-                        return (
-                            <div
-                                key={biz.id}
-                                className={"cf-biz-table-row " + (isActive ? "is-active" : "")}
-                            >
-                                <div className="cf-biz-col-name">
-                                    <span className="cf-biz-name-text">{biz.name}</span>
-                                    {isActive && <span className="cf-biz-current-pill">CURRENT</span>}
+                    return (
+                        <div
+                            key={biz.id}
+                            className={"cf-biz-item-card " + (isActive ? "is-active" : "")}
+                        >
+                            <div className="cf-biz-card-top">
+                                <div className="cf-biz-card-name-group">
+                                    <h4 className="cf-biz-card-name">{biz.name}</h4>
+                                    {isActive && (
+                                        <span className="cf-biz-current-pill">
+                                            <span>CURRENT</span>
+                                        </span>
+                                    )}
                                 </div>
-
-                                <div className="cf-biz-col-sources">
-                                    <div className="cf-biz-source-chips">
-                                        {biz.googleEnabled && (
-                                            <span className="cf-biz-chip google" title="Google Reviews">
-                                                <IconGoogle size={12} />
-                                                <span className="cf-biz-chip-count">{biz.googleReviewCount || 0}</span>
-                                                <span className="cf-biz-chip-rating">{biz.googleRating?.toFixed(1) || "5.0"}★</span>
-                                            </span>
-                                        )}
-                                        {biz.trustpilotEnabled && (
-                                            <span className="cf-biz-chip trustpilot" title="Trustpilot Reviews">
-                                                <IconTrustpilot size={12} />
-                                                <span className="cf-biz-chip-count">{biz.trustpilotReviewCount || 0}</span>
-                                                <span className="cf-biz-chip-rating">{biz.trustpilotRating?.toFixed(1) || "5.0"}★</span>
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="cf-biz-col-sync">
-                                    <span className="cf-biz-meta-text">{biz.lastSync || "Just now"}</span>
-                                </div>
-
-                                <div className="cf-biz-col-views">
-                                    <span className="cf-biz-views-num">{biz.viewsThisMonth ?? 0}</span>
-                                </div>
-
-                                <div className="cf-biz-col-actions">
+                                <div className="cf-biz-card-actions">
                                     <button
                                         type="button"
                                         className="cf-biz-row-btn sync"
@@ -122,9 +90,35 @@ export function BusinessesListView({
                                     </button>
                                 </div>
                             </div>
-                        )
-                    })}
-                </div>
+
+                            <div className="cf-biz-card-sources">
+                                {biz.googleEnabled && (
+                                    <div className="cf-biz-chip google" title="Google Business Reviews">
+                                        <IconGoogle size={14} />
+                                        <span className="cf-biz-chip-count">{biz.googleReviewCount || 0}</span>
+                                        <span className="cf-biz-chip-rating">{biz.googleRating?.toFixed(1) || "5.0"}★</span>
+                                    </div>
+                                )}
+                                {biz.trustpilotEnabled && (
+                                    <div className="cf-biz-chip trustpilot" title="Trustpilot Reviews">
+                                        <IconTrustpilot size={14} />
+                                        <span className="cf-biz-chip-count">{biz.trustpilotReviewCount || 0}</span>
+                                        <span className="cf-biz-chip-rating">{biz.trustpilotRating?.toFixed(1) || "5.0"}★</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="cf-biz-card-meta">
+                                <span className="cf-biz-meta-sync">
+                                    Last sync: <b>{biz.lastSync || "Just now"}</b>
+                                </span>
+                                <span className="cf-biz-meta-views">
+                                    Views this month: <b>{biz.viewsThisMonth ?? 0}</b>
+                                </span>
+                            </div>
+                        </div>
+                    )
+                })}
             </div>
 
             <div className="cf-biz-footer-meter">

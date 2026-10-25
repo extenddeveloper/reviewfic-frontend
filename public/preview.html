@@ -51,6 +51,7 @@
     <div class="plugin-header">
       <span>Reviewfic Plugin Host Mock</span>
       <div style="margin-left: auto; display: flex; gap: 6px;">
+        <button id="btn-toggle-theme" style="padding: 2px 8px; font-size: 11px; cursor: pointer; border-radius: 4px; background: #3b3b40; color: #fff; border: 1px solid #555;" onclick="toggleTheme()">Theme: Dark</button>
         <button id="btn-trigger-reset" style="padding: 2px 8px; font-size: 11px; cursor: pointer; border-radius: 4px; background: #252528; color: #fff; border: 1px solid #444;" onclick="document.getElementById('plugin-frame').contentDocument.querySelector('.secondary-cta')?.click()">Test Reset</button>
         <button id="btn-trigger-insert" style="padding: 2px 8px; font-size: 11px; cursor: pointer; border-radius: 4px; background: #5271ff; color: #fff; border: none;" onclick="document.getElementById('plugin-frame').contentDocument.querySelector('.primary-cta')?.click()">Test Insert</button>
       </div>
@@ -60,6 +61,32 @@
 
   <script>
     const pluginDataStore = {};
+    let currentTheme = 'dark';
+
+    function toggleTheme() {
+      currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      const btn = document.getElementById('btn-toggle-theme');
+      if (btn) btn.textContent = 'Theme: ' + (currentTheme === 'dark' ? 'Dark' : 'Light');
+
+      const frame = document.getElementById('plugin-frame');
+      if (frame && frame.contentDocument) {
+        frame.contentDocument.documentElement.setAttribute('data-framer-theme', currentTheme);
+        if (frame.contentDocument.body) {
+          frame.contentDocument.body.setAttribute('data-framer-theme', currentTheme);
+        }
+      }
+      if (frame && frame.contentWindow) {
+        frame.contentWindow.postMessage({
+          type: 'subscriptionEvent',
+          topic: 'theme',
+          payload: { mode: currentTheme }
+        }, '*');
+        frame.contentWindow.postMessage({
+          type: 'themeChange',
+          mode: currentTheme
+        }, '*');
+      }
+    }
 
     window.addEventListener('message', (event) => {
       const data = event.data;
@@ -85,7 +112,7 @@
             api: true
           },
           environmentInfo: { platform: 'web' },
-          theme: { mode: 'dark' },
+          theme: { mode: currentTheme },
           initialState: { mode: 'canvas', intent: 'plugin/open' }
         }, '*');
         return;
@@ -122,7 +149,7 @@
         } else if (method === 'notify') {
           result = null;
         } else if (method === 'getTheme') {
-          result = { mode: 'dark' };
+          result = { mode: currentTheme };
         }
 
         frame.contentWindow.postMessage({

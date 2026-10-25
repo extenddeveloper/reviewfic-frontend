@@ -97,9 +97,10 @@ import { ConnectReviewsView } from "./ui/components/ConnectReviewsView"
 import { BusinessesListView } from "./ui/components/BusinessesListView"
 import { ManageBusinessesView } from "./ui/components/ManageBusinessesView"
 import { AllWidgetsView } from "./ui/components/AllWidgetsView"
+import { HomeView } from "./ui/components/HomeView"
 import "./ui/styles.css"
 
-export type TabId = "widgets" | "builder" | "sources" | "businesses" | "settings"
+export type TabId = "home" | "widgets" | "businesses" | "settings"
 
 type NoticeType = "info" | "success" | "warning" | "error"
 
@@ -118,7 +119,9 @@ export function App() {
     const [isLoaded, setIsLoaded] = useState(false)
 
     // Navigation and subview flags
-    const [tab, setTab] = useState<TabId>("widgets")
+    const [tab, setTab] = useState<TabId>("home")
+    const [editingWidgetId, setEditingWidgetId] = useState<string | null>(null)
+    const [widgetEditTab, setWidgetEditTab] = useState<"builder" | "sources">("builder")
     const [isProfileOpen, setIsProfileOpen] = useState(false)
     const [isAddingBusiness, setIsAddingBusiness] = useState(false)
     const [isManagingBusinesses, setIsManagingBusinesses] = useState(false)
@@ -296,44 +299,121 @@ export function App() {
     })
     const [canvasTheme, setCanvasTheme] = useState<"light" | "dark">("dark")
 
+    // Automatic Canvas Theme Sync + Subscription (Framer SDK driven)
     useEffect(() => {
         function readCanvasTheme(): "light" | "dark" {
+            // 1. Check document.body and documentElement attributes set by Framer SDK
             const bodyTheme = document.body?.getAttribute("data-framer-theme")
-            if (bodyTheme === "light" || bodyTheme === "dark") return bodyTheme
+            if (bodyTheme === "light" || bodyTheme === "dark") {
+                return bodyTheme
+            }
             const htmlTheme = document.documentElement?.getAttribute("data-framer-theme")
-            if (htmlTheme === "light" || htmlTheme === "dark") return htmlTheme
+            if (htmlTheme === "light" || htmlTheme === "dark") {
+                return htmlTheme
+            }
+
+            // 2. Check Framer API if available
             try {
                 if (typeof (framer as any).getTheme === "function") {
                     const t = (framer as any).getTheme()
                     const mode = typeof t === "string" ? t : t?.mode
-                    if (mode === "light" || mode === "dark") return mode
+                    if (mode === "light" || mode === "dark") {
+                        return mode
+                    }
+                }
+                if ((framer as any).theme) {
+                    const t = (framer as any).theme
+                    const mode = typeof t === "string" ? t : t?.mode
+                    if (mode === "light" || mode === "dark") {
+                        return mode
+                    }
                 }
             } catch {}
+
+            // 3. Fallback to system media query
+            if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+                return "light"
+            }
+
             return "dark"
         }
 
         const detected = readCanvasTheme()
         setCanvasTheme(detected)
 
+        // 1. Subscribe to Framer theme updates via Framer SDK
+        let unsubscribe: (() => void) | undefined
+        try {
+            if (typeof (framer as any).subscribe === "function") {
+                unsubscribe = (framer as any).subscribe("theme", (themeData: any) => {
+                    const mode = typeof themeData === "string" ? themeData : themeData?.mode
+                    if (mode === "light" || mode === "dark") {
+                        setCanvasTheme(mode)
+                        setThemePreference("auto")
+                    }
+                })
+            }
+        } catch {}
+
+        // 2. Listen for postMessage from preview or host wrapper
+        const handleMessage = (e: MessageEvent) => {
+            const data = e.data
+            if (!data) return
+            if (data.type === "subscriptionEvent" && data.topic === "theme") {
+                const mode = data.payload?.mode || data.payload
+                if (mode === "light" || mode === "dark") {
+                    setCanvasTheme(mode)
+                    setThemePreference("auto")
+                }
+            } else if (data.type === "themeChange") {
+                const mode = data.mode
+                if (mode === "light" || mode === "dark") {
+                    setCanvasTheme(mode)
+                    setThemePreference("auto")
+                }
+            } else if (data.type === "pluginReadyResponse" && data.theme?.mode) {
+                const mode = data.theme.mode
+                if (mode === "light" || mode === "dark") {
+                    setCanvasTheme(mode)
+                }
+            }
+        }
+        window.addEventListener("message", handleMessage)
+
+        // 3. Observe DOM attributes injected by Framer SDK
         const observer = new MutationObserver(() => {
             const current = readCanvasTheme()
-            setCanvasTheme(current)
+            setCanvasTheme((prev) => (prev !== current ? current : prev))
         })
 
-        if (document.body) observer.observe(document.body, { attributes: true, attributeFilter: ["data-framer-theme"] })
-        if (document.documentElement) observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-framer-theme"] })
+        if (document.body) {
+            observer.observe(document.body, { attributes: true, attributeFilter: ["data-framer-theme"] })
+        }
+        if (document.documentElement) {
+            observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-framer-theme"] })
+        }
 
-        return () => observer.disconnect()
+        return () => {
+            if (unsubscribe) unsubscribe()
+            window.removeEventListener("message", handleMessage)
+            observer.disconnect()
+        }
     }, [])
 
     const resolvedTheme: "light" | "dark" = themePreference === "auto" ? canvasTheme : themePreference
 
     useEffect(() => {
-        document.documentElement.setAttribute("data-framer-theme", resolvedTheme)
+        document.documentElement.setAttribute("data-theme", resolvedTheme)
         if (document.body) {
-            document.body.setAttribute("data-framer-theme", resolvedTheme)
+            document.body.setAttribute("data-theme", resolvedTheme)
         }
-    }, [resolvedTheme])
+        if (themePreference !== "auto") {
+            document.documentElement.setAttribute("data-framer-theme", resolvedTheme)
+            if (document.body) {
+                document.body.setAttribute("data-framer-theme", resolvedTheme)
+            }
+        }
+    }, [resolvedTheme, themePreference])
 
     const handleThemeChange = (preference: "light" | "dark" | "auto") => {
         setThemePreference(preference)
@@ -413,7 +493,9 @@ export function App() {
 
         setWidgets(nextWidgets)
         setActiveWidgetId(newWidget.id)
-        setTab("builder")
+        setEditingWidgetId(newWidget.id)
+        setWidgetEditTab("builder")
+        setTab("widgets")
 
         void saveWidgets(nextWidgets)
         void saveActiveWidgetId(newWidget.id)
@@ -423,8 +505,10 @@ export function App() {
 
     const handleEditWidget = (widget: ReviewWidget) => {
         setActiveWidgetId(widget.id)
+        setEditingWidgetId(widget.id)
+        setWidgetEditTab("builder")
+        setTab("widgets")
         void saveActiveWidgetId(widget.id)
-        setTab("builder")
     }
 
     const handleInsertWidget = async (widget: ReviewWidget) => {
@@ -450,6 +534,10 @@ export function App() {
         const nextWidgets = widgets.filter((w) => w.id !== widgetId)
         setWidgets(nextWidgets)
         void saveWidgets(nextWidgets)
+
+        if (editingWidgetId === widgetId) {
+            setEditingWidgetId(null)
+        }
 
         if (activeWidgetId === widgetId) {
             const remainingForBiz = nextWidgets.filter((w) => w.businessId === activeBusinessId)
@@ -481,6 +569,7 @@ export function App() {
             void saveActiveWidgetId(bizWidgets[0].id)
         }
 
+        setEditingWidgetId(null)
         setTab("widgets")
         showNotice(`Switched to business: "${biz.name}"`, "info")
     }
@@ -853,6 +942,16 @@ export function App() {
                 <div className="cf-tabs-list">
                     <button
                         type="button"
+                        className={"cf-tab " + (!isProfileOpen && tab === "home" ? "active" : "")}
+                        onClick={() => {
+                            setIsProfileOpen(false)
+                            setTab("home")
+                        }}
+                    >
+                        Home
+                    </button>
+                    <button
+                        type="button"
                         className={"cf-tab " + (!isProfileOpen && tab === "widgets" ? "active" : "")}
                         onClick={() => {
                             setIsProfileOpen(false)
@@ -860,26 +959,6 @@ export function App() {
                         }}
                     >
                         Widgets
-                    </button>
-                    <button
-                        type="button"
-                        className={"cf-tab " + (!isProfileOpen && tab === "builder" ? "active" : "")}
-                        onClick={() => {
-                            setIsProfileOpen(false)
-                            setTab("builder")
-                        }}
-                    >
-                        Builder
-                    </button>
-                    <button
-                        type="button"
-                        className={"cf-tab " + (!isProfileOpen && tab === "sources" ? "active" : "")}
-                        onClick={() => {
-                            setIsProfileOpen(false)
-                            setTab("sources")
-                        }}
-                    >
-                        Sources
                     </button>
                     <button
                         type="button"
@@ -952,42 +1031,90 @@ export function App() {
                     <ProfilePage onBack={() => setIsProfileOpen(false)} />
                 ) : (
                     <>
-                        {/* TAB 1: ALL WIDGETS (Framer BEAF Pattern) */}
-                        {tab === "widgets" && activeBusiness && (
-                            <AllWidgetsView
+                        {/* TAB 1: HOME */}
+                        {tab === "home" && (
+                            <HomeView
                                 business={activeBusiness}
-                                widgets={activeWidgets}
-                                canvasWidgetCounts={canvasWidgetCounts}
-                                onSwitchBusiness={() => setTab("businesses")}
-                                onCreateWidget={handleCreateWidget}
-                                onEditWidget={handleEditWidget}
-                                onInsertWidget={handleInsertWidget}
-                                onDeleteWidget={handleDeleteWidget}
+                                businesses={businesses}
+                                widgets={widgets}
+                                stats={stats}
+                                onCreateNewWidget={() => {
+                                    setTab("widgets")
+                                    setEditingWidgetId(null)
+                                }}
+                                onCreateWithLayout={(layout, name) => {
+                                    handleCreateWidget(name, layout, "elevated")
+                                }}
+                                onOpenBusinesses={() => {
+                                    setTab("businesses")
+                                    setEditingWidgetId(null)
+                                }}
+                                onOpenWidgets={() => {
+                                    setTab("widgets")
+                                    setEditingWidgetId(null)
+                                }}
                             />
                         )}
 
-                        {/* TAB 2: BUILDER / CUSTOMIZER */}
-                        {tab === "builder" && (
-                            <>
-                                {/* Builder Top Bar with Active Widget Status & Back Link */}
-                                <div className="cf-builder-top-bar">
-                                    <button
-                                        type="button"
-                                        className="cf-builder-back-btn"
-                                        onClick={() => setTab("widgets")}
-                                    >
-                                        ← All Widgets
-                                    </button>
-                                    <div className="cf-builder-title-badge">
-                                        <span className="cf-builder-active-label">Editing:</span>
-                                        <span className="cf-builder-widget-name">
-                                            {activeWidget?.name || "Review Showcase"}
-                                        </span>
-                                        {activeWidget && (
-                                            <span className="cf-builder-widget-id">({activeWidget.id})</span>
-                                        )}
+                        {/* TAB 2: WIDGETS (All Widgets List OR Widget-Specific Edit Mode) */}
+                        {tab === "widgets" && activeBusiness && (
+                            editingWidgetId === null ? (
+                                <AllWidgetsView
+                                    business={activeBusiness}
+                                    widgets={activeWidgets}
+                                    canvasWidgetCounts={canvasWidgetCounts}
+                                    onSwitchBusiness={() => setTab("businesses")}
+                                    onCreateWidget={handleCreateWidget}
+                                    onEditWidget={handleEditWidget}
+                                    onInsertWidget={handleInsertWidget}
+                                    onDeleteWidget={handleDeleteWidget}
+                                />
+                            ) : (
+                                <>
+                                    {/* Widget Specific Edit Header */}
+                                    <div className="cf-builder-top-bar">
+                                        <button
+                                            type="button"
+                                            className="cf-builder-back-btn"
+                                            onClick={() => setEditingWidgetId(null)}
+                                            title="Back to all widgets"
+                                        >
+                                            ← All Widgets
+                                        </button>
+                                        <div className="cf-builder-title-badge">
+                                            <span className="cf-builder-active-label">Editing:</span>
+                                            <span className="cf-builder-widget-name">
+                                                {activeWidget?.name || "Review Showcase"}
+                                            </span>
+                                            {activeWidget && (
+                                                <span className="cf-builder-widget-id">({activeWidget.id})</span>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
+
+                                    {/* Subtabs for Builder and Sources inside Widget Edit */}
+                                    <div className="cf-subtabs-bar">
+                                        <button
+                                            type="button"
+                                            className={"cf-subtab " + (widgetEditTab === "builder" ? "active" : "")}
+                                            onClick={() => setWidgetEditTab("builder")}
+                                        >
+                                            <IconSliders size={13} />
+                                            <span>Builder (Layout &amp; Style)</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={"cf-subtab " + (widgetEditTab === "sources" ? "active" : "")}
+                                            onClick={() => setWidgetEditTab("sources")}
+                                        >
+                                            <IconDatabase size={13} />
+                                            <span>Sources &amp; Content</span>
+                                        </button>
+                                    </div>
+
+                                    {/* Subtab 1: Builder */}
+                                    {widgetEditTab === "builder" && (
+                                        <>
 
                                 {/* Live Studio Stage with Backdrop Switcher */}
                                 <div className="cf-studio-wrap">
@@ -1396,8 +1523,8 @@ export function App() {
                             </>
                         )}
 
-                        {/* TAB 3: SOURCES */}
-                        {tab === "sources" && activeBusiness && (
+                        {/* Subtab 2: Sources & Reviews */}
+                        {widgetEditTab === "sources" && (
                             <>
                                 {/* Source Mode Filter */}
                                 <Section
@@ -1791,8 +1918,11 @@ export function App() {
                                 </Section>
                             </>
                         )}
+                                </>
+                            )
+                        )}
 
-                        {/* TAB 4: BUSINESSES LIST VIEW (Screenshot 3) */}
+                        {/* TAB 3: BUSINESSES LIST VIEW */}
                         {tab === "businesses" && (
                             <BusinessesListView
                                 businesses={businesses}
@@ -1993,28 +2123,30 @@ export function App() {
             {/* Bottom Actions Footer */}
             {!isProfileOpen && (
                 <footer className="actions">
-                    <div className="cf-footer-grid">
-                        <button
-                            type="button"
-                            className="primary-cta"
-                            onClick={handleGoWithThisDesign}
-                            disabled={inserting}
-                            title="Go with this design and insert widget onto canvas"
-                        >
-                            <span>{inserting ? "Inserting..." : "Go with this design"}</span>
-                            <IconSparkles size={16} />
-                        </button>
-                        <button
-                            type="button"
-                            className="secondary-cta"
-                            onClick={handleResetWidget}
-                            disabled={inserting}
-                            title="Reset widget settings to defaults"
-                        >
-                            <IconRefresh size={13} />
-                            <span>Reset</span>
-                        </button>
-                    </div>
+                    {tab === "widgets" && editingWidgetId !== null && (
+                        <div className="cf-footer-grid">
+                            <button
+                                type="button"
+                                className="primary-cta"
+                                onClick={handleGoWithThisDesign}
+                                disabled={inserting}
+                                title="Go with this design and insert widget onto canvas"
+                            >
+                                <span>{inserting ? "Inserting..." : "Go with this design"}</span>
+                                <IconSparkles size={16} />
+                            </button>
+                            <button
+                                type="button"
+                                className="secondary-cta"
+                                onClick={handleResetWidget}
+                                disabled={inserting}
+                                title="Reset widget settings to defaults"
+                            >
+                                <IconRefresh size={13} />
+                                <span>Reset</span>
+                            </button>
+                        </div>
+                    )}
                     <div className="cf-shell-footer-bar">
                         <a
                             href="https://www.framefic.com/"
