@@ -1042,9 +1042,6 @@ export function App() {
                                     setTab("widgets")
                                     setEditingWidgetId(null)
                                 }}
-                                onCreateWithLayout={(layout, name) => {
-                                    handleCreateWidget(name, layout, "elevated")
-                                }}
                                 onOpenBusinesses={() => {
                                     setTab("businesses")
                                     setEditingWidgetId(null)
@@ -1082,13 +1079,9 @@ export function App() {
                                             ← All Widgets
                                         </button>
                                         <div className="cf-builder-title-badge">
-                                            <span className="cf-builder-active-label">Editing:</span>
                                             <span className="cf-builder-widget-name">
                                                 {activeWidget?.name || "Review Showcase"}
                                             </span>
-                                            {activeWidget && (
-                                                <span className="cf-builder-widget-id">({activeWidget.id})</span>
-                                            )}
                                         </div>
                                     </div>
 
@@ -2088,32 +2081,6 @@ export function App() {
                                         }
                                     />
                                 </Section>
-
-                                <HelpRow />
-
-                                <div className="help-section">
-                                    <h3 className="help-section-title">More from Framefic</h3>
-                                    <div className="help-products">
-                                        <FrameficCard
-                                            name="Before After Images Slider"
-                                            description="Advanced image slider fully customizable and responsive."
-                                            logoSrc="./Favicon.png"
-                                            marketplaceUrl="https://www.framer.com/marketplace/plugins/beaf/"
-                                        />
-                                        <FrameficCard
-                                            name="Chat Bubbles"
-                                            description="WhatsApp, Messenger & multi-channel chat widgets for Framer."
-                                            logoSrc="./chatbubbles-logo.png"
-                                            marketplaceUrl="https://www.framer.com/marketplace/plugins/chat-bubbles/"
-                                        />
-                                        <FrameficCard
-                                            name="Announcement Bar"
-                                            description="Create top bars, alerts & countdown timers to boost conversions."
-                                            logoSrc="./Crestbar.png"
-                                            marketplaceUrl="https://www.framer.com/community/marketplace/plugins/announcement-bar/"
-                                        />
-                                    </div>
-                                </div>
                             </>
                         )}
                     </>

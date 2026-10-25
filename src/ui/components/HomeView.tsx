@@ -1,19 +1,10 @@
 import React from "react"
-import { ConnectedBusiness, ReviewWidget, ReviewLayout } from "../../core/types"
+import { ConnectedBusiness, ReviewWidget } from "../../core/types"
 import {
     IconSparkles,
     IconPlus,
     IconShieldCheck,
-    IconGoogle,
-    IconTrustpilot,
     IconStar,
-    IconLayoutCarousel,
-    IconLayoutGrid,
-    IconLayoutMasonry,
-    IconLayoutMarquee,
-    IconBadge,
-    IconSliders,
-    IconExternalLink,
 } from "../icons"
 import { HelpRow } from "./HelpRow"
 import { FrameficCard } from "./FrameficCard"
@@ -31,56 +22,15 @@ interface HomeViewProps {
         trustpilotRating: number
     }
     onCreateNewWidget: () => void
-    onCreateWithLayout: (layout: ReviewLayout, name: string) => void
     onOpenBusinesses: () => void
     onOpenWidgets: () => void
 }
 
-const POPULAR_LAYOUT_PRESETS: Array<{
-    id: ReviewLayout
-    name: string
-    desc: string
-    icon: React.ReactNode
-}> = [
-    {
-        id: "carousel",
-        name: "Infinite Carousel",
-        desc: "Smooth auto-scrolling horizontal cards with pagination & touch drag.",
-        icon: <IconLayoutCarousel size={16} />,
-    },
-    {
-        id: "masonry",
-        name: "Masonry Wall",
-        desc: "Pinterest-style dynamic columns balancing varied comment heights.",
-        icon: <IconLayoutMasonry size={16} />,
-    },
-    {
-        id: "grid",
-        name: "Responsive Grid",
-        desc: "Structured multi-column card layout with crisp alignment.",
-        icon: <IconLayoutGrid size={16} />,
-    },
-    {
-        id: "marquee",
-        name: "Continuous Marquee",
-        desc: "Endless animated ticker showcasing active social proof.",
-        icon: <IconLayoutMarquee size={16} />,
-    },
-    {
-        id: "badge",
-        name: "Floating Badge",
-        desc: "Compact blended rating badge with review counter & star score.",
-        icon: <IconBadge size={16} />,
-    },
-]
-
 export function HomeView({
-    business,
     businesses,
     widgets,
     stats,
     onCreateNewWidget,
-    onCreateWithLayout,
     onOpenBusinesses,
     onOpenWidgets,
 }: HomeViewProps) {
@@ -103,7 +53,7 @@ export function HomeView({
                 <div className="cf-home-hero-actions">
                     <button
                         type="button"
-                        className="cf-home-cta-primary"
+                        className="primary-cta cf-home-hero-btn"
                         onClick={onCreateNewWidget}
                     >
                         <IconPlus size={14} />
@@ -111,7 +61,7 @@ export function HomeView({
                     </button>
                     <button
                         type="button"
-                        className="cf-home-cta-secondary"
+                        className="secondary-cta cf-home-hero-btn"
                         onClick={onOpenBusinesses}
                     >
                         <IconShieldCheck size={14} />
@@ -140,69 +90,6 @@ export function HomeView({
                         <IconStar size={13} />
                     </div>
                     <div className="cf-home-stat-label">Average Score</div>
-                </div>
-            </div>
-
-            {/* Active Business Summary Card */}
-            {business && (
-                <div className="cf-home-biz-card">
-                    <div className="cf-home-biz-info">
-                        <span className="cf-home-biz-label">ACTIVE BUSINESS</span>
-                        <div className="cf-home-biz-name-row">
-                            <span className="cf-home-biz-name">{business.name}</span>
-                            <span className="cf-badge cf-badge-brand">Active</span>
-                        </div>
-                        <div className="cf-home-biz-sources">
-                            <span className="cf-biz-source-badge google">
-                                <IconGoogle size={11} />
-                                <span>{business.googlePlaceId ? `${business.googleReviews?.length || 0} reviews` : "Not connected"}</span>
-                            </span>
-                            <span className="cf-biz-source-badge trustpilot">
-                                <IconTrustpilot size={11} />
-                                <span>{business.trustpilotDomain ? `${business.trustpilotReviews?.length || 0} reviews` : "Not connected"}</span>
-                            </span>
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        className="cf-home-biz-btn"
-                        onClick={onOpenBusinesses}
-                    >
-                        <span>Manage</span>
-                        <IconExternalLink size={12} />
-                    </button>
-                </div>
-            )}
-
-            {/* Quick Layout Presets Section */}
-            <div className="cf-home-section">
-                <div className="cf-home-section-header">
-                    <div>
-                        <h3 className="cf-home-section-title">Quick Layout Presets</h3>
-                        <p className="cf-home-section-subtitle">
-                            Jump straight into customizing a layout preset for your canvas.
-                        </p>
-                    </div>
-                </div>
-
-                <div className="cf-home-presets-grid">
-                    {POPULAR_LAYOUT_PRESETS.map((preset) => (
-                        <div key={preset.id} className="cf-home-preset-card">
-                            <div className="cf-home-preset-top">
-                                <div className="cf-home-preset-icon">{preset.icon}</div>
-                                <h4 className="cf-home-preset-name">{preset.name}</h4>
-                            </div>
-                            <p className="cf-home-preset-desc">{preset.desc}</p>
-                            <button
-                                type="button"
-                                className="cf-home-preset-btn"
-                                onClick={() => onCreateWithLayout(preset.id, preset.name)}
-                            >
-                                <IconSliders size={12} />
-                                <span>Customize</span>
-                            </button>
-                        </div>
-                    ))}
                 </div>
             </div>
 
