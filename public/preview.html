@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reviewfic Plugin Host Container</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #0a0a0c;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .plugin-wrapper {
+      width: 430px;
+      height: 800px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.7);
+      background: #111113;
+      display: flex;
+      flex-direction: column;
+    }
+    .plugin-header {
+      height: 36px;
+      background: #1a1a1e;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    iframe {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="plugin-wrapper">
+    <div class="plugin-header">
+      <span>Reviewfic Plugin Host Mock</span>
+      <div style="margin-left: auto; display: flex; gap: 6px;">
+        <button id="btn-trigger-reset" style="padding: 2px 8px; font-size: 11px; cursor: pointer; border-radius: 4px; background: #252528; color: #fff; border: 1px solid #444;" onclick="document.getElementById('plugin-frame').contentDocument.querySelector('.secondary-cta')?.click()">Test Reset</button>
+        <button id="btn-trigger-insert" style="padding: 2px 8px; font-size: 11px; cursor: pointer; border-radius: 4px; background: #5271ff; color: #fff; border: none;" onclick="document.getElementById('plugin-frame').contentDocument.querySelector('.primary-cta')?.click()">Test Insert</button>
+      </div>
+    </div>
+    <iframe id="plugin-frame" src="/" allow="clipboard-read; clipboard-write"></iframe>
+  </div>
+
+  <script>
+    const pluginDataStore = {};
+
+    window.addEventListener('message', (event) => {
+      const data = event.data;
+      if (!data) return;
+
+      const frame = document.getElementById('plugin-frame');
+      if (!frame || !frame.contentWindow) return;
+
+      // 1. Handshake: pluginReadySignal -> pluginReadyResponse
+      if (data.type === 'pluginReadySignal') {
+        frame.contentWindow.postMessage({
+          type: 'pluginReadyResponse',
+          mode: 'canvas',
+          permissionMap: {
+            canvas: true,
+            image: true,
+            editImage: true,
+            configureManagedCollection: true,
+            syncManagedCollection: true,
+            collection: true,
+            localization: true,
+            code: true,
+            api: true
+          },
+          environmentInfo: { platform: 'web' },
+          theme: { mode: 'dark' },
+          initialState: { mode: 'canvas', intent: 'plugin/open' }
+        }, '*');
+        return;
+      }
+
+      // 2. RPC: methodInvocation -> methodResponse
+      if (data.type === 'methodInvocation') {
+        const id = data.id;
+        const method = data.methodName;
+        const args = data.args || [];
+        let result = null;
+
+        if (method === 'getNodesWithType') {
+          result = [];
+        } else if (method === 'getCodeFiles') {
+          result = [];
+        } else if (method === 'getCanvasRoot') {
+          result = null;
+        } else if (method === 'showUI' || method === 'hideUI') {
+          result = null;
+        } else if (method === 'getPluginData') {
+          result = pluginDataStore[args[0]] ?? null;
+        } else if (method === 'setPluginData') {
+          pluginDataStore[args[0]] = args[1];
+          result = null;
+        } else if (method === 'getPluginDataForNode') {
+          result = null;
+        } else if (method === 'setPluginDataForNode') {
+          result = null;
+        } else if (method === 'createCodeFile') {
+          result = { id: 'code-reviewfic-1', name: 'Reviewfic' };
+        } else if (method === 'addComponentInstance') {
+          result = { id: 'node-reviewfic-1', name: 'Reviewfic Showcase', originalId: null };
+        } else if (method === 'notify') {
+          result = null;
+        } else if (method === 'getTheme') {
+          result = { mode: 'dark' };
+        }
+
+        frame.contentWindow.postMessage({
+          type: 'methodResponse',
+          id: id,
+          result: result
+        }, '*');
+      }
+    });
+  </script>
+</body>
+</html>

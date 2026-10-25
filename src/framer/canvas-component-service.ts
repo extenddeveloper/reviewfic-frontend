@@ -1259,6 +1259,62 @@ export async function getCanvasInstancesCount(): Promise<number> {
     }
 }
 
+export interface ReviewficInstanceSummary {
+    id: string
+    name: string
+    layout: string
+    cardStyle: string
+}
+
+export async function getCanvasInstancesDetails(): Promise<ReviewficInstanceSummary[]> {
+    try {
+        const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
+        if (!instances) return []
+        const reviewficNodes = instances.filter(isReviewficInstance)
+        return reviewficNodes.map((node, idx) => {
+            const controls = node.controls || {}
+            return {
+                id: node.id || `node-${idx}`,
+                name: node.name || `Reviewfic Showcase #${idx + 1}`,
+                layout: controls.layout || "grid",
+                cardStyle: controls.cardStyle || "elevated",
+            }
+        })
+    } catch {
+        return []
+    }
+}
+
+export async function selectCanvasInstance(id: string): Promise<boolean> {
+    try {
+        const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
+        const target = instances?.find((n) => n.id === id)
+        if (target) {
+            if (typeof (framer as any).setSelection === "function") {
+                await (framer as any).setSelection([target.id])
+                return true
+            }
+        }
+        return false
+    } catch {
+        return false
+    }
+}
+
+export async function deleteCanvasInstance(id: string): Promise<boolean> {
+    try {
+        const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
+        const target = instances?.find((n) => n.id === id)
+        if (target && typeof target.remove === "function") {
+            await target.remove()
+            return true
+        }
+        return false
+    } catch {
+        return false
+    }
+}
+
 export async function removeAllCanvasInstances(): Promise<number> {
     try {
         const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]

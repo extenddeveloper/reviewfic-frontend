@@ -1,28 +1,49 @@
-import React from "react"
-
 export interface SwitchProps {
     checked: boolean
     onChange: (checked: boolean) => void
     label?: string
+    description?: string
     id?: string
     disabled?: boolean
 }
 
-export function Switch({ checked, onChange, label, id, disabled = false }: SwitchProps) {
-    const inputId = id || (label ? `sw-${label.toLowerCase().replace(/[^a-z0-9]/g, "-")}` : undefined)
-
-    return (
-        <label className={`cf-switch-label ${disabled ? "disabled" : ""}`} htmlFor={inputId}>
-            <input
-                id={inputId}
-                type="checkbox"
-                className="cf-switch-input"
-                checked={checked}
-                onChange={(e) => onChange(e.target.checked)}
-                disabled={disabled}
-            />
-            <span className="cf-switch-slider" />
-            {label && <span className="cf-switch-text">{label}</span>}
-        </label>
+export function Switch({
+    checked,
+    onChange,
+    label,
+    description,
+    id,
+    disabled = false,
+}: SwitchProps) {
+    const button = (
+        <button
+            id={id}
+            type="button"
+            role="switch"
+            aria-checked={checked}
+            disabled={disabled}
+            className={`cf-switch ${checked ? "is-on" : ""}`}
+            onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                if (!disabled) onChange(!checked)
+            }}
+        >
+            <span className="cf-switch-thumb" />
+        </button>
     )
+
+    if (label) {
+        return (
+            <div className="cf-flex-between cf-switch-row">
+                <div className="cf-setting-info">
+                    <div className="cf-text-sm-semibold">{label}</div>
+                    {description ? <div className="cf-text-xs-secondary">{description}</div> : null}
+                </div>
+                {button}
+            </div>
+        )
+    }
+
+    return button
 }

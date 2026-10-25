@@ -1,10 +1,14 @@
-import { useState, useEffect, useCallback, useMemo } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { framer } from "@framer/plugin"
 import { ReviewConfig, ReviewItem, ReviewLayout, CardStyle, ThemeMode, CardFamily } from "./core/types"
 import { DEFAULT_CONFIG, calculateBlendedStats, getActiveReviews } from "./core/config"
 import { ALL_LAYOUTS, LAYOUT_GROUPS, ALL_CARD_PRESETS, CARD_FAMILIES } from "./core/catalogue"
 import { loadReviewConfig, saveReviewConfig } from "./core/storage"
-import { insertCanvasComponent, getCanvasInstancesCount, syncCanvasInstance } from "./framer/canvas-component-service"
+import {
+    insertCanvasComponent,
+    getCanvasInstancesCount,
+    syncCanvasInstance,
+} from "./framer/canvas-component-service"
 import {
     IconGoogle,
     IconTrustpilot,
@@ -29,6 +33,13 @@ import {
     IconUpload,
     IconDatabase,
     IconFileText,
+    IconUser,
+    IconExternalLink,
+    IconNoticeInfo,
+    IconNoticeSuccess,
+    IconNoticeWarning,
+    IconNoticeError,
+    IconX,
 } from "./ui/icons"
 import {
     reviewsToCSVString,
@@ -55,17 +66,47 @@ import { Section } from "./ui/components/Section"
 import { ProfilePage } from "./ui/components/ProfilePage"
 import { LiveStudioPreview } from "./ui/components/LiveStudioPreview"
 import { CustomColorPicker } from "./ui/components/CustomColorPicker"
+import { HelpRow } from "./ui/components/HelpRow"
+import { FrameficCard } from "./ui/components/FrameficCard"
 import "./ui/styles.css"
 
-type TabId = "overview" | "builder" | "sources" | "settings"
+type TabId = "home" | "builder" | "sources" | "settings"
+
+type NoticeType = "info" | "success" | "warning" | "error"
+
+interface NoticeState {
+    type: NoticeType
+    text: string
+    title?: string
+}
 
 export function App() {
     const [config, setConfig] = useState<ReviewConfig>(DEFAULT_CONFIG)
-    const [tab, setTab] = useState<TabId>("overview")
+    const [tab, setTab] = useState<TabId>("home")
     const [isProfileOpen, setIsProfileOpen] = useState(false)
     const [canvasCount, setCanvasCount] = useState<number>(0)
     const [inserting, setInserting] = useState<boolean>(false)
-    const [notice, setNotice] = useState<string | null>(null)
+    const [notice, setNotice] = useState<NoticeState | null>(null)
+    const mainRef = useRef<HTMLElement>(null)
+
+    // Auto-dismiss notice after 5 seconds
+    useEffect(() => {
+        if (!notice) return
+        const timer = setTimeout(() => {
+            setNotice(null)
+        }, 5000)
+        return () => clearTimeout(timer)
+    }, [notice])
+
+    const showNotice = useCallback((text: string, type: NoticeType = "success", title?: string) => {
+        setNotice({ type, text, title })
+        mainRef.current?.scrollTo({ top: 0, behavior: "smooth" })
+        try {
+            if (typeof (framer as any).notify === "function") {
+                ;(framer as any).notify(text)
+            }
+        } catch {}
+    }, [])
 
     // Phase 2 Studio states
     const [stageTheme, setStageTheme] = useState<"soft" | "dark" | "light">("soft")
@@ -77,7 +118,6 @@ export function App() {
     const [placeResults, setPlaceResults] = useState<GooglePlaceResult[]>([])
     const [isSearchingPlaces, setIsSearchingPlaces] = useState(false)
     const [tpInput, setTpInput] = useState("")
-    const [updatingCanvas, setUpdatingCanvas] = useState(false)
 
     // New custom review form state
     const [newAuthor, setNewAuthor] = useState("")
@@ -109,13 +149,27 @@ export function App() {
             if (cFamily) setSelectedCardFamily(cFamily)
             setConfig(loaded)
 
-            const count = await getCanvasInstancesCount()
-            if (!isMounted) return
-            setCanvasCount(count)
+            try {
+                const count = await getCanvasInstancesCount()
+                if (!isMounted) return
+                setCanvasCount(count)
+            } catch {
+                if (!isMounted) return
+                setCanvasCount(0)
+            }
         }
         void init()
         return () => {
             isMounted = false
+        }
+    }, [])
+
+    const refreshCanvasInstances = useCallback(async () => {
+        try {
+            const count = await getCanvasInstancesCount()
+            setCanvasCount(count)
+        } catch {
+            setCanvasCount(0)
         }
     }, [])
 
@@ -129,12 +183,104 @@ export function App() {
         })
     }, [])
 
-    const toggleTheme = useCallback(() => {
-        updateConfig((prev) => {
-            const nextMode: ThemeMode = prev.themeMode === "dark" ? "light" : "dark"
-            return { ...prev, themeMode: nextMode }
+    const [themePreference, setThemePreference] = useState<"light" | "dark" | "auto">(() => {
+        try {
+            const saved = localStorage.getItem("reviewfic_theme_pref_v1")
+            if (saved === "light" || saved === "dark" || saved === "auto") {
+                return saved
+            }
+        } catch {}
+        return "auto"
+    })
+    const [canvasTheme, setCanvasTheme] = useState<"light" | "dark">(() => {
+        if (typeof document !== "undefined") {
+            const bodyTheme = document.body?.getAttribute("data-framer-theme")
+            if (bodyTheme === "light" || bodyTheme === "dark") return bodyTheme
+            const htmlTheme = document.documentElement?.getAttribute("data-framer-theme")
+            if (htmlTheme === "light" || htmlTheme === "dark") return htmlTheme
+        }
+        return "dark"
+    })
+
+    // Automatic Canvas Theme Sync + Subscription (Framer SDK driven)
+    useEffect(() => {
+        function readCanvasTheme(): "light" | "dark" {
+            const bodyTheme = document.body?.getAttribute("data-framer-theme")
+            if (bodyTheme === "light" || bodyTheme === "dark") return bodyTheme
+            const htmlTheme = document.documentElement?.getAttribute("data-framer-theme")
+            if (htmlTheme === "light" || htmlTheme === "dark") return htmlTheme
+            try {
+                if (typeof (framer as any).getTheme === "function") {
+                    const t = (framer as any).getTheme()
+                    const mode = typeof t === "string" ? t : t?.mode
+                    if (mode === "light" || mode === "dark") return mode
+                }
+                if ((framer as any).theme) {
+                    const t = (framer as any).theme
+                    const mode = typeof t === "string" ? t : t?.mode
+                    if (mode === "light" || mode === "dark") return mode
+                }
+            } catch {}
+            return "dark"
+        }
+
+        const detected = readCanvasTheme()
+        setCanvasTheme(detected)
+
+        let unsubscribe: (() => void) | undefined
+        try {
+            if (typeof (framer as any).subscribe === "function") {
+                unsubscribe = (framer as any).subscribe("theme", (themeData: any) => {
+                    const mode = typeof themeData === "string" ? themeData : themeData?.mode
+                    if (mode === "light" || mode === "dark") {
+                        setCanvasTheme(mode)
+                        setThemePreference("auto")
+                    }
+                })
+            }
+        } catch {}
+
+        const observer = new MutationObserver(() => {
+            const current = readCanvasTheme()
+            setCanvasTheme((prev) => {
+                if (prev !== current) {
+                    setThemePreference("auto")
+                    return current
+                }
+                return prev
+            })
         })
-    }, [updateConfig])
+
+        if (document.body) {
+            observer.observe(document.body, { attributes: true, attributeFilter: ["data-framer-theme"] })
+        }
+        if (document.documentElement) {
+            observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-framer-theme"] })
+        }
+
+        return () => {
+            if (unsubscribe) unsubscribe()
+            observer.disconnect()
+        }
+    }, [])
+
+    const resolvedTheme: "light" | "dark" = themePreference === "auto" ? canvasTheme : themePreference
+
+    useEffect(() => {
+        document.documentElement.setAttribute("data-framer-theme", resolvedTheme)
+        if (document.body) {
+            document.body.setAttribute("data-framer-theme", resolvedTheme)
+        }
+    }, [resolvedTheme])
+
+    const handleThemeChange = (preference: "light" | "dark" | "auto") => {
+        setThemePreference(preference)
+        try {
+            localStorage.setItem("reviewfic_theme_pref_v1", preference)
+        } catch {}
+        const nextMode: ThemeMode = preference === "auto" ? canvasTheme : preference
+        updateConfig((prev) => ({ ...prev, themeMode: nextMode }))
+    }
 
     const tpDomainClean = useMemo(() => {
         if (!config.trustpilotDomain || config.trustpilotDomain === "company.com") return ""
@@ -161,36 +307,21 @@ export function App() {
         try {
             const result = await insertCanvasComponent(config)
             if (result.success) {
-                setNotice(result.message || "New Reviewfic component inserted onto the canvas!")
+                showNotice(result.message || "Reviewfic component inserted onto canvas!", "success")
                 const count = await getCanvasInstancesCount()
                 setCanvasCount(count)
             } else {
-                setNotice(result.message || "Could not insert component.")
+                showNotice(result.message || "Could not insert component.", "error")
             }
         } catch (e: any) {
-            setNotice(e?.message || "Failed to insert component.")
+            showNotice(e?.message || "Failed to insert component.", "error")
         } finally {
             setInserting(false)
-            setTimeout(() => setNotice(null), 4000)
         }
     }
 
-    const handleUpdateCanvas = async () => {
-        setUpdatingCanvas(true)
-        setNotice(null)
-        try {
-            const result = await insertCanvasComponent(config, { updateExistingOnly: true })
-            if (result.success) {
-                setNotice(result.message || "Updated existing component on canvas!")
-            } else {
-                setNotice(result.message || "Could not update canvas component.")
-            }
-        } catch (e: any) {
-            setNotice(e?.message || "Failed to update canvas component.")
-        } finally {
-            setUpdatingCanvas(false)
-            setTimeout(() => setNotice(null), 4000)
-        }
+    const handleSelectInstance = async (id: string) => {
+        await selectCanvasInstance(id)
     }
 
     const handleAddCustomReview = () => {
@@ -215,8 +346,7 @@ export function App() {
         setNewText("")
         setNewRating(5)
         setNewVerified(true)
-        setNotice("Custom review added!")
-        setTimeout(() => setNotice(null), 3000)
+        showNotice("Custom review added!", "success")
     }
 
     const handleDeleteCustomReview = (id: string) => {
@@ -229,23 +359,20 @@ export function App() {
     // CSV Bulk Export Handler
     const handleExportCSV = useCallback(() => {
         if (activeReviews.length === 0) {
-            setNotice("No reviews available to export.")
-            setTimeout(() => setNotice(null), 3000)
+            showNotice("No reviews available to export.", "warning")
             return
         }
         const csv = reviewsToCSVString(activeReviews)
         downloadCSV(`reviewfic-reviews-${Date.now()}.csv`, csv)
-        setNotice(`Exported ${activeReviews.length} reviews to CSV!`)
-        setTimeout(() => setNotice(null), 3000)
-    }, [activeReviews])
+        showNotice(`Exported ${activeReviews.length} reviews to CSV!`, "success")
+    }, [activeReviews, showNotice])
 
     // CSV Sample Download Handler
     const handleDownloadSampleCSV = useCallback(() => {
         const sample = generateSampleCSV()
         downloadCSV("reviewfic-sample-template.csv", sample)
-        setNotice("Downloaded sample CSV template!")
-        setTimeout(() => setNotice(null), 3000)
-    }, [])
+        showNotice("Downloaded sample CSV template!", "info")
+    }, [showNotice])
 
     // CSV File Upload Handler
     const handleFileUploadCSV = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -395,8 +522,7 @@ export function App() {
         void syncCanvasInstance(nextConfig)
         setGoogleQuery("")
         setPlaceResults([])
-        setNotice(`Connected to "${place.name}" (${authenticReviews.length} authentic Google reviews, ★ ${place.rating})!`)
-        setTimeout(() => setNotice(null), 3500)
+        showNotice(`Connected to "${place.name}" (${authenticReviews.length} authentic Google reviews, ★ ${place.rating})!`, "success")
     }
 
     const handleQuickSelectLocation = async (name: string) => {
@@ -450,101 +576,105 @@ export function App() {
         updateConfig(() => nextConfig)
         void syncCanvasInstance(nextConfig)
         setTpInput("")
-        setNotice(`Connected Trustpilot profile for "${domain}" (${fresh.length} reviews, ★ ${resolved.rating})!`)
-        setTimeout(() => setNotice(null), 3500)
-    }, [config, tpInput, updateConfig])
+        showNotice(`Connected Trustpilot profile for "${domain}" (${fresh.length} reviews, ★ ${resolved.rating})!`, "success")
+    }, [config, tpInput, updateConfig, showNotice])
 
     const resetDefaults = () => {
         updateConfig(() => ({ ...DEFAULT_CONFIG }))
-        setNotice("Settings reset to defaults.")
-        setTimeout(() => setNotice(null), 3000)
-    }
-
-    if (isProfileOpen) {
-        return (
-            <div className={`app ${config.themeMode}`}>
-                <ProfilePage onBack={() => setIsProfileOpen(false)} />
-            </div>
-        )
+        showNotice("All configuration settings have been reset to defaults.", "info", "Settings Reset")
     }
 
     return (
-        <div className={`app ${config.themeMode}`}>
-            {/* Header */}
-            <header className="header">
-                <div className="app-brand">
-                    <div className="app-logo">
-                        <IconStar size={18} color="#FFFFFF" />
-                    </div>
-                    <div className="app-brand-info">
-                        <h1>Reviewfic</h1>
-                        <p>Google &amp; Trustpilot Reviews</p>
-                    </div>
-                </div>
-
-                <div className="header-actions">
-                    <button
-                        type="button"
-                        className="cf-theme-toggle"
-                        onClick={toggleTheme}
-                        title={`Theme: ${config.themeMode}. Click to switch.`}
-                    >
-                        {config.themeMode === "dark" ? <IconMoon size={12} /> : <IconSun size={12} />}
-                        <span>{config.themeMode === "dark" ? "Dark" : "Light"}</span>
-                    </button>
-
-                    <button
-                        type="button"
-                        className="cf-profile-btn"
-                        onClick={() => setIsProfileOpen(true)}
-                        title="Account & Profile"
-                    >
-                        <IconCrown size={12} />
-                        <span>Pro</span>
-                    </button>
-                </div>
-            </header>
-
+        <div className={`app ${resolvedTheme}`}>
             {/* Navigation Tabs */}
-            <nav className="cf-nav-tabs">
+            <nav className="cf-tabs">
+                <div className="cf-tabs-list">
+                    <button
+                        type="button"
+                        className={"cf-tab " + (!isProfileOpen && tab === "home" ? "active" : "")}
+                        onClick={() => {
+                            setIsProfileOpen(false)
+                            setTab("home")
+                        }}
+                    >
+                        Home
+                    </button>
+                    <button
+                        type="button"
+                        className={"cf-tab " + (!isProfileOpen && tab === "builder" ? "active" : "")}
+                        onClick={() => {
+                            setIsProfileOpen(false)
+                            setTab("builder")
+                        }}
+                    >
+                        Builder
+                    </button>
+                    <button
+                        type="button"
+                        className={"cf-tab " + (!isProfileOpen && tab === "sources" ? "active" : "")}
+                        onClick={() => {
+                            setIsProfileOpen(false)
+                            setTab("sources")
+                        }}
+                    >
+                        Sources
+                    </button>
+                    <button
+                        type="button"
+                        className={"cf-tab " + (!isProfileOpen && tab === "settings" ? "active" : "")}
+                        onClick={() => {
+                            setIsProfileOpen(false)
+                            setTab("settings")
+                        }}
+                    >
+                        Settings
+                    </button>
+                </div>
                 <button
                     type="button"
-                    className={`cf-tab-btn ${tab === "overview" ? "active" : ""}`}
-                    onClick={() => setTab("overview")}
+                    className={"cf-tab-profile " + (isProfileOpen ? "active" : "")}
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    title="Account & Profile"
+                    aria-label="Account & Profile"
                 >
-                    <IconStar size={13} />
-                    <span>Overview</span>
-                </button>
-                <button
-                    type="button"
-                    className={`cf-tab-btn ${tab === "builder" ? "active" : ""}`}
-                    onClick={() => setTab("builder")}
-                >
-                    <IconSliders size={13} />
-                    <span>Builder</span>
-                </button>
-                <button
-                    type="button"
-                    className={`cf-tab-btn ${tab === "sources" ? "active" : ""}`}
-                    onClick={() => setTab("sources")}
-                >
-                    <IconGoogle size={13} />
-                    <span>Sources</span>
-                </button>
-                <button
-                    type="button"
-                    className={`cf-tab-btn ${tab === "settings" ? "active" : ""}`}
-                    onClick={() => setTab("settings")}
-                >
-                    <IconCheck size={13} />
-                    <span>Settings</span>
+                    <IconUser size={18} />
                 </button>
             </nav>
 
-            {/* Main Tab Content */}
-            <main className="content">
-                {/* TAB 1: OVERVIEW */}
-                {tab === "overview" && (
+            {/* Main Content */}
+            <main className="content" ref={mainRef}>
+                {/* Framer Callout Notice Banner (Company Standard) */}
+                {notice && (
+                    <div className={"cf-notice " + notice.type}>
+                        <div className="cf-notice-icon-col">
+                            {notice.type === "info" && <IconNoticeInfo size={18} />}
+                            {notice.type === "success" && <IconNoticeSuccess size={18} />}
+                            {notice.type === "warning" && <IconNoticeWarning size={18} />}
+                            {notice.type === "error" && <IconNoticeError size={18} />}
+                        </div>
+                        <div className="cf-notice-content">
+                            <h5 className="cf-notice-title">
+                                {notice.title || (notice.type === "success" ? "Success" : notice.type === "error" ? "Error" : notice.type === "warning" ? "Warning" : "Notice")}
+                            </h5>
+                            <p className="cf-notice-desc">{notice.text}</p>
+                        </div>
+                        <button
+                            type="button"
+                            className="cf-notice-close"
+                            onClick={() => setNotice(null)}
+                            aria-label="Dismiss notice"
+                        >
+                            <IconX size={12} />
+                        </button>
+                    </div>
+                )}
+
+                {isProfileOpen ? (
+                    <ProfilePage onBack={() => setIsProfileOpen(false)} />
+                ) : (
+                    <>
+                {/* TAB 1: HOME */}
+                {tab === "home" && (
                     <>
                         <HeroCard
                             badgeText={config.isDemoMode ? "DEMO MODE ACTIVE" : "LIVE SOURCES"}
@@ -580,40 +710,73 @@ export function App() {
                         </div>
 
                         {/* Demo Mode Toggle Banner */}
-                        <div className="cf-hero-card">
-                            <div className="cf-field-header">
-                                <div>
-                                    <h4 className="cf-section-title">Instant Wireframe Demo Mode</h4>
-                                    <p className="cf-field-hint">Showcase realistic 5-star reviews on the canvas before connecting live API links.</p>
-                                </div>
+                        <Section
+                            title="Instant Wireframe Demo Mode"
+                            description="Showcase realistic 5-star reviews on the canvas before connecting live API links."
+                            action={
                                 <Switch
                                     checked={config.isDemoMode}
                                     onChange={(checked) => updateConfig((prev) => ({ ...prev, isDemoMode: checked }))}
                                 />
-                            </div>
-                        </div>
+                            }
+                        />
 
                         {/* Quick Layout Selection */}
-                        <Section title="Quick Layout Preset" subtitle="Select how reviews render on your page" icon={<IconLayoutGrid size={15} />}>
-                            <div className="cf-segmented-grid">
+                        <Section
+                            title="Quick Layout Preset"
+                            description="Select how reviews render on your page"
+                            icon={<IconLayoutGrid size={15} />}
+                        >
+                            <div className="cf-layout-preset-grid">
                                 {(["grid", "masonry", "carousel", "ticker", "highlight", "badge"] as ReviewLayout[]).map((l) => (
                                     <button
                                         key={l}
                                         type="button"
-                                        className={`cf-seg-btn ${config.layout === l ? "active" : ""}`}
+                                        className={`cf-layout-preset-card ${config.layout === l ? "active" : ""}`}
                                         onClick={() => updateConfig((prev) => ({ ...prev, layout: l }))}
                                     >
-                                        {l === "carousel" && <IconLayoutCarousel size={16} />}
-                                        {l === "grid" && <IconLayoutGrid size={16} />}
-                                        {l === "masonry" && <IconLayoutMasonry size={16} />}
-                                        {l === "ticker" && <IconLayoutMarquee size={16} />}
-                                        {l === "badge" && <IconBadge size={16} />}
-                                        {l === "highlight" && <IconStar size={16} />}
-                                        <span>{l.charAt(0).toUpperCase() + l.slice(1)}</span>
+                                        <span className="cf-layout-preset-icon">
+                                            {l === "carousel" && <IconLayoutCarousel size={18} />}
+                                            {l === "grid" && <IconLayoutGrid size={18} />}
+                                            {l === "masonry" && <IconLayoutMasonry size={18} />}
+                                            {l === "ticker" && <IconLayoutMarquee size={18} />}
+                                            {l === "badge" && <IconBadge size={18} />}
+                                            {l === "highlight" && <IconStar size={18} />}
+                                        </span>
+                                        <span className="cf-layout-preset-label">
+                                            {l.charAt(0).toUpperCase() + l.slice(1)}
+                                        </span>
                                     </button>
                                 ))}
                             </div>
                         </Section>
+
+                        {/* Help & Ecosystem */}
+                        <HelpRow />
+
+                        <div className="help-section">
+                            <h3 className="help-section-title">More from Framefic</h3>
+                            <div className="help-products">
+                                <FrameficCard
+                                    name="Before After Images Slider"
+                                    description="Advanced image slider fully customizable and responsive."
+                                    logoSrc="./Favicon.png"
+                                    marketplaceUrl="https://www.framer.com/marketplace/plugins/beaf/"
+                                />
+                                <FrameficCard
+                                    name="Chat Bubbles"
+                                    description="WhatsApp, Messenger & multi-channel chat widgets for Framer."
+                                    logoSrc="./chatbubbles-logo.png"
+                                    marketplaceUrl="https://www.framer.com/marketplace/plugins/chat-bubbles/"
+                                />
+                                <FrameficCard
+                                    name="Announcement Bar"
+                                    description="Create top bars, alerts & countdown timers to boost conversions."
+                                    logoSrc="./Crestbar.png"
+                                    marketplaceUrl="https://www.framer.com/community/marketplace/plugins/announcement-bar/"
+                                />
+                            </div>
+                        </div>
                     </>
                 )}
 
@@ -1524,6 +1687,43 @@ export function App() {
                 {/* TAB 4: SETTINGS */}
                 {tab === "settings" && (
                     <>
+                        <Section
+                            title="Interface Theme"
+                            description="Choose your preferred color theme for the Reviewfic plugin shell."
+                        >
+                            <div className="cf-segmented-control-wrapper">
+                                <div className="cf-segmented-control" role="tablist" aria-label="Theme selection">
+                                    <button
+                                        type="button"
+                                        role="tab"
+                                        aria-selected={themePreference === "light"}
+                                        className={`cf-segment-item ${themePreference === "light" ? "active" : ""}`}
+                                        onClick={() => handleThemeChange("light")}
+                                    >
+                                        Light
+                                    </button>
+                                    <button
+                                        type="button"
+                                        role="tab"
+                                        aria-selected={themePreference === "dark"}
+                                        className={`cf-segment-item ${themePreference === "dark" ? "active" : ""}`}
+                                        onClick={() => handleThemeChange("dark")}
+                                    >
+                                        Dark
+                                    </button>
+                                    <button
+                                        type="button"
+                                        role="tab"
+                                        aria-selected={themePreference === "auto"}
+                                        className={`cf-segment-item ${themePreference === "auto" ? "active" : ""}`}
+                                        onClick={() => handleThemeChange("auto")}
+                                    >
+                                        Match site
+                                    </button>
+                                </div>
+                            </div>
+                        </Section>
+
                         <Section title="Curation & Filtering" subtitle="Control which reviews are rendered" icon={<IconSliders size={15} />}>
                             <Field label="Minimum Star Filter">
                                 <select
@@ -1597,57 +1797,50 @@ export function App() {
                         </Section>
                     </>
                 )}
+                    </>
+                )}
             </main>
 
             {/* Bottom Actions */}
-            <footer className="actions">
-                {notice && (
-                    <div className="cf-badge cf-badge-brand cf-notice-badge">
-                        {notice}
-                    </div>
-                )}
-                <div className="cf-footer-grid">
-                    <button
-                        type="button"
-                        className="primary-cta"
-                        onClick={handleInsert}
-                        disabled={inserting || updatingCanvas}
-                        title="Insert new Reviewfic component onto canvas"
-                    >
-                        <IconSparkles size={16} />
-                        <span>{inserting ? "Inserting..." : "Insert New Component"}</span>
-                    </button>
-                    {canvasCount > 0 && (
+            {!isProfileOpen && (
+                <footer className="actions">
+                    <div className="cf-footer-grid">
                         <button
                             type="button"
-                            className="cf-btn-update-canvas"
-                            onClick={handleUpdateCanvas}
-                            disabled={inserting || updatingCanvas}
-                            title="Update existing Reviewfic component on canvas"
+                            className="primary-cta"
+                            onClick={handleInsert}
+                            disabled={inserting}
+                            title="Insert Reviewfic component onto canvas"
                         >
-                            <IconRefresh size={14} />
-                            <span>{updatingCanvas ? "Updating..." : "Update Canvas"}</span>
+                            <span>{inserting ? "Inserting..." : "Insert Component"}</span>
+                            <IconSparkles size={16} />
                         </button>
-                    )}
-                    <button
-                        type="button"
-                        className="secondary-cta"
-                        onClick={resetDefaults}
-                        disabled={inserting || updatingCanvas}
-                        title="Reset all settings to defaults"
-                    >
-                        <IconRefresh size={13} />
-                        <span>Reset</span>
-                    </button>
-                </div>
-                <div className="cf-shell-status-bar">
-                    <span className="status-badge ok">
-                        <span className="status-dot" />
-                        <span>Reviewfic v0.1.0 · Ready</span>
-                    </span>
-                    <span>{canvasCount} on Canvas</span>
-                </div>
-            </footer>
+                        <button
+                            type="button"
+                            className="secondary-cta"
+                            onClick={resetDefaults}
+                            disabled={inserting}
+                            title="Reset all settings to defaults"
+                        >
+                            <IconRefresh size={13} />
+                            <span>Reset</span>
+                        </button>
+                    </div>
+                    <div className="cf-shell-footer-bar">
+                        <a
+                            href="https://www.framefic.com/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="cf-shell-company-link"
+                            title="Visit Framefic website"
+                        >
+                            <span>@Framefic</span>
+                            <IconExternalLink size={12} />
+                        </a>
+                        <span className="cf-shell-version">v1.0.0 · {canvasCount > 0 ? `${canvasCount} on Canvas` : "Ready"}</span>
+                    </div>
+                </footer>
+            )}
         </div>
     )
 }

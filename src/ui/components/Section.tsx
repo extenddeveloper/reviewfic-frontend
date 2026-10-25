@@ -1,57 +1,41 @@
-import React, { useState } from "react"
+import type { ReactNode } from "react"
 
 export interface SectionProps {
     title: string
     subtitle?: string
-    icon?: React.ReactNode
-    children: React.ReactNode
+    description?: string
+    badge?: ReactNode
+    action?: ReactNode
+    children?: ReactNode
+    icon?: ReactNode
     defaultOpen?: boolean
-    action?: React.ReactNode
 }
 
 export function Section({
     title,
     subtitle,
-    icon,
-    children,
-    defaultOpen = true,
+    description,
+    badge,
     action,
+    children,
+    icon,
 }: SectionProps) {
-    const [isOpen, setIsOpen] = useState(defaultOpen)
+    const descText = description || subtitle
 
     return (
-        <div className={`cf-section ${isOpen ? "open" : "collapsed"}`}>
-            <div className="cf-section-header" onClick={() => setIsOpen(!isOpen)}>
-                <div className="cf-section-title-wrap">
-                    {icon && <span className="cf-section-icon">{icon}</span>}
-                    <div>
-                        <h3 className="cf-section-title">{title}</h3>
-                        {subtitle && <p className="cf-section-subtitle">{subtitle}</p>}
+        <section className="cf-section">
+            <div className={`cf-section-header${action ? " has-action" : ""}`}>
+                <div className="cf-section-header-info">
+                    <div className="cf-section-title-row">
+                        {icon && <span className="cf-section-header-icon">{icon}</span>}
+                        <h2 className="cf-section-title">{title}</h2>
+                        {badge}
                     </div>
+                    {descText ? <p className="cf-section-desc">{descText}</p> : null}
                 </div>
-                <div className="cf-section-actions" onClick={(e) => e.stopPropagation()}>
-                    {action}
-                    <button
-                        type="button"
-                        className="cf-section-toggle-btn"
-                        onClick={() => setIsOpen(!isOpen)}
-                        aria-label={isOpen ? "Collapse section" : "Expand section"}
-                    >
-                        <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            className={`cf-chevron ${isOpen ? "rotated" : ""}`}
-                        >
-                            <path d="m6 9 6 6 6-6" />
-                        </svg>
-                    </button>
-                </div>
+                {action ? <div className="cf-section-action">{action}</div> : null}
             </div>
-            {isOpen && <div className="cf-section-body">{children}</div>}
-        </div>
+            {children ? <div className="cf-section-body">{children}</div> : null}
+        </section>
     )
 }

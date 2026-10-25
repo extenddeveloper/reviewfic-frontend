@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap');
+@import "../styles/variables.css";
 @import "./widget-styles.css";
 
 /* Reviewfic Framer Plugin Design System - Supporting Full Dark & Light Modes */
@@ -9,93 +10,352 @@ body,
 .app.dark,
 [data-framer-theme="dark"] {
     --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-body: "DM Sans", "Segoe UI", -apple-system, BlinkMacSystemFont, Tahoma, sans-serif;
+    --cf-bg: #141414;
+    --cf-bg-secondary: #1c1c1e;
+    --cf-bg-tertiary: #252528;
+    --cf-control: #1a1a1c;
+    --cf-control-hover: #2a2a2d;
+    --cf-text: #ffffff;
+    --cf-text-secondary: #a1a1aa;
+    --cf-text-tertiary: #71717a;
+    --cf-border: rgba(255, 255, 255, 0.1);
+    --cf-border-hover: rgba(255, 255, 255, 0.2);
+    --cf-tint: #5271ff;
+    --cf-tint-dark: #3e67eb;
+    --cf-tint-subtle: rgba(82, 113, 255, 0.15);
+    --cf-danger: #ef4444;
+    --cf-danger-subtle: rgba(239, 68, 68, 0.15);
+    --cf-success: #22c55e;
+    --cf-success-subtle: rgba(34, 197, 94, 0.15);
+    --cf-radius: 10px;
     --cf-radius-sm: 6px;
-    --cf-radius-md: 10px;
-    --cf-radius-lg: 14px;
-    --cf-radius-full: 9999px;
+    --cf-radius-pill: 9999px;
+    --cf-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.35);
 
-    /* Base Tokens - Defaulting to Sleek Dark Studio Mode */
-    --cf-bg: #0F1115;
-    --cf-bg-secondary: #161920;
-    --cf-bg-tertiary: #1D212A;
-    --cf-bg-glass: rgba(22, 25, 32, 0.75);
-    --cf-bg-hover: #242935;
-    --cf-bg-active: #2B313F;
+    /* Framefic & BEAF Style Guide Tokens */
+    --Secondary-Default: #5271ff;
+    --secondary-default: #5271ff;
+    --beaf-color-1: #3e67eb;
+    --beaf-surface: #201f1f;
+    --beaf-surface-2: #242323;
+    --beaf-surface-3: #323131;
+    --beaf-surface-border: #535151;
+    --beaf-heading: #ffffff;
+    --beaf-text-muted: #bfbfbf;
+    --beaf-text-soft: #adb1b6;
+    --beaf-input-text: #ffffff;
+    --beaf-shadow: rgba(0, 0, 0, 0.28);
 
-    --cf-text-primary: #F3F4F6;
-    --cf-text-secondary: #9CA3AF;
-    --cf-text-muted: #6B7280;
+    /* Primary & Secondary CTA Tokens */
+    --cf-primary-cta-bg: linear-gradient(#5271FF, #3B51B8) padding-box, linear-gradient(180deg, #5271FF 0%, #3B51B8 100%) border-box !important;
+    --cf-primary-cta-bg-hover: linear-gradient(#5271FF, #3B51B8) padding-box, linear-gradient(180deg, #5271FF 0%, #3B51B8 100%) border-box;
+    --cf-primary-cta-bg-active: #3b51b8;
+    --cf-primary-cta-color: #ffffff;
+    --cf-primary-cta-border: transparent;
+    --cf-primary-cta-radius: 10px;
+    --cf-primary-cta-shadow: 0 2px 6px -2px rgba(82, 113, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    --cf-primary-cta-shadow-hover: 0 4px 14px rgba(82, 113, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
 
-    --cf-border: rgba(255, 255, 255, 0.08);
-    --cf-border-hover: rgba(255, 255, 255, 0.16);
-    --cf-border-focus: #0099FF;
+    --cf-secondary-cta-bg: var(--cf-bg-tertiary);
+    --cf-secondary-cta-color: var(--cf-text);
+    --cf-secondary-cta-border: var(--cf-border);
+    --cf-secondary-cta-radius: 10px;
+    --cf-secondary-cta-hover-bg: var(--cf-control-hover);
+    --cf-secondary-cta-hover-border: var(--cf-border-hover);
 
-    --cf-accent: #0099FF;
-    --cf-accent-hover: #0088EE;
-    --cf-accent-gradient: linear-gradient(#5271FF, #3b51b8) padding-box;
-    --cf-accent-glow: rgba(0, 153, 255, 0.25);
+    /* Repeatable Card & Hero Tokens */
+    --cf-card-bg: var(--cf-bg-secondary);
+    --cf-card-border: var(--cf-border);
+    --cf-card-border-hover: var(--cf-border-hover);
+    --cf-card-radius: 12px;
+    --cf-hero-card-bg: var(--cf-bg-secondary);
+    --cf-hero-card-border: var(--cf-border);
+    --cf-hero-card-radius: 14px;
 
-    --cf-success: #10B981;
-    --cf-success-bg: rgba(16, 185, 129, 0.12);
-    --cf-warning: #FBBC05;
-    --cf-warning-bg: rgba(251, 188, 5, 0.12);
-    --cf-trustpilot: #00B67A;
-    --cf-trustpilot-bg: rgba(0, 182, 122, 0.12);
-    --cf-google: #4285F4;
-    --cf-google-bg: rgba(66, 133, 244, 0.12);
+    /* Badges */
+    --cf-badge-brand-bg: rgba(82, 113, 255, 0.15);
+    --cf-badge-brand-color: #708aff;
+    --cf-badge-brand-border: rgba(82, 113, 255, 0.3);
 
-    --cf-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
-    --cf-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
-    --cf-shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.5);
+    /* Repeatable Notice Banners (Dark Mode) */
+    --cf-notice-info-bg: rgba(59, 130, 246, 0.12);
+    --cf-notice-info-border: rgba(59, 130, 246, 0.24);
+    --cf-notice-info-icon: #60a5fa;
+    --cf-notice-info-title: #f8fafc;
+    --cf-notice-info-desc: #94a3b8;
+    --cf-notice-info-close: #94a3b8;
 
-    /* CustomColorPicker compatibility tokens - Dark */
-    --beaf-color-1: var(--cf-accent);
-    --beaf-surface: var(--cf-bg-secondary);
-    --beaf-surface-2: var(--cf-bg-tertiary);
-    --beaf-surface-3: var(--cf-bg-hover);
-    --beaf-surface-border: var(--cf-border);
-    --beaf-heading: var(--cf-text-primary);
-    --beaf-text-muted: var(--cf-text-muted);
-    --beaf-input-text: var(--cf-text-primary);
-    --beaf-shadow: var(--cf-shadow-md);
+    --cf-notice-success-bg: rgba(34, 197, 94, 0.12);
+    --cf-notice-success-border: rgba(34, 197, 94, 0.24);
+    --cf-notice-success-icon: #4ade80;
+    --cf-notice-success-title: #f8fafc;
+    --cf-notice-success-desc: #94a3b8;
+    --cf-notice-success-close: #94a3b8;
+
+    --cf-notice-warning-bg: rgba(245, 158, 11, 0.12);
+    --cf-notice-warning-border: rgba(245, 158, 11, 0.24);
+    --cf-notice-warning-icon: #fbbf24;
+    --cf-notice-warning-title: #f8fafc;
+    --cf-notice-warning-desc: #94a3b8;
+    --cf-notice-warning-close: #94a3b8;
+
+    --cf-notice-error-bg: rgba(239, 68, 68, 0.12);
+    --cf-notice-error-border: rgba(239, 68, 68, 0.24);
+    --cf-notice-error-icon: #f87171;
+    --cf-notice-error-title: #f8fafc;
+    --cf-notice-error-desc: #94a3b8;
+    --cf-notice-error-close: #94a3b8;
+
+    /* Compatibility aliases */
+    --cf-text-primary: var(--cf-text);
+    --cf-text-muted: var(--cf-text-tertiary);
+    --cf-accent: #5271ff;
+    --cf-accent-hover: #3e67eb;
+    --cf-accent-gradient: linear-gradient(#5271FF, #3B51B8) padding-box, linear-gradient(180deg, #5271FF 0%, #3B51B8 100%) border-box;
+    --cf-accent-glow: rgba(82, 113, 255, 0.25);
+    --cf-bg-hover: var(--cf-control-hover);
+    --cf-bg-glass: rgba(20, 20, 20, 0.85);
 }
 
-.app.light,
-[data-framer-theme="light"] {
-    --cf-bg: #FFFFFF;
-    --cf-bg-secondary: #F8FAFC;
-    --cf-bg-tertiary: #F1F5F9;
-    --cf-bg-glass: rgba(255, 255, 255, 0.85);
-    --cf-bg-hover: #E2E8F0;
-    --cf-bg-active: #CBD5E1;
+[data-framer-theme="light"],
+[data-framer-theme="light"] body,
+.app.light {
+    --cf-bg: #ffffff;
+    --cf-bg-secondary: #f8f9fa;
+    --cf-bg-tertiary: #f1f3f5;
+    --cf-control: #ffffff;
+    --cf-control-hover: #f1f3f5;
+    --cf-text: #171717;
+    --cf-text-secondary: #52525b;
+    --cf-text-tertiary: #8e8e93;
+    --cf-border: rgba(0, 0, 0, 0.1);
+    --cf-border-hover: rgba(0, 0, 0, 0.2);
+    --cf-tint: #5271ff;
+    --cf-tint-dark: #3e67eb;
+    --cf-tint-subtle: rgba(82, 113, 255, 0.08);
+    --cf-danger: #dc2626;
+    --cf-danger-subtle: rgba(239, 68, 68, 0.08);
+    --cf-success: #16a34a;
+    --cf-success-subtle: rgba(34, 197, 94, 0.1);
+    --cf-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
 
-    --cf-text-primary: #0F172A;
-    --cf-text-secondary: #475569;
-    --cf-text-muted: #94A3B8;
+    /* Framefic & BEAF Style Guide Tokens (Light Mode) */
+    --Secondary-Default: #5271ff;
+    --secondary-default: #5271ff;
+    --beaf-color-1: #3e67eb;
+    --beaf-surface: #ffffff;
+    --beaf-surface-2: #f3f6fb;
+    --beaf-surface-3: #e4e9f2;
+    --beaf-surface-border: #cfd7e3;
+    --beaf-heading: #101828;
+    --beaf-text-muted: #5f6b7a;
+    --beaf-text-soft: #6b7280;
+    --beaf-input-text: #101828;
+    --beaf-shadow: rgba(15, 23, 42, 0.12);
 
-    --cf-border: rgba(15, 23, 42, 0.08);
-    --cf-border-hover: rgba(15, 23, 42, 0.18);
-    --cf-border-focus: #0077E6;
+    /* Repeatable Card & Hero Tokens (Light Mode) */
+    --cf-card-bg: #ffffff;
+    --cf-card-border: rgba(0, 0, 0, 0.08);
+    --cf-card-border-hover: rgba(82, 113, 255, 0.3);
+    --cf-card-radius: 12px;
+    --cf-hero-card-bg: #ffffff;
+    --cf-hero-card-border: rgba(0, 0, 0, 0.08);
+    --cf-hero-card-radius: 14px;
 
-    --cf-accent: #0077E6;
-    --cf-accent-hover: #0066CC;
-    --cf-accent-gradient: linear-gradient(180deg, #0088FF 0%, #0066CC 100%);
-    --cf-accent-glow: rgba(0, 119, 230, 0.2);
+    /* Repeatable Badges (Light Mode) */
+    --cf-badge-brand-bg: rgba(82, 113, 255, 0.12);
+    --cf-badge-brand-color: #3b51b8;
+    --cf-badge-brand-border: rgba(82, 113, 255, 0.25);
 
-    --cf-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
-    --cf-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
-    --cf-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+    /* Repeatable Notice Banners (Light Mode) */
+    --cf-notice-info-bg: #f0f4ff;
+    --cf-notice-info-border: rgba(59, 130, 246, 0.18);
+    --cf-notice-info-icon: #2563eb;
+    --cf-notice-info-title: #0f172a;
+    --cf-notice-info-desc: #475569;
+    --cf-notice-info-close: #475569;
 
-    /* CustomColorPicker compatibility tokens - Light */
-    --beaf-color-1: var(--cf-accent);
-    --beaf-surface: var(--cf-bg-secondary);
-    --beaf-surface-2: var(--cf-bg-tertiary);
-    --beaf-surface-3: var(--cf-bg-hover);
-    --beaf-surface-border: var(--cf-border);
-    --beaf-heading: var(--cf-text-primary);
-    --beaf-text-muted: var(--cf-text-muted);
-    --beaf-input-text: var(--cf-text-primary);
-    --beaf-shadow: var(--cf-shadow-md);
+    --cf-notice-success-bg: #f0fdf4;
+    --cf-notice-success-border: rgba(34, 197, 94, 0.2);
+    --cf-notice-success-icon: #16a34a;
+    --cf-notice-success-title: #0f172a;
+    --cf-notice-success-desc: #475569;
+    --cf-notice-success-close: #475569;
+
+    --cf-notice-warning-bg: #fffbeb;
+    --cf-notice-warning-border: rgba(245, 158, 11, 0.22);
+    --cf-notice-warning-icon: #d97706;
+    --cf-notice-warning-title: #0f172a;
+    --cf-notice-warning-desc: #475569;
+    --cf-notice-warning-close: #475569;
+
+    --cf-notice-error-bg: #fef2f2;
+    --cf-notice-error-border: rgba(239, 68, 68, 0.2);
+    --cf-notice-error-icon: #dc2626;
+    --cf-notice-error-title: #0f172a;
+    --cf-notice-error-desc: #475569;
+    --cf-notice-error-close: #475569;
+
+    /* Compatibility aliases */
+    --cf-text-primary: var(--cf-text);
+    --cf-text-muted: var(--cf-text-tertiary);
+    --cf-accent: #5271ff;
+    --cf-accent-hover: #3e67eb;
+    --cf-accent-gradient: linear-gradient(#5271FF, #3B51B8) padding-box, linear-gradient(180deg, #5271FF 0%, #3B51B8 100%) border-box;
+    --cf-accent-glow: rgba(82, 113, 255, 0.2);
+    --cf-bg-hover: var(--cf-control-hover);
+    --cf-bg-glass: rgba(255, 255, 255, 0.9);
+}
+
+/* ── Callout Notice / Feedback Banner (Framer Callout Spec) ── */
+.cf-notice {
+    margin: 10px 14px 12px;
+    padding: 11px 13px;
+    border-radius: var(--cf-radius-md, 10px);
+    box-sizing: border-box;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    user-select: none;
+    animation: cfNoticeFadeIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes cfNoticeFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.cf-notice-icon-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.cf-notice-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+}
+
+.cf-notice-title {
+    margin: 0;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.15px;
+}
+
+.cf-notice-desc {
+    margin: 0;
+    font-size: 11.5px;
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+.cf-notice-close {
+    all: unset;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    opacity: 0.6;
+    flex-shrink: 0;
+    margin-top: -2px;
+    margin-right: -2px;
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.cf-notice-close:hover {
+    opacity: 1;
+    background-color: rgba(0, 0, 0, 0.08);
+}
+
+/* 1. Info Notice (Soft Blue) */
+.cf-notice.info {
+    background-color: var(--cf-notice-info-bg);
+    border: 1px solid var(--cf-notice-info-border);
+}
+.cf-notice.info .cf-notice-icon-col {
+    color: var(--cf-notice-info-icon);
+}
+.cf-notice.info .cf-notice-title {
+    color: var(--cf-notice-info-title);
+}
+.cf-notice.info .cf-notice-desc {
+    color: var(--cf-notice-info-desc);
+}
+.cf-notice.info .cf-notice-close {
+    color: var(--cf-notice-info-close);
+}
+
+/* 2. Success Notice (Soft Mint Green) */
+.cf-notice.success {
+    background-color: var(--cf-notice-success-bg);
+    border: 1px solid var(--cf-notice-success-border);
+}
+.cf-notice.success .cf-notice-icon-col {
+    color: var(--cf-notice-success-icon);
+}
+.cf-notice.success .cf-notice-title {
+    color: var(--cf-notice-success-title);
+}
+.cf-notice.success .cf-notice-desc {
+    color: var(--cf-notice-success-desc);
+}
+.cf-notice.success .cf-notice-close {
+    color: var(--cf-notice-success-close);
+}
+
+/* 3. Warning Notice (Soft Warm Amber) */
+.cf-notice.warning {
+    background-color: var(--cf-notice-warning-bg);
+    border: 1px solid var(--cf-notice-warning-border);
+}
+.cf-notice.warning .cf-notice-icon-col {
+    color: var(--cf-notice-warning-icon);
+}
+.cf-notice.warning .cf-notice-title {
+    color: var(--cf-notice-warning-title);
+}
+.cf-notice.warning .cf-notice-desc {
+    color: var(--cf-notice-warning-desc);
+}
+.cf-notice.warning .cf-notice-close {
+    color: var(--cf-notice-warning-close);
+}
+
+/* 4. Error Notice (Soft Rose Red) */
+.cf-notice.error {
+    background-color: var(--cf-notice-error-bg);
+    border: 1px solid var(--cf-notice-error-border);
+}
+.cf-notice.error .cf-notice-icon-col {
+    color: var(--cf-notice-error-icon);
+}
+.cf-notice.error .cf-notice-title {
+    color: var(--cf-notice-error-title);
+}
+.cf-notice.error .cf-notice-desc {
+    color: var(--cf-notice-error-desc);
+}
+.cf-notice.error .cf-notice-close {
+    color: var(--cf-notice-error-close);
 }
 
 * {
@@ -103,13 +363,20 @@ body,
 }
 
 body,
-html {
+html,
+#root {
     margin: 0;
     padding: 0;
+    min-height: 100%;
     font-family: var(--font-sans);
     background-color: var(--cf-bg);
-    color: var(--cf-text-primary);
+    color: var(--cf-text);
     -webkit-font-smoothing: antialiased;
+}
+
+body {
+    font-size: 12px;
+    line-height: 1.5;
 }
 
 .app {
@@ -117,128 +384,154 @@ html {
     flex-direction: column;
     min-height: 100vh;
     background-color: var(--cf-bg);
-    color: var(--cf-text-primary);
+    color: var(--cf-text);
+    position: relative;
     overflow-x: hidden;
 }
 
-/* Header */
-.header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 16px;
-    background: var(--cf-bg-glass);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--cf-border);
+/* Tab Bar - Left Aligned Tabs with Underline Indicator + Right Profile Icon */
+.cf-tabs {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    background: var(--cf-bg) !important;
+    padding: 0 14px !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
     position: sticky;
-    top: 0;
-    z-index: 40;
+    top: 0px;
+    z-index: 25;
+    border: none !important;
+    border-bottom: 1px solid var(--cf-border) !important;
+    box-sizing: border-box !important;
+    height: 42px !important;
+    flex-shrink: 0 !important;
 }
 
-.app-brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.cf-tabs-list {
+    display: flex !important;
+    align-items: center !important;
+    gap: 16px !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    box-sizing: border-box !important;
 }
 
-.app-logo {
-    width: 32px;
-    height: 32px;
-    border-radius: var(--cf-radius-md);
-    background: linear-gradient(135deg, #0099FF, #00B67A);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #FFFFFF;
-    box-shadow: 0 2px 10px rgba(0, 153, 255, 0.3);
+.cf-tabs-list::-webkit-scrollbar {
+    display: none !important;
 }
 
-.app-brand-info h1 {
-    font-size: 14px;
-    font-weight: 700;
-    margin: 0;
-    line-height: 1.2;
+button.cf-tab {
+    all: unset !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 auto !important;
+    height: 100% !important;
+    padding: 0 2px !important;
+    font-family: var(--font-sans, "Inter", sans-serif) !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: var(--cf-text-secondary, #94a3b8) !important;
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 2.5px solid transparent !important;
+    border-radius: 0 !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    user-select: none !important;
+    transition: color 0.16s ease, border-color 0.16s ease !important;
+    white-space: nowrap !important;
+    margin-bottom: -1px !important;
+    box-shadow: none !important;
 }
 
-.app-brand-info p {
-    font-size: 11px;
-    color: var(--cf-text-muted);
-    margin: 0;
+button.cf-tab:hover {
+    color: var(--cf-text, #ffffff) !important;
+    background: transparent !important;
 }
 
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+button.cf-tab.active {
+    color: var(--cf-text, #ffffff) !important;
+    background: transparent !important;
+    font-weight: 600 !important;
+    border-bottom: 2.5px solid var(--Secondary-Default, #5271ff) !important;
+    box-shadow: none !important;
 }
 
-.cf-theme-toggle,
-.cf-profile-btn {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    background: var(--cf-bg-secondary);
-    border: 1px solid var(--cf-border);
-    border-radius: var(--cf-radius-full);
-    padding: 5px 10px;
-    color: var(--cf-text-secondary);
-    font-size: 11px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
+.app.light button.cf-tab {
+    color: var(--cf-text-secondary, #64748b) !important;
 }
 
-.cf-theme-toggle:hover,
-.cf-profile-btn:hover {
-    background: var(--cf-bg-hover);
-    color: var(--cf-text-primary);
-    border-color: var(--cf-border-hover);
+.app.light button.cf-tab:hover {
+    color: var(--cf-text, #0f172a) !important;
+    background: transparent !important;
 }
 
-/* Navigation Tabs */
-.cf-nav-tabs {
-    display: flex;
-    padding: 6px 12px;
-    gap: 4px;
-    background: var(--cf-bg-secondary);
-    border-bottom: 1px solid var(--cf-border);
+.app.light button.cf-tab.active {
+    color: var(--cf-text, #0f172a) !important;
+    background: transparent !important;
+    border-bottom: 2.5px solid var(--Secondary-Default, #5271ff) !important;
+    box-shadow: none !important;
 }
 
-.cf-tab-btn {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 8px 10px;
-    background: transparent;
-    border: none;
-    border-radius: var(--cf-radius-sm);
-    color: var(--cf-text-secondary);
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
+button.cf-tab-profile {
+    all: unset !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    margin-left: auto !important;
+    color: var(--cf-text-secondary, #94a3b8) !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    transition: color 0.16s ease, background-color 0.16s ease !important;
+    flex-shrink: 0 !important;
 }
 
-.cf-tab-btn:hover {
-    color: var(--cf-text-primary);
-    background: var(--cf-bg-hover);
+button.cf-tab-profile:hover {
+    color: var(--cf-text, #ffffff) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
 }
 
-.cf-tab-btn.active {
-    color: #FFFFFF;
-    background: var(--cf-accent);
-    box-shadow: 0 2px 8px var(--cf-accent-glow);
+button.cf-tab-profile.active {
+    color: var(--Secondary-Default, #5271ff) !important;
+    background: rgba(82, 113, 255, 0.12) !important;
 }
 
-/* Main Content */
+.app.light button.cf-tab-profile {
+    color: var(--cf-text-secondary, #64748b) !important;
+}
+
+.app.light button.cf-tab-profile:hover {
+    color: var(--cf-text, #0f172a) !important;
+    background: rgba(0, 0, 0, 0.05) !important;
+}
+
+.app.light button.cf-tab-profile.active {
+    color: var(--Secondary-Default, #5271ff) !important;
+    background: rgba(82, 113, 255, 0.12) !important;
+}
+
+/* Main Content Area */
 .content {
     flex: 1;
-    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
+    padding: 12px 14px 20px;
+    box-sizing: border-box;
     overflow-y: auto;
 }
 
@@ -246,7 +539,7 @@ html {
 .cf-hero-card {
     background: var(--cf-bg-secondary);
     border: 1px solid var(--cf-border);
-    border-radius: var(--cf-radius-lg);
+    border-radius: var(--cf-radius-lg, 12px) !important;
     padding: 16px;
     display: flex;
     flex-direction: column;
@@ -280,7 +573,7 @@ html {
     font-size: 11px;
     font-weight: 600;
     padding: 3px 8px;
-    border-radius: var(--cf-radius-full);
+    border-radius: var(--cf-radius-full, 9999px) !important;
 }
 
 .cf-badge-brand {
@@ -304,7 +597,7 @@ html {
 .cf-stat-card {
     background: var(--cf-bg-tertiary);
     border: 1px solid var(--cf-border);
-    border-radius: var(--cf-radius-md);
+    border-radius: var(--cf-radius-md, 10px) !important;
     padding: 10px;
     display: flex;
     flex-direction: column;
@@ -324,79 +617,76 @@ html {
     font-weight: 500;
 }
 
-/* Section Accordion */
+/* Section Container */
 .cf-section {
     background: var(--cf-bg-secondary);
     border: 1px solid var(--cf-border);
-    border-radius: var(--cf-radius-lg);
-    overflow: hidden;
-    transition: border-color 0.2s;
-}
-
-.cf-section.open {
-    border-color: var(--cf-border-hover);
+    border-radius: var(--cf-radius-md, 10px) !important;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-sizing: border-box;
 }
 
 .cf-section-header {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 14px;
-    cursor: pointer;
-    user-select: none;
+    flex-direction: column;
+    gap: 2px;
 }
 
-.cf-section-title-wrap {
+.cf-section-header.has-action {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.cf-section-header-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+}
+
+.cf-section-header-icon {
+    display: flex;
+    align-items: center;
+    color: var(--Secondary-Default, #5271ff);
+}
+
+.cf-section-action {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.cf-section-title,
+h2.cf-section-title {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: var(--cf-text) !important;
+    margin: 0 !important;
+    line-height: 1.3 !important;
+}
+
+.cf-section-title-row {
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
-.cf-section-icon {
-    color: var(--cf-accent);
-    display: flex;
-    align-items: center;
-}
-
-.cf-section-title {
-    font-size: 13.5px;
-    font-weight: 600;
-    margin: 0;
-}
-
+.cf-section-description,
+.cf-section-desc,
 .cf-section-subtitle {
-    font-size: 11px;
-    color: var(--cf-text-muted);
-    margin: 2px 0 0;
-}
-
-.cf-section-actions {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.cf-section-toggle-btn {
-    background: transparent;
-    border: none;
-    color: var(--cf-text-muted);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    padding: 4px;
-}
-
-.cf-chevron {
-    transition: transform 0.2s;
-}
-
-.cf-chevron.rotated {
-    transform: rotate(180deg);
+    font-size: 11px !important;
+    color: var(--cf-text-secondary) !important;
+    margin: 0 !important;
+    line-height: 1.4 !important;
 }
 
 .cf-section-body {
-    padding: 12px 14px 16px;
-    border-top: 1px solid var(--cf-border);
     display: flex;
     flex-direction: column;
     gap: 12px;
@@ -515,92 +805,311 @@ textarea.cf-input::placeholder {
     color: var(--cf-text-muted) !important;
 }
 
-/* Switch */
+/* Switch Component (Company Framer Standard) */
+button.cf-switch {
+    all: unset !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    width: 36px !important;
+    height: 20px !important;
+    background: #2a2a2e !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    border-radius: 999px !important;
+    padding: 2px !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.app.light button.cf-switch:not(.is-on),
+[data-framer-theme="light"] button.cf-switch:not(.is-on) {
+    background: #e4e4e7 !important;
+    border-color: rgba(0, 0, 0, 0.14) !important;
+}
+
+button.cf-switch.is-on {
+    background: var(--Secondary-Default, #5271ff) !important;
+    border-color: var(--Secondary-Default, #5271ff) !important;
+}
+
+button.cf-switch .cf-switch-thumb {
+    display: block !important;
+    width: 14px !important;
+    height: 14px !important;
+    border-radius: 50% !important;
+    background: #ffffff !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28) !important;
+    transform: translateX(0) !important;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+button.cf-switch.is-on .cf-switch-thumb {
+    transform: translateX(16px) !important;
+}
+
+.cf-switch-row,
+.cf-flex-between {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    width: 100% !important;
+}
+
+.cf-setting-info {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
+    min-width: 0 !important;
+    flex: 1 !important;
+}
+
+.cf-text-sm-semibold {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    color: var(--cf-text) !important;
+    line-height: 1.3 !important;
+}
+
+.cf-text-xs-secondary {
+    font-size: 11px !important;
+    color: var(--cf-text-secondary) !important;
+    line-height: 1.4 !important;
+}
+
+/* Legacy Switch Label Backward Compatibility */
 .cf-switch-label {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: space-between;
+    width: 100%;
     cursor: pointer;
     user-select: none;
 }
 
-.cf-switch-input {
-    display: none;
+/* Segmented Control Pattern (Framer design pattern matching company reference) */
+.cf-segmented-control-wrapper {
+    display: flex;
+    width: 100%;
+    margin-top: 4px;
 }
 
-.cf-switch-slider {
-    position: relative;
-    width: 36px;
-    height: 20px;
-    background: var(--cf-bg-tertiary);
-    border: 1px solid var(--cf-border);
-    border-radius: 999px;
-    transition: all 0.2s;
-    flex-shrink: 0;
+.cf-segmented-control {
+    display: inline-flex;
+    align-items: center;
+    background: #ebebeb;
+    padding: 3px;
+    border-radius: 9px;
+    width: 100%;
+    box-sizing: border-box;
+    gap: 3px;
 }
 
-.cf-switch-slider::after {
-    content: "";
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 14px;
-    height: 14px;
-    background: #FFFFFF;
-    border-radius: 50%;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+.app.dark .cf-segmented-control,
+[data-framer-theme="dark"] .cf-segmented-control {
+    background: #1c1c1f;
+    border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.cf-switch-input:checked+.cf-switch-slider {
-    background: var(--cf-accent);
-    border-color: var(--cf-accent);
+.app.light .cf-segmented-control {
+    background: #f0f0f2;
+    border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.cf-switch-input:checked+.cf-switch-slider::after {
-    transform: translateX(16px);
+button.cf-segment-item,
+.cf-segment-item {
+    all: unset !important;
+    flex: 1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 7px 12px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    line-height: 1.2 !important;
+    color: var(--cf-text-secondary) !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    user-select: none !important;
+    box-sizing: border-box !important;
+    transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease !important;
 }
 
-.cf-switch-text {
-    font-size: 12.5px;
-    color: var(--cf-text-primary);
-    font-weight: 500;
+.app.light button.cf-segment-item:not(.active):hover,
+[data-framer-theme="light"] button.cf-segment-item:not(.active):hover {
+    background: rgba(0, 0, 0, 0.05) !important;
+    color: #111111 !important;
 }
 
-/* Segmented Buttons */
+.app.dark button.cf-segment-item:not(.active):hover,
+[data-framer-theme="dark"] button.cf-segment-item:not(.active):hover {
+    background: rgba(255, 255, 255, 0.06) !important;
+    color: #ffffff !important;
+}
+
+.app.light button.cf-segment-item.active,
+[data-framer-theme="light"] button.cf-segment-item.active {
+    background: #ffffff !important;
+    color: #111111 !important;
+    font-weight: 600 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+}
+
+.app.dark button.cf-segment-item.active,
+[data-framer-theme="dark"] button.cf-segment-item.active {
+    background: #2b2b2f !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Quick Layout Preset Grid (Overview Tab) */
+.cf-layout-preset-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+}
+
+button.cf-layout-preset-card {
+    all: unset !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 10px 6px !important;
+    min-height: 56px !important;
+    background: var(--cf-control) !important;
+    border: 1px solid var(--cf-border) !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    user-select: none !important;
+    transition: all 0.16s ease !important;
+}
+
+button.cf-layout-preset-card:hover {
+    background: var(--cf-control-hover) !important;
+    border-color: var(--cf-border-hover) !important;
+    transform: translateY(-1px);
+}
+
+button.cf-layout-preset-card.active {
+    background: rgba(82, 113, 255, 0.12) !important;
+    border: 1px solid var(--Secondary-Default, #5271ff) !important;
+    box-shadow: 0 0 0 1px var(--Secondary-Default, #5271ff) !important;
+}
+
+.cf-layout-preset-icon {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: var(--cf-text-secondary) !important;
+    transition: color 0.16s ease !important;
+}
+
+button.cf-layout-preset-card:hover .cf-layout-preset-icon {
+    color: var(--cf-text) !important;
+}
+
+button.cf-layout-preset-card.active .cf-layout-preset-icon {
+    color: var(--Secondary-Default, #5271ff) !important;
+}
+
+.cf-layout-preset-label {
+    font-size: 11.5px !important;
+    font-weight: 500 !important;
+    color: var(--cf-text) !important;
+    line-height: 1.2 !important;
+}
+
+button.cf-layout-preset-card.active .cf-layout-preset-label {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+.app.light button.cf-layout-preset-card {
+    background: #ffffff !important;
+    border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.app.light button.cf-layout-preset-card:hover {
+    background: #f8fafc !important;
+    border-color: rgba(82, 113, 255, 0.35) !important;
+}
+
+.app.light button.cf-layout-preset-card.active {
+    background: rgba(82, 113, 255, 0.08) !important;
+    border-color: var(--Secondary-Default, #5271ff) !important;
+    box-shadow: 0 0 0 1px var(--Secondary-Default, #5271ff) !important;
+}
+
+.app.light button.cf-layout-preset-card.active .cf-layout-preset-label {
+    color: #0f172a !important;
+}
+
+/* Segmented Buttons (Source Filter and Segment Grids) */
 .cf-segmented-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 6px;
+    width: 100%;
 }
 
 .cf-seg-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 10px 6px;
-    background: var(--cf-bg-tertiary);
-    border: 1px solid var(--cf-border);
-    border-radius: var(--cf-radius-md);
-    color: var(--cf-text-secondary);
-    font-size: 11.5px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
+    all: unset !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 8px 10px !important;
+    background: var(--cf-control) !important;
+    border: 1px solid var(--cf-border) !important;
+    border-radius: var(--cf-radius-sm) !important;
+    color: var(--cf-text-secondary) !important;
+    font-size: 11.5px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    text-align: center !important;
+    transition: all 0.15s ease !important;
 }
 
 .cf-seg-btn:hover {
-    background: var(--cf-bg-hover);
-    color: var(--cf-text-primary);
-    border-color: var(--cf-border-hover);
+    background: var(--cf-control-hover) !important;
+    color: var(--cf-text) !important;
+    border-color: var(--cf-border-hover) !important;
 }
 
 .cf-seg-btn.active {
-    background: var(--cf-bg-secondary);
-    color: var(--cf-accent);
-    border-color: var(--cf-accent);
-    box-shadow: 0 0 12px var(--cf-accent-glow);
+    background: rgba(82, 113, 255, 0.12) !important;
+    color: var(--cf-text) !important;
+    font-weight: 600 !important;
+    border: 1px solid var(--Secondary-Default, #5271ff) !important;
+    box-shadow: 0 0 0 1px var(--Secondary-Default, #5271ff) !important;
+}
+
+.app.light .cf-seg-btn {
+    background: #ffffff !important;
+    border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.app.light .cf-seg-btn:hover {
+    background: #f8fafc !important;
+    border-color: rgba(82, 113, 255, 0.35) !important;
+}
+
+.app.light .cf-seg-btn.active {
+    background: rgba(82, 113, 255, 0.08) !important;
+    border-color: var(--Secondary-Default, #5271ff) !important;
+    color: #0f172a !important;
 }
 
 /* Review Preview Card inside plugin */
@@ -868,147 +1377,283 @@ button.cf-btn-icon-del:hover {
     background: rgba(239, 68, 68, 0.15) !important;
 }
 
-/* Mandatory .primary-cta Button Standard */
+/* 1. Mandatory .primary-cta Double-Gradient Button Standard */
 .primary-cta {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600 !important;
+    letter-spacing: 0.15px;
+    line-height: 1;
+    width: 100%;
+    height: 38px;
+    padding: 0 16px;
+    background: var(--cf-primary-cta-bg) !important;
+    color: var(--cf-primary-cta-color) !important;
+    border: 2px solid transparent !important;
+    border-radius: var(--cf-primary-cta-radius, 10px);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    width: 100%;
-    padding: 12px 18px;
-    background: var(--cf-accent-gradient);
-    border: 2px solid transparent !important;
-    color: #FFFFFF;
-    font-family: inherit;
-    font-size: 13.5px;
-    font-weight: 600;
-    border: none;
-    border-radius: var(--cf-radius-md);
+    position: relative;
     cursor: pointer;
-    box-shadow: 0 2px 10px var(--cf-accent-glow);
-    transition: all 0.2s ease;
+    box-sizing: border-box;
+    text-decoration: none;
     user-select: none;
+    outline: none;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .primary-cta:hover:not(:disabled) {
+    background: var(--cf-primary-cta-bg-hover) !important;
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px var(--cf-accent-glow);
-    filter: brightness(1.08);
 }
 
 .primary-cta:active:not(:disabled) {
-    transform: translateY(0);
+    background: var(--cf-primary-cta-bg-active) !important;
+    transform: scale(0.985);
 }
 
 .primary-cta:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
+    transform: none !important;
+    box-shadow: none !important;
 }
 
+.primary-cta svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+/* 2. Mandatory .secondary-cta Button Standard */
 .secondary-cta {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 12px 16px;
-    background: var(--cf-bg-secondary);
-    color: var(--cf-text-secondary);
     font-family: inherit;
     font-size: 13px;
-    font-weight: 600;
-    border: 1px solid var(--cf-border);
-    border-radius: var(--cf-radius-md);
-    cursor: pointer;
-    transition: all 0.2s;
+    font-weight: 500 !important;
+    letter-spacing: 0.15px;
+    line-height: 1;
+    height: 38px !important;
+    padding: 0 16px !important;
+    background: var(--cf-secondary-cta-bg) !important;
+    color: var(--cf-secondary-cta-color) !important;
+    border: 1px solid var(--cf-secondary-cta-border) !important;
+    border-radius: var(--cf-secondary-cta-radius, 10px) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    position: relative !important;
+    cursor: pointer !important;
+    box-sizing: border-box !important;
+    text-decoration: none !important;
+    user-select: none !important;
+    outline: none !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
 .secondary-cta:hover:not(:disabled) {
-    background: var(--cf-bg-hover);
-    color: var(--cf-text-primary);
-    border-color: var(--cf-border-hover);
+    background: var(--cf-secondary-cta-hover-bg) !important;
+    border-color: var(--cf-secondary-cta-hover-border) !important;
+    color: var(--cf-secondary-cta-color) !important;
+    transform: translateY(-1px);
+}
+
+.secondary-cta:active:not(:disabled) {
+    transform: scale(0.985) !important;
+    background: var(--cf-secondary-cta-bg) !important;
+}
+
+.secondary-cta:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    transform: none !important;
+}
+
+.secondary-cta svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.app.light .secondary-cta {
+    background: #ededed !important;
+    border-color: rgba(0, 0, 0, 0.08) !important;
+    color: #1b1f22 !important;
+}
+
+.app.light .secondary-cta:hover:not(:disabled) {
+    background: #f5f5f5 !important;
+    border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Update Canvas Button */
+.cf-btn-update-canvas {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500 !important;
+    height: 38px !important;
+    padding: 0 14px !important;
+    background: var(--cf-bg-tertiary) !important;
+    color: var(--cf-text) !important;
+    border: 1px solid var(--cf-border) !important;
+    border-radius: var(--cf-secondary-cta-radius, 10px) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.cf-btn-update-canvas:hover:not(:disabled) {
+    background: var(--cf-control-hover) !important;
+    border-color: var(--Secondary-Default, #5271ff) !important;
+    color: var(--Secondary-Default, #5271ff) !important;
+    transform: translateY(-1px);
 }
 
 /* Footer Action Bar */
 .actions {
-    position: sticky;
-    bottom: 0;
-    background: var(--cf-bg-glass);
-    backdrop-filter: blur(14px);
-    border-top: 1px solid var(--cf-border);
-    padding: 12px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 40;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    padding: 10px 14px 8px !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    background: var(--cf-bg) !important;
+    border-top: 1px solid var(--cf-border) !important;
+    backdrop-filter: blur(12px) !important;
+    z-index: 25 !important;
+    box-sizing: border-box !important;
 }
 
 .cf-footer-grid {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 8px;
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    gap: 8px !important;
+    width: 100% !important;
+    align-items: center !important;
 }
 
-.cf-shell-status-bar {
+.cf-footer-grid .primary-cta {
+    width: 100% !important;
+    min-width: 0 !important;
+    white-space: nowrap !important;
+    flex: unset !important;
+}
+
+.cf-footer-grid .secondary-cta {
+    width: auto !important;
+    min-width: auto !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+}
+
+/* Shell Footer Bar */
+.cf-shell-footer-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding-top: 8px;
+    margin-top: 4px;
+    border-top: 1px solid var(--cf-border);
+}
+
+.cf-shell-company-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--cf-text-secondary);
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.cf-shell-company-link:hover {
+    color: var(--Secondary-Default, #5271ff);
+}
+
+.cf-shell-version {
     font-size: 10.5px;
-    color: var(--cf-text-muted);
+    color: var(--cf-text-tertiary);
 }
 
 .status-badge {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
+    padding: 4px 9px;
+    border-radius: var(--cf-radius-pill, 999px);
+    background: var(--cf-bg-tertiary);
+    color: var(--cf-text-secondary);
     font-size: 11px;
-    font-weight: 500;
-    color: var(--cf-text-muted);
+    font-weight: 600;
+    border: 1px solid var(--cf-border);
 }
 
 .status-badge.ok {
+    background: var(--cf-success-subtle, rgba(34, 197, 94, 0.15));
     color: var(--cf-success);
+    border-color: rgba(34, 197, 94, 0.25);
 }
 
 .status-dot {
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: currentColor;
+    background: var(--cf-text-tertiary);
+}
+
+.status-badge.ok .status-dot {
+    background: var(--cf-success);
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
 }
 
 /* Profile Page */
 .cf-profile-page {
-    padding: 16px;
+    padding: 14px 16px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
-}
-
-.cf-profile-top-bar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    gap: 14px;
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .cf-btn-back {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: var(--cf-bg-secondary);
-    border: 1px solid var(--cf-border);
-    border-radius: var(--cf-radius-sm);
-    color: var(--cf-text-secondary);
-    font-size: 12px;
-    font-weight: 500;
-    padding: 5px 8px;
-    cursor: pointer;
+    all: unset !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    height: 30px !important;
+    width: fit-content !important;
+    padding: 0 4px !important;
+    background: transparent !important;
+    border: none !important;
+    color: var(--cf-text-secondary, #94a3b8) !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: color 0.15s ease !important;
+    margin-bottom: -4px !important;
+}
+
+.cf-btn-back:hover {
+    color: var(--cf-text, #ffffff) !important;
 }
 
 .cf-profile-top-title {
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    color: var(--cf-text, #ffffff) !important;
+    margin: 0 !important;
+    line-height: 1.3 !important;
+    text-align: left !important;
 }
 
 .cf-profile-hero {
@@ -1020,7 +1665,7 @@ button.cf-btn-icon-del:hover {
     padding: 16px;
     background: var(--cf-bg-secondary);
     border: 1px solid var(--cf-border);
-    border-radius: var(--cf-radius-lg);
+    border-radius: var(--cf-radius-lg, 12px) !important;
 }
 
 .cf-profile-avatar-wrap {
@@ -1069,7 +1714,7 @@ button.cf-btn-icon-del:hover {
 .cf-profile-card {
     background: var(--cf-bg-secondary);
     border: 1px solid var(--cf-border);
-    border-radius: var(--cf-radius-lg);
+    border-radius: var(--cf-radius-lg, 12px) !important;
     padding: 16px;
     display: flex;
     flex-direction: column;
@@ -2898,4 +3543,405 @@ button.cf-btn-tp-sync:disabled {
     height: 1px !important;
     background: var(--cf-border, rgba(255, 255, 255, 0.08)) !important;
     margin: 8px 0 !important;
+}
+
+/* ==========================================================================
+   Home Tab: Help Tiles, Ecosystem Showcase & BEAF-Style Data Component List
+   ========================================================================== */
+
+/* 5. Help Tiles Row (.help-categories) */
+.help-categories,
+.cf-help-tile-row {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    margin: 10px 0 !important;
+}
+
+.help-card,
+.cf-help-tile {
+    all: unset !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 10px 4px !important;
+    background: linear-gradient(180deg, #323131 0%, #242323 100%) !important;
+    border: 1px solid #2D3339 !important;
+    border-radius: var(--cf-radius-md, 10px) !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    color: var(--cf-text, #ffffff) !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.28) !important;
+}
+
+.app.light .help-card,
+.app.light .cf-help-tile {
+    background: linear-gradient(180deg, #ffffff 0%, #f3f6fb 100%) !important;
+    border: 1px solid #d5ddea !important;
+    color: #0f172a !important;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08) !important;
+}
+
+.help-card:hover,
+.cf-help-tile:hover {
+    border-color: var(--Secondary-Default, #5271FF) !important;
+    transform: translateY(-1px);
+}
+
+.help-card-icon,
+.cf-help-tile-icon-box {
+    margin-bottom: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: var(--cf-radius-md, 10px) !important;
+    background: #222121 !important;
+    border: 1px solid #1b1f22 !important;
+    flex-shrink: 0 !important;
+}
+
+.app.light .help-card-icon,
+.app.light .cf-help-tile-icon-box {
+    background: #edf2f7 !important;
+    border-color: #e2e8f0 !important;
+}
+
+.help-card-icon svg,
+.cf-help-tile-icon-box svg {
+    color: var(--Secondary-Default, #5271FF) !important;
+    width: 18px !important;
+    height: 18px !important;
+}
+
+.help-card h4,
+.cf-help-tile-label {
+    margin: 0 !important;
+    color: var(--cf-text, #ffffff) !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    font-family: inherit !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+}
+
+.app.light .help-card h4,
+.app.light .cf-help-tile-label {
+    color: #0f172a !important;
+}
+
+/* More from Framefic Section & Cards */
+.help-section {
+    margin-top: 14px;
+    margin-bottom: 6px;
+}
+
+.help-section-title {
+    margin: 12px 0 10px 0;
+    color: var(--cf-text, #ffffff);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.app.light .help-section-title {
+    color: #0f172a;
+}
+
+.help-products {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.help-product-card {
+    background: linear-gradient(180deg, #323131 0%, #242323 100%);
+    border: 1px solid #2D3339;
+    border-radius: var(--cf-radius-md, 10px) !important;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.28);
+    box-sizing: border-box;
+}
+
+.app.light .help-product-card {
+    background: linear-gradient(180deg, #ffffff 0%, #f3f6fb 100%);
+    border-color: #d5ddea;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.help-product-card:hover {
+    border-color: var(--Secondary-Default, #5271FF);
+    transform: translateY(-1px);
+}
+
+.help-product-card .product-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: var(--cf-radius-md, 10px);
+    background: #1e1e24;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.app.light .help-product-card .product-icon {
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+}
+
+.help-product-card .product-icon svg {
+    color: var(--Secondary-Default, #5271FF);
+}
+
+.help-product-card .product-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.help-product-card .product-info h5 {
+    margin: 0 0 2px 0;
+    color: var(--cf-text, #ffffff);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.app.light .help-product-card .product-info h5 {
+    color: #0f172a;
+}
+
+.help-product-card .product-info p {
+    margin: 0;
+    color: var(--cf-text-secondary, #94a3b8);
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.help-product-card .product-arrow {
+    color: var(--cf-text-secondary, #94a3b8);
+    flex-shrink: 0;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.help-product-card:hover .product-arrow {
+    opacity: 1;
+    color: var(--Secondary-Default, #5271FF);
+}
+
+/* BEAF-Style Canvas Components Data Section */
+.cf-canvas-components-card {
+    background: var(--cf-bg-secondary);
+    border: 1px solid var(--cf-border);
+    border-radius: var(--cf-radius-md, 10px) !important;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-sizing: border-box;
+}
+
+.cf-canvas-components-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.cf-canvas-components-title-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.cf-canvas-components-title {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--cf-text) !important;
+    margin: 0 !important;
+}
+
+.cf-canvas-components-subtitle {
+    font-size: 11px !important;
+    color: var(--cf-text-secondary) !important;
+    margin: 0 !important;
+}
+
+.cf-btn-add-instance {
+    all: unset !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    padding: 5px 10px !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
+    background: var(--Secondary-Default, #5271FF) !important;
+    border-radius: var(--cf-radius-sm, 6px) !important;
+    cursor: pointer !important;
+    transition: opacity 0.15s ease !important;
+    flex-shrink: 0 !important;
+}
+
+.cf-btn-add-instance:hover {
+    opacity: 0.9 !important;
+}
+
+.cf-instances-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.cf-instance-item {
+    border-radius: var(--cf-radius-md, 10px) !important;
+    background: var(--cf-bg-tertiary);
+    border: 1px solid var(--cf-border);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease;
+}
+
+.cf-instance-item:hover {
+    border-color: rgba(82, 113, 255, 0.4);
+}
+
+.cf-instance-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    flex: 1;
+}
+
+.cf-instance-name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cf-instance-name {
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    color: var(--cf-text) !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cf-instance-badges {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.cf-instance-badge {
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    padding: 2px 6px !important;
+    border-radius: 4px !important;
+    background: rgba(82, 113, 255, 0.12) !important;
+    color: var(--Secondary-Default, #5271FF) !important;
+    text-transform: capitalize;
+}
+
+.cf-instance-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.cf-instance-btn {
+    all: unset !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 6px !important;
+    background: transparent !important;
+    color: var(--cf-text-secondary) !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+}
+
+.cf-instance-btn:hover {
+    background: var(--cf-control-hover) !important;
+    color: var(--cf-text) !important;
+}
+
+.cf-instance-btn.del-btn:hover {
+    background: rgba(239, 68, 68, 0.12) !important;
+    color: #ef4444 !important;
+}
+
+/* BEAF Empty Canvas State */
+.cf-empty-canvas-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px 16px;
+    background: var(--cf-bg-tertiary);
+    border: 1px dashed var(--cf-border);
+    border-radius: var(--cf-radius-md, 10px) !important;
+    gap: 8px;
+    box-sizing: border-box;
+}
+
+.cf-empty-canvas-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(82, 113, 255, 0.12);
+    color: var(--Secondary-Default, #5271FF);
+    margin-bottom: 4px;
+}
+
+.cf-empty-canvas-title {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    color: var(--cf-text) !important;
+    margin: 0 !important;
+}
+
+.cf-empty-canvas-desc {
+    font-size: 11px !important;
+    color: var(--cf-text-secondary) !important;
+    margin: 0 !important;
+    line-height: 1.4 !important;
+    max-width: 260px;
 }

@@ -32,18 +32,16 @@ export function ProfilePage({ onBack, onManageSubscription }: ProfilePageProps) 
 
     return (
         <div className="cf-profile-page">
-            <div className="cf-profile-top-bar">
-                <button
-                    type="button"
-                    className="cf-btn-back"
-                    onClick={onBack}
-                    aria-label="Back to previous view"
-                >
-                    <IconArrowLeft size={14} />
-                    <span>Back</span>
-                </button>
-                <span className="cf-profile-top-title">Account & Profile</span>
-            </div>
+            <button
+                type="button"
+                className="cf-btn-back"
+                onClick={onBack}
+                aria-label="Back"
+            >
+                <IconArrowLeft size={14} />
+                <span>Back</span>
+            </button>
+            <h2 className="cf-profile-top-title">Account & Profile</h2>
 
             <div className="cf-profile-hero">
                 <div className="cf-profile-avatar-wrap">
