@@ -258,7 +258,7 @@ export function getActiveReviews(config: ReviewConfig): ReviewItem[] {
 }
 
 export function createDefaultBusiness(
-    name = "Gazipur City Corporation",
+    name = "My Business",
     googleData?: {
         name: string
         placeId: string

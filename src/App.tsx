@@ -98,6 +98,7 @@ import { BusinessesListView } from "./ui/components/BusinessesListView"
 import { ManageBusinessesView } from "./ui/components/ManageBusinessesView"
 import { AllWidgetsView } from "./ui/components/AllWidgetsView"
 import { HomeView } from "./ui/components/HomeView"
+import { LayoutThumbnailPreview } from "./ui/components/LayoutThumbnailPreview"
 import "./ui/styles.css"
 
 export type TabId = "home" | "widgets" | "businesses" | "settings"
@@ -1185,38 +1186,12 @@ export function App() {
                                                     </option>
                                                 )
                                             })}
-                                        </select>
-                                    </Field>
-
-                                    <Field label="Select Layout Preset" hint="Pick any layout across all groups">
-                                        <select
-                                            className="cf-select"
-                                            value={activeConfig.layout}
-                                            onChange={(e) => {
-                                                const nextKey = e.target.value as ReviewLayout
-                                                const item = ALL_LAYOUTS.find((l) => l.key === nextKey)
-                                                if (item) setSelectedLayoutGroup(item.group)
-                                                updateActiveWidgetConfig((prev) => ({ ...prev, layout: nextKey }))
-                                            }}
-                                        >
-                                            {LAYOUT_GROUPS.map((g) => (
-                                                <optgroup
-                                                    key={g.id}
-                                                    label={`${g.name} (${ALL_LAYOUTS.filter((l) => l.group === g.id).length})`}
-                                                >
-                                                    {ALL_LAYOUTS.filter((l) => l.group === g.id).map((l) => (
-                                                        <option key={l.key} value={l.key}>
-                                                            {l.name} {l.tier === "pro" ? "✦ PRO" : ""} — {l.desc}
-                                                        </option>
-                                                    ))}
-                                                </optgroup>
-                                            ))}
-                                        </select>
-                                    </Field>
+                                        </select>                                    </Field>
 
                                     <div className="cf-catalog-grid">
                                         {filteredLayouts.map((l) => {
                                             const isActive = activeConfig.layout === l.key
+                                            const isHot = l.key === "carousel" || l.key === "wall"
                                             return (
                                                 <button
                                                     key={l.key}
@@ -1228,7 +1203,20 @@ export function App() {
                                                     }}
                                                     title={l.desc}
                                                 >
-                                                    <span className="cf-catalog-item-name">{l.name}</span>
+                                                    <div className="cf-catalog-preview">
+                                                        <LayoutThumbnailPreview layout={l.key} />
+                                                        {l.tier === "pro" && (
+                                                            <span className="cf-catalog-pro-badge" title="✦ PRO Layout">
+                                                                <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor">
+                                                                    <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
+                                                                </svg>
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="cf-catalog-footer">
+                                                        <span className="cf-catalog-item-name">{l.name}</span>
+                                                        {isHot && <span className="cf-catalog-hot">HOT</span>}
+                                                    </div>
                                                 </button>
                                             )
                                         })}

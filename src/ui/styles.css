@@ -257,6 +257,7 @@ html[data-framer-theme="light"] .app {
         opacity: 0;
         transform: translateY(-4px) scale(0.98);
     }
+
     to {
         opacity: 1;
         transform: translateY(0) scale(1);
@@ -320,15 +321,19 @@ html[data-framer-theme="light"] .app {
     background-color: var(--cf-notice-info-bg);
     border: 1px solid var(--cf-notice-info-border);
 }
+
 .cf-notice.info .cf-notice-icon-col {
     color: var(--cf-notice-info-icon);
 }
+
 .cf-notice.info .cf-notice-title {
     color: var(--cf-notice-info-title);
 }
+
 .cf-notice.info .cf-notice-desc {
     color: var(--cf-notice-info-desc);
 }
+
 .cf-notice.info .cf-notice-close {
     color: var(--cf-notice-info-close);
 }
@@ -338,15 +343,19 @@ html[data-framer-theme="light"] .app {
     background-color: var(--cf-notice-success-bg);
     border: 1px solid var(--cf-notice-success-border);
 }
+
 .cf-notice.success .cf-notice-icon-col {
     color: var(--cf-notice-success-icon);
 }
+
 .cf-notice.success .cf-notice-title {
     color: var(--cf-notice-success-title);
 }
+
 .cf-notice.success .cf-notice-desc {
     color: var(--cf-notice-success-desc);
 }
+
 .cf-notice.success .cf-notice-close {
     color: var(--cf-notice-success-close);
 }
@@ -356,15 +365,19 @@ html[data-framer-theme="light"] .app {
     background-color: var(--cf-notice-warning-bg);
     border: 1px solid var(--cf-notice-warning-border);
 }
+
 .cf-notice.warning .cf-notice-icon-col {
     color: var(--cf-notice-warning-icon);
 }
+
 .cf-notice.warning .cf-notice-title {
     color: var(--cf-notice-warning-title);
 }
+
 .cf-notice.warning .cf-notice-desc {
     color: var(--cf-notice-warning-desc);
 }
+
 .cf-notice.warning .cf-notice-close {
     color: var(--cf-notice-warning-close);
 }
@@ -374,15 +387,19 @@ html[data-framer-theme="light"] .app {
     background-color: var(--cf-notice-error-bg);
     border: 1px solid var(--cf-notice-error-border);
 }
+
 .cf-notice.error .cf-notice-icon-col {
     color: var(--cf-notice-error-icon);
 }
+
 .cf-notice.error .cf-notice-title {
     color: var(--cf-notice-error-title);
 }
+
 .cf-notice.error .cf-notice-desc {
     color: var(--cf-notice-error-desc);
 }
+
 .cf-notice.error .cf-notice-close {
     color: var(--cf-notice-error-close);
 }
@@ -2115,8 +2132,737 @@ button.cf-chip-tab.active {
     color: #FFFFFF;
 }
 
-/* Layout & Presets Catalog Grid */
-.cf-catalog-grid,
+/* Layout Catalog Grid */
+.cf-catalog-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    margin-top: 10px !important;
+}
+
+.cf-catalog-item {
+    all: unset !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 8px !important;
+    background: var(--cf-bg-secondary, #1B1D24) !important;
+    border: 1px solid var(--cf-border, rgba(255, 255, 255, 0.08)) !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    user-select: none !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+}
+
+html[data-framer-theme="light"] .cf-catalog-item,
+.app.light .cf-catalog-item {
+    background: #FFFFFF !important;
+    border: 1px solid #E5E7EB !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+.cf-catalog-item:hover {
+    border-color: rgba(255, 255, 255, 0.22) !important;
+    transform: translateY(-1.5px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+html[data-framer-theme="light"] .cf-catalog-item:hover,
+.app.light .cf-catalog-item:hover {
+    border-color: #D1D5DB !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+.cf-catalog-item.active {
+    background: rgba(82, 113, 255, 0.08) !important;
+    border-color: var(--Secondary-Default, #5271FF) !important;
+    box-shadow: 0 0 0 1px var(--Secondary-Default, #5271FF), 0 2px 10px rgba(82, 113, 255, 0.2) !important;
+}
+
+html[data-framer-theme="light"] .cf-catalog-item.active,
+.app.light .cf-catalog-item.active {
+    background: rgba(82, 113, 255, 0.06) !important;
+    border-color: var(--Secondary-Default, #5271FF) !important;
+    box-shadow: 0 0 0 1.5px var(--Secondary-Default, #5271FF), 0 2px 8px rgba(82, 113, 255, 0.15) !important;
+}
+
+/* Catalog Preview Box */
+.cf-catalog-preview {
+    width: 100% !important;
+    height: 56px !important;
+    background: var(--cf-bg-tertiary, #232732) !important;
+    border: 1px solid rgba(255, 255, 255, 0.04) !important;
+    border-radius: 8px !important;
+    position: relative !important;
+    overflow: hidden !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin-bottom: 6px !important;
+    box-sizing: border-box !important;
+}
+
+html[data-framer-theme="light"] .cf-catalog-preview,
+.app.light .cf-catalog-preview {
+    background: #F3F4F6 !important;
+    border: 1px solid #E5E7EB !important;
+}
+
+/* Pro Sparkle Badge */
+.cf-catalog-pro-badge {
+    position: absolute !important;
+    top: 5px !important;
+    right: 5px !important;
+    width: 16px !important;
+    height: 16px !important;
+    border-radius: 50% !important;
+    background: #FFFFFF !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    color: #8B5CF6 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12) !important;
+    z-index: 3 !important;
+}
+
+html[data-framer-theme="dark"] .cf-catalog-pro-badge,
+.app.dark .cf-catalog-pro-badge {
+    background: #2D313E !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    color: #A78BFA !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Catalog Item Footer */
+.cf-catalog-footer {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 6px !important;
+    width: 100% !important;
+    padding: 0 2px !important;
+    box-sizing: border-box !important;
+}
+
+.cf-catalog-item-name {
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
+    color: var(--cf-text, #F9FAFB) !important;
+    letter-spacing: -0.01em !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+html[data-framer-theme="light"] .cf-catalog-item-name,
+.app.light .cf-catalog-item-name {
+    color: #1F2937 !important;
+}
+
+.cf-catalog-item.active .cf-catalog-item-name {
+    color: var(--Secondary-Default, #5271FF) !important;
+    font-weight: 700 !important;
+}
+
+.cf-catalog-hot {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 1px 5px !important;
+    font-size: 8.5px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.4px !important;
+    border-radius: 4px !important;
+    text-transform: uppercase !important;
+    background: rgba(239, 68, 68, 0.15) !important;
+    color: #F87171 !important;
+}
+
+html[data-framer-theme="light"] .cf-catalog-hot,
+.app.light .cf-catalog-hot {
+    background: #FEE2E2 !important;
+    color: #DC2626 !important;
+}
+
+/* Layout Wireframe Shared Card */
+.cf-wf-card {
+    background: #4B5563;
+    border-radius: 3px;
+    box-sizing: border-box;
+    transition: background-color 0.15s ease;
+}
+
+html[data-framer-theme="light"] .cf-wf-card,
+.app.light .cf-wf-card {
+    background: #CBD5E1;
+}
+
+.cf-catalog-item.active .cf-wf-card {
+    background: #6366F1;
+}
+
+html[data-framer-theme="light"] .cf-catalog-item.active .cf-wf-card,
+.app.light .cf-catalog-item.active .cf-wf-card {
+    background: #818CF8;
+}
+
+/* 1. Pinboard */
+.cf-wf-pinboard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    padding: 2px;
+    width: 88%;
+}
+
+.cf-wf-pinboard .cf-wf-card {
+    height: 15px;
+    border-radius: 3px;
+}
+
+.cf-wf-pinboard .t-left { transform: rotate(-3deg); }
+.cf-wf-pinboard .t-right { transform: rotate(2.5deg); }
+.cf-wf-pinboard .t-left-sm { transform: rotate(-1.5deg); }
+.cf-wf-pinboard .t-right-sm { transform: rotate(2deg); }
+
+/* 2. Duo (Two columns) */
+.cf-wf-duo {
+    display: flex;
+    gap: 5px;
+    width: 88%;
+    justify-content: center;
+}
+
+.cf-wf-duo .cf-wf-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+
+.cf-wf-duo .cf-wf-card.wide {
+    height: 16px;
+    width: 100%;
+}
+
+/* 3. Feature */
+.cf-wf-feature {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 88%;
+}
+
+.cf-wf-feature .cf-wf-card.full-hero {
+    height: 15px;
+    width: 100%;
+}
+
+.cf-wf-feature .cf-wf-row {
+    display: flex;
+    gap: 4px;
+    width: 100%;
+}
+
+.cf-wf-feature .cf-wf-row .cf-wf-card {
+    height: 14px;
+    flex: 1;
+}
+
+/* 4. Band */
+.cf-wf-band {
+    display: flex;
+    gap: 4px;
+    width: 90%;
+    justify-content: center;
+}
+
+.cf-wf-band .cf-wf-card.band-pill {
+    height: 16px;
+    flex: 1;
+    border-radius: 4px;
+}
+
+/* 5. Spotlightgrid (Hero + Grid) */
+.cf-wf-spotlightgrid {
+    display: flex;
+    gap: 4px;
+    width: 88%;
+    height: 36px;
+    align-items: stretch;
+}
+
+.cf-wf-spotlightgrid .cf-wf-card.hero-square {
+    width: 42%;
+    height: 100%;
+    border-radius: 4px;
+}
+
+.cf-wf-spotlightgrid .cf-wf-subgrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 3px;
+    flex: 1;
+    height: 100%;
+}
+
+.cf-wf-spotlightgrid .cf-wf-card.sm {
+    height: 100%;
+    border-radius: 3px;
+}
+
+/* 6. Carousel (Animated) */
+.cf-wf-carousel-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+}
+
+.cf-wf-carousel-track {
+    display: flex;
+    gap: 5px;
+    padding: 0 10px;
+    animation: cfPreviewCarouselSlide 3s ease-in-out infinite;
+}
+
+.cf-wf-carousel-track .cf-wf-card.vert {
+    width: 18px;
+    height: 34px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+@keyframes cfPreviewCarouselSlide {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    50% {
+        transform: translateX(-24px);
+    }
+}
+
+/* 7. Ticker (Animated Marquee) */
+.cf-wf-ticker-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.cf-wf-ticker-track {
+    display: flex;
+    gap: 6px;
+    animation: cfPreviewTickerScroll 5s linear infinite;
+}
+
+.cf-wf-ticker-track .cf-wf-card.ticker-pill {
+    width: 32px;
+    height: 18px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+@keyframes cfPreviewTickerScroll {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+/* 8. Living Wall (Animated Vertical Drift) */
+.cf-wf-wall {
+    display: flex;
+    gap: 4px;
+    width: 88%;
+    height: 40px;
+    overflow: hidden;
+    justify-content: center;
+}
+
+.cf-wf-wall-col {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+}
+
+.cf-wf-wall-col .cf-wf-card.wall-card {
+    height: 10px;
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.cf-wf-wall-col.drifting {
+    animation: cfPreviewWallDrift 2.5s ease-in-out infinite;
+}
+
+@keyframes cfPreviewWallDrift {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-6px);
+    }
+}
+
+/* 9. Spotlight (Centered Avatar + Bar + Dots) */
+.cf-wf-spotlight {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 85%;
+    animation: cfPreviewSpotlightPulse 3s ease-in-out infinite;
+}
+
+.cf-wf-avatar-circle {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: #94A3B8;
+}
+
+html[data-framer-theme="light"] .cf-wf-avatar-circle,
+.app.light .cf-wf-avatar-circle {
+    background: #94A3B8;
+}
+
+.cf-wf-card.spotlight-bar {
+    width: 58px;
+    height: 8px;
+    border-radius: 4px;
+}
+
+.cf-wf-dots {
+    display: flex;
+    gap: 3px;
+    margin-top: 1px;
+}
+
+.cf-wf-dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #94A3B8;
+    opacity: 0.5;
+}
+
+.cf-wf-dot.active {
+    background: var(--Secondary-Default, #5271FF);
+    opacity: 1;
+    width: 6px;
+    border-radius: 3px;
+}
+
+@keyframes cfPreviewSpotlightPulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.75;
+        transform: scale(0.97);
+    }
+}
+
+/* 10. Flow (Two Rows Drifting Opposite Directions) */
+.cf-wf-flow {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.cf-wf-flow-row {
+    display: flex;
+    gap: 5px;
+}
+
+.cf-wf-flow-row.flow-left {
+    animation: cfPreviewFlowLeft 4s linear infinite;
+}
+
+.cf-wf-flow-row.flow-right {
+    animation: cfPreviewFlowRight 4s linear infinite;
+}
+
+.cf-wf-card.flow-card {
+    width: 36px;
+    height: 13px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+@keyframes cfPreviewFlowLeft {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-20px); }
+}
+
+@keyframes cfPreviewFlowRight {
+    0% { transform: translateX(-20px); }
+    100% { transform: translateX(0); }
+}
+
+/* 11. Grid */
+.cf-wf-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    width: 88%;
+}
+
+.cf-wf-grid .cf-wf-card {
+    height: 15px;
+    border-radius: 3px;
+}
+
+/* 12. Masonry */
+.cf-wf-masonry {
+    display: flex;
+    gap: 4px;
+    width: 88%;
+}
+
+.cf-wf-masonry .cf-wf-col {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+}
+
+.cf-wf-masonry .tall { height: 20px; }
+.cf-wf-masonry .short { height: 11px; }
+.cf-wf-masonry .med { height: 15px; }
+
+/* 13. Editorial List */
+.cf-wf-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 88%;
+}
+
+.cf-wf-list-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.cf-wf-avatar-mini {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #94A3B8;
+    flex-shrink: 0;
+}
+
+.cf-wf-line {
+    height: 5px;
+    border-radius: 3px;
+    background: #CBD5E1;
+}
+
+html[data-framer-theme="dark"] .cf-wf-line,
+.app.dark .cf-wf-line {
+    background: #4B5563;
+}
+
+.cf-wf-line.full { width: 80%; }
+.cf-wf-line.med { width: 60%; }
+
+/* 14. Trust Badge */
+.cf-wf-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 88%;
+}
+
+.cf-wf-badge-pill {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 20px;
+    background: #E2E8F0;
+}
+
+html[data-framer-theme="dark"] .cf-wf-badge-pill,
+.app.dark .cf-wf-badge-pill {
+    background: #334155;
+}
+
+.cf-wf-star-mini {
+    width: 8px;
+    height: 8px;
+    background: #FBBF24;
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+
+.cf-wf-score-bar {
+    width: 14px;
+    height: 6px;
+    border-radius: 2px;
+    background: #94A3B8;
+}
+
+.cf-wf-stars-row {
+    width: 24px;
+    height: 5px;
+    border-radius: 2px;
+    background: #FBBF24;
+    opacity: 0.8;
+}
+
+/* 15. Avatars */
+.cf-wf-avatars {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 85%;
+    justify-content: center;
+}
+
+.cf-wf-avatar-stack {
+    display: flex;
+    position: relative;
+    width: 34px;
+    height: 16px;
+}
+
+.cf-wf-avatar-stack .av-1 {
+    position: absolute;
+    left: 0;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #94A3B8;
+    border: 1.5px solid var(--cf-bg-tertiary, #232732);
+}
+
+.cf-wf-avatar-stack .av-2 {
+    position: absolute;
+    left: 9px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #64748B;
+    border: 1.5px solid var(--cf-bg-tertiary, #232732);
+}
+
+.cf-wf-avatar-stack .av-3 {
+    position: absolute;
+    left: 18px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #475569;
+    border: 1.5px solid var(--cf-bg-tertiary, #232732);
+}
+
+/* 16. Breakdown */
+.cf-wf-breakdown {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 85%;
+    justify-content: center;
+}
+
+.cf-wf-score-box {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    background: #FBBF24;
+}
+
+.cf-wf-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 2.5px;
+    flex: 1;
+}
+
+.cf-wf-bar {
+    height: 3px;
+    border-radius: 2px;
+    background: #CBD5E1;
+}
+
+html[data-framer-theme="dark"] .cf-wf-bar,
+.app.dark .cf-wf-bar {
+    background: #4B5563;
+}
+
+.cf-wf-bar.b-5 { width: 100%; background: #FBBF24; }
+.cf-wf-bar.b-4 { width: 75%; }
+.cf-wf-bar.b-3 { width: 45%; }
+.cf-wf-bar.b-2 { width: 25%; }
+
+/* 17. Orbit */
+.cf-wf-orbit {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cf-wf-avatar-center {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #FBBF24;
+}
+
+.cf-wf-orbit-dot {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #94A3B8;
+}
+
+.cf-wf-orbit-dot.od-1 { top: 0; left: 15px; }
+.cf-wf-orbit-dot.od-2 { bottom: 0; left: 15px; }
+.cf-wf-orbit-dot.od-3 { left: 0; top: 15px; }
+.cf-wf-orbit-dot.od-4 { right: 0; top: 15px; }
+
+/* 18. Default Ribbon */
+.cf-wf-default {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: 85%;
+}
+
+.cf-wf-card.ribbon-hero {
+    width: 100%;
+    height: 14px;
+    border-radius: 4px;
+}
+
+/* Presets Grid */
 .cf-presets-grid {
     display: grid !important;
     grid-template-columns: repeat(2, 1fr) !important;
@@ -2124,7 +2870,6 @@ button.cf-chip-tab.active {
     margin-top: 10px !important;
 }
 
-.cf-catalog-item,
 .cf-preset-item {
     display: flex !important;
     align-items: center !important;
@@ -2142,21 +2887,18 @@ button.cf-chip-tab.active {
     width: 100% !important;
 }
 
-.cf-catalog-item:hover,
 .cf-preset-item:hover {
     background: var(--cf-bg-hover, #232732) !important;
     border-color: rgba(255, 255, 255, 0.18) !important;
     transform: translateY(-1px) !important;
 }
 
-.cf-catalog-item.active,
 .cf-preset-item.active {
     background: rgba(0, 153, 255, 0.12) !important;
     border-color: var(--cf-accent, #0099FF) !important;
     box-shadow: 0 0 0 1px var(--cf-accent, #0099FF), 0 2px 10px rgba(0, 153, 255, 0.25) !important;
 }
 
-.cf-catalog-item-name,
 .cf-preset-name {
     font-size: 12px !important;
     font-weight: 600 !important;
@@ -2167,12 +2909,10 @@ button.cf-chip-tab.active {
     text-overflow: ellipsis !important;
 }
 
-.cf-catalog-item:hover .cf-catalog-item-name,
 .cf-preset-item:hover .cf-preset-name {
     color: #FFFFFF !important;
 }
 
-.cf-catalog-item.active .cf-catalog-item-name,
 .cf-preset-item.active .cf-preset-name {
     color: #FFFFFF !important;
     font-weight: 700 !important;
@@ -4023,6 +4763,7 @@ button.cf-btn-tp-sync:disabled {
     padding: 4px 8px;
     border-radius: 6px;
     transition: background-color 0.15s ease;
+    min-width: fit-content;
 }
 
 .cf-connect-back-btn:hover {
@@ -4599,6 +5340,8 @@ button.cf-btn-tp-sync:disabled {
     align-items: center;
     gap: 4px;
     align-self: flex-start;
+    padding: 4px 8px;
+    border-radius: 6px;
 }
 
 .cf-manage-header {
@@ -4846,8 +5589,9 @@ button.cf-btn-tp-sync:disabled {
 
 .cf-widgets-biz-info {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
+    flex-direction: column;
 }
 
 .cf-widgets-biz-label {
@@ -5128,8 +5872,13 @@ button.cf-btn-tp-sync:disabled {
 }
 
 @keyframes cfModalFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 .cf-modal-dialog {
@@ -5801,6 +6550,3 @@ button.cf-btn-tp-sync:disabled {
     color: #ffffff;
     border-color: var(--Secondary-Default, #5271FF);
 }
-
-
-

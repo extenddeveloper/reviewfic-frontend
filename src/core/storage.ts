@@ -8,14 +8,37 @@ const STORAGE_KEY_WIDGETS = "reviewfic_widgets_v2"
 const STORAGE_KEY_ACTIVE_BIZ = "reviewfic_active_biz_v2"
 const STORAGE_KEY_ACTIVE_WIDGET = "reviewfic_active_widget_v2"
 
-async function readStorage(key: string): Promise<string | null> {
-    try {
-        if (typeof (framer as any).getPluginData === "function") {
-            const raw = await (framer as any).getPluginData(key)
-            if (raw) return raw
-        }
-    } catch {}
+const MAX_CHUNK_SIZE = 1400
 
+async function readStorage(key: string): Promise<string | null> {
+    const isFramer = typeof (framer as any).getPluginData === "function"
+
+    if (isFramer) {
+        try {
+            const raw = await (framer as any).getPluginData(key)
+            if (raw) {
+                try {
+                    const parsed = JSON.parse(raw)
+                    if (parsed && typeof parsed.__chunks__ === "number") {
+                        let full = ""
+                        for (let i = 0; i < parsed.__chunks__; i++) {
+                            const chunk = await (framer as any).getPluginData(`${key}_c${i}`)
+                            if (chunk) full += chunk
+                        }
+                        return full
+                    }
+                } catch {}
+                return raw
+            }
+            // In Framer: null/empty means this project document has no saved data for this key.
+            // Do NOT fall back to localStorage to prevent cross-project pollution.
+            return null
+        } catch (e) {
+            console.warn(`[Reviewfic] getPluginData failed for ${key}:`, e)
+        }
+    }
+
+    // Only fallback to localStorage when running in standalone browser dev mode outside Framer
     try {
         const local = localStorage.getItem(key)
         if (local) return local
@@ -25,20 +48,46 @@ async function readStorage(key: string): Promise<string | null> {
 }
 
 async function writeStorage(key: string, val: string): Promise<boolean> {
-    let saved = false
-    try {
-        if (typeof (framer as any).setPluginData === "function") {
-            await (framer as any).setPluginData(key, val)
-            saved = true
-        }
-    } catch {}
+    const isFramer = typeof (framer as any).setPluginData === "function"
 
+    if (isFramer) {
+        try {
+            if (val.length <= MAX_CHUNK_SIZE) {
+                await (framer as any).setPluginData(key, val)
+                // Purge any stale chunk keys
+                for (let i = 0; i < 20; i++) {
+                    try {
+                        await (framer as any).setPluginData(`${key}_c${i}`, null)
+                    } catch {}
+                }
+            } else {
+                const chunks: string[] = []
+                for (let i = 0; i < val.length; i += MAX_CHUNK_SIZE) {
+                    chunks.push(val.slice(i, i + MAX_CHUNK_SIZE))
+                }
+                for (let i = 0; i < chunks.length; i++) {
+                    await (framer as any).setPluginData(`${key}_c${i}`, chunks[i])
+                }
+                await (framer as any).setPluginData(key, JSON.stringify({ __chunks__: chunks.length }))
+                for (let i = chunks.length; i < 20; i++) {
+                    try {
+                        await (framer as any).setPluginData(`${key}_c${i}`, null)
+                    } catch {}
+                }
+            }
+            return true
+        } catch (e) {
+            console.warn(`[Reviewfic] Failed to save ${key} to Framer plugin data:`, e)
+        }
+    }
+
+    // Outside Framer: store in localStorage
     try {
         localStorage.setItem(key, val)
-        saved = true
+        return true
     } catch {}
 
-    return saved
+    return false
 }
 
 export async function loadBusinesses(): Promise<ConnectedBusiness[]> {
@@ -46,41 +95,11 @@ export async function loadBusinesses(): Promise<ConnectedBusiness[]> {
         const raw = await readStorage(STORAGE_KEY_BUSINESSES)
         if (raw) {
             const list = JSON.parse(raw)
-            if (Array.isArray(list) && list.length > 0) return list
+            if (Array.isArray(list)) return list
         }
     } catch (e) {
         console.warn("[Reviewfic] Failed to parse businesses:", e)
     }
-
-    // Auto-migration from legacy single config
-    try {
-        const legacyRaw = await readStorage(STORAGE_KEY)
-        if (legacyRaw) {
-            const legacy = normalizeConfig(JSON.parse(legacyRaw))
-            const biz = createDefaultBusiness(
-                legacy.googleBusinessName || "Gazipur City Corporation",
-                {
-                    name: legacy.googleBusinessName || "Gazipur City Corporation",
-                    placeId: legacy.googlePlaceId || "",
-                    mapsUrl: legacy.googleMapsUrl || "",
-                    rating: legacy.googleRating,
-                    reviewCount: legacy.googleReviewCount,
-                    reviews: legacy.googleReviews,
-                },
-                legacy.trustpilotDomain
-                    ? {
-                          domain: legacy.trustpilotDomain,
-                          rating: legacy.trustpilotRating,
-                          reviewCount: legacy.trustpilotReviewCount,
-                          reviews: legacy.trustpilotReviews,
-                      }
-                    : undefined
-            )
-            biz.customReviews = legacy.customReviews || []
-            await saveBusinesses([biz])
-            return [biz]
-        }
-    } catch {}
 
     return []
 }
