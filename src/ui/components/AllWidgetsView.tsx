@@ -13,7 +13,6 @@ import {
     IconLayoutMasonry,
     IconLayoutMarquee,
     IconBadge,
-    IconRefresh,
     IconX,
 } from "../icons"
 
@@ -33,11 +32,11 @@ const MODAL_LAYOUT_OPTIONS: Array<{
 interface AllWidgetsViewProps {
     business: ConnectedBusiness
     widgets: ReviewWidget[]
-    canvasWidgetCounts: Record<string, number>
+    canvasWidgetCounts?: Record<string, number>
     onSwitchBusiness: () => void
     onCreateWidget: (name: string, layout: ReviewLayout, cardStyle: CardStyle) => void
     onEditWidget: (widget: ReviewWidget) => void
-    onInsertWidget: (widget: ReviewWidget) => void
+    onInsertWidget?: (widget: ReviewWidget) => void
     onDeleteWidget: (widget: { id: string; name: string }) => void
 }
 
@@ -125,7 +124,6 @@ export function AllWidgetsView({
             ) : (
                 <div className="cf-widgets-list">
                     {widgets.map((widget, index) => {
-                        const count = canvasWidgetCounts[widget.id] || 0
                         const layoutName = widget.config.layout.charAt(0).toUpperCase() + widget.config.layout.slice(1)
                         const styleName = widget.config.cardStyle.charAt(0).toUpperCase() + widget.config.cardStyle.slice(1)
 
@@ -157,27 +155,6 @@ export function AllWidgetsView({
                                         <IconSliders size={13} />
                                         <span>Edit</span>
                                     </button>
-                                    {count > 0 ? (
-                                        <button
-                                            type="button"
-                                            className="cf-widget-action-btn insert is-on-canvas"
-                                            onClick={() => onInsertWidget(widget)}
-                                            title="Update design for this widget on canvas"
-                                        >
-                                            <IconRefresh size={13} />
-                                            <span>Update</span>
-                                        </button>
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            className="cf-widget-action-btn insert"
-                                            onClick={() => onInsertWidget(widget)}
-                                            title="Insert widget onto canvas"
-                                        >
-                                            <IconSparkles size={13} />
-                                            <span>Insert</span>
-                                        </button>
-                                    )}
                                     <button
                                         type="button"
                                         className="cf-widget-action-btn delete"
