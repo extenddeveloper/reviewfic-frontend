@@ -46,8 +46,6 @@ Reviewfic is the compliant, no-cutoff Google + Trustpilot social proof plugin fo
 8. **SEO Schema (JSON-LD)**: AggregateRating markup with search eligibility checker.
 9. **Accessibility & Zero CLS**: Keyboard/screen-reader support, reduced-motion media query, and reserved card heights.
 10. **Language Tools (v1.1)**: Framer Localization alignment with translation toggle.
-11. **Review Insights (v2.0)**: Rating trend, source split, keywords, owner replies.
-12. **Agency Workspace (v2.0)**: Multi-business management, client presets, white-label credits.
 
 ---
 
@@ -113,15 +111,6 @@ Reviewfic is the compliant, no-cutoff Google + Trustpilot social proof plugin fo
 - Visitor filter bar: search, stars, platform tabs, media-only.
 - QR code generator to a review collection page.
 - Framer Localization alignment with translation toggle.
-
-### Phase 3: Scale & Agency v2.0
-- Agency workspace for 5 to 30+ businesses from one panel.
-- Client presets and white-label branding with custom credit.
-- Full-width social proof section templates (Headline + Stats + Review Grid + CTA).
-- Insights dashboard: rating trend, source split, keywords, owner replies, PDF export.
-- Additional sources: TripAdvisor, Yelp, Facebook, App Store.
-- Owner-account connection for fuller Google data.
-- Low-star alerts and AI topic summaries.
 
 ---
 
