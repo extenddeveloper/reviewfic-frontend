@@ -13,6 +13,7 @@ import {
     IconLayoutMasonry,
     IconLayoutMarquee,
     IconBadge,
+    IconRefresh,
     IconX,
 } from "../icons"
 
@@ -163,15 +164,27 @@ export function AllWidgetsView({
                                         <IconSliders size={13} />
                                         <span>Edit</span>
                                     </button>
-                                    <button
-                                        type="button"
-                                        className="cf-widget-action-btn insert"
-                                        onClick={() => onInsertWidget(widget)}
-                                        title="Go with this design / Insert to canvas"
-                                    >
-                                        <IconSparkles size={13} />
-                                        <span>Insert</span>
-                                    </button>
+                                    {count > 0 ? (
+                                        <button
+                                            type="button"
+                                            className="cf-widget-action-btn insert is-on-canvas"
+                                            onClick={() => onInsertWidget(widget)}
+                                            title="Update design for this widget on canvas"
+                                        >
+                                            <IconRefresh size={13} />
+                                            <span>Update</span>
+                                        </button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            className="cf-widget-action-btn insert"
+                                            onClick={() => onInsertWidget(widget)}
+                                            title="Insert widget onto canvas"
+                                        >
+                                            <IconSparkles size={13} />
+                                            <span>Insert</span>
+                                        </button>
+                                    )}
                                     <button
                                         type="button"
                                         className="cf-widget-action-btn delete"

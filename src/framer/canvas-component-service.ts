@@ -1388,6 +1388,49 @@ export async function insertCanvasWidget(
     mergedConfig.widgetId = widget.id
     mergedConfig.businessId = business.id
 
+    // Deduplication check: check if an instance for this widget already exists on the canvas
+    try {
+        const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
+        if (instances && instances.length > 0) {
+            let existingTarget: any = null
+            for (const inst of instances) {
+                if (!isReviewficInstance(inst)) continue
+                const wId = await getCanvasWidgetId(inst)
+                if (wId === widget.id) {
+                    existingTarget = inst
+                    break
+                }
+            }
+            if (!existingTarget) {
+                const allReviewfic = instances.filter(isReviewficInstance)
+                if (allReviewfic.length === 1) {
+                    const soleWId = await getCanvasWidgetId(allReviewfic[0])
+                    if (!soleWId || soleWId === widget.id) {
+                        existingTarget = allReviewfic[0]
+                    }
+                }
+            }
+
+            // If it already exists on canvas, DO NOT duplicate! Update the existing instance:
+            if (existingTarget || options?.updateExistingOnly) {
+                const synced = await syncCanvasWidget(widget, business)
+                if (existingTarget?.id) {
+                    try {
+                        await framer.setSelection([existingTarget.id])
+                    } catch {}
+                }
+                await enforceSingleWidgetInstances()
+                return {
+                    success: synced,
+                    message: `Updated existing widget "${widget.name}" on canvas.`,
+                    instanceId: existingTarget?.id,
+                }
+            }
+        }
+    } catch (e) {
+        console.warn("[Reviewfic] Existing check failed, proceeding with insert:", e)
+    }
+
     const res = await insertCanvasComponent(mergedConfig, options)
     try {
         const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
@@ -1413,6 +1456,10 @@ export async function insertCanvasWidget(
             }
         }
     } catch {}
+
+    // Enforce single instance policy after insertion
+    await enforceSingleWidgetInstances()
+
     return res
 }
 
@@ -1485,6 +1532,61 @@ export async function deleteCanvasInstancesForWidget(widgetId: string): Promise<
     } catch (e) {
         console.warn("[Reviewfic] deleteCanvasInstancesForWidget error:", e)
         return 0
+    }
+}
+
+/**
+ * Enforces the Single-Instance policy across the Framer canvas.
+ * If a user attempts to copy or duplicate a widget on the canvas (e.g. via Cmd+D, Alt+drag,
+ * or Copy/Paste), this function detects duplicate instances and removes them immediately,
+ * ensuring each widget exists at most once on the canvas.
+ */
+export async function enforceSingleWidgetInstances(): Promise<{ removedDuplicates: number }> {
+    try {
+        const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
+        if (!instances || instances.length === 0) return { removedDuplicates: 0 }
+
+        const reviewficNodes = instances.filter(isReviewficInstance)
+        if (reviewficNodes.length <= 1) return { removedDuplicates: 0 }
+
+        const seenWidgetIds = new Map<string, any>()
+        let removedDuplicates = 0
+
+        for (const inst of reviewficNodes) {
+            const wId = await getCanvasWidgetId(inst)
+            const key = wId || "__single_reviewfic_instance__"
+
+            if (seenWidgetIds.has(key)) {
+                let deleted = false
+                if (typeof inst.remove === "function") {
+                    try {
+                        await inst.remove()
+                        deleted = true
+                    } catch (e) {
+                        console.warn("[Reviewfic] Failed to remove duplicate instance:", e)
+                    }
+                }
+                if (!deleted && typeof inst.getParent === "function") {
+                    try {
+                        const parent = await inst.getParent()
+                        if (parent && typeof (parent as any).removeChildren === "function") {
+                            await (parent as any).removeChildren([inst])
+                            deleted = true
+                        }
+                    } catch {}
+                }
+                if (deleted) {
+                    removedDuplicates++
+                }
+            } else {
+                seenWidgetIds.set(key, inst)
+            }
+        }
+
+        return { removedDuplicates }
+    } catch (e) {
+        console.warn("[Reviewfic] Error in enforceSingleWidgetInstances:", e)
+        return { removedDuplicates: 0 }
     }
 }
 

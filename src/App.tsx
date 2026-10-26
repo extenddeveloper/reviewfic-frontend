@@ -35,6 +35,7 @@ import {
     countCanvasInstancesForWidget,
     deleteCanvasInstancesForWidget,
     getCanvasInstancesCount,
+    enforceSingleWidgetInstances,
 } from "./framer/canvas-component-service"
 import {
     IconGoogle,
@@ -184,6 +185,7 @@ export function App() {
     // Refresh canvas counts for all widgets
     const refreshCanvasCounts = useCallback(async (allWidgets: ReviewWidget[]) => {
         try {
+            await enforceSingleWidgetInstances()
             const counts: Record<string, number> = {}
             let total = 0
             for (const w of allWidgets) {
@@ -198,6 +200,50 @@ export function App() {
             setCanvasCount(0)
         }
     }, [])
+
+    // Prevent duplicate widgets from canvas copy/paste or duplicate shortcuts
+    useEffect(() => {
+        let unsubRoot: (() => void) | undefined
+        let unsubSelection: (() => void) | undefined
+
+        const handleCanvasCheck = async () => {
+            const { removedDuplicates } = await enforceSingleWidgetInstances()
+            if (removedDuplicates > 0) {
+                showNotice(
+                    "Reviewfic widgets cannot be duplicated. Each widget has a single canvas instance that can be updated or deleted.",
+                    "warning"
+                )
+                void refreshCanvasCounts(widgets)
+            }
+        }
+
+        try {
+            if (typeof (framer as any).subscribeToCanvasRoot === "function") {
+                unsubRoot = (framer as any).subscribeToCanvasRoot(() => {
+                    void handleCanvasCheck()
+                })
+            }
+        } catch {}
+
+        try {
+            if (typeof (framer as any).subscribeToSelection === "function") {
+                unsubSelection = (framer as any).subscribeToSelection(() => {
+                    void handleCanvasCheck()
+                })
+            }
+        } catch {}
+
+        const handleFocus = () => {
+            void handleCanvasCheck()
+        }
+        window.addEventListener("focus", handleFocus)
+
+        return () => {
+            if (unsubRoot) unsubRoot()
+            if (unsubSelection) unsubSelection()
+            window.removeEventListener("focus", handleFocus)
+        }
+    }, [widgets, refreshCanvasCounts])
 
     // Initial storage loader
     useEffect(() => {
@@ -2098,16 +2144,25 @@ export function App() {
                 <footer className="actions">
                     {tab === "widgets" && editingWidgetId !== null && (
                         <div className="cf-footer-grid">
-                            <button
-                                type="button"
-                                className="primary-cta"
-                                onClick={handleGoWithThisDesign}
-                                disabled={inserting}
-                                title="Go with this design and insert widget onto canvas"
-                            >
-                                <span>{inserting ? "Inserting..." : "Go with this design"}</span>
-                                <IconSparkles size={16} />
-                            </button>
+                            {(() => {
+                                const isOnCanvas = Boolean(activeWidget && (canvasWidgetCounts[activeWidget.id] || 0) > 0)
+                                return (
+                                    <button
+                                        type="button"
+                                        className="primary-cta"
+                                        onClick={handleGoWithThisDesign}
+                                        disabled={inserting}
+                                        title={isOnCanvas ? "Update design on canvas" : "Insert widget onto canvas"}
+                                    >
+                                        <span>
+                                            {inserting
+                                                ? (isOnCanvas ? "Updating..." : "Inserting...")
+                                                : (isOnCanvas ? "Update on canvas" : "Go with this design")}
+                                        </span>
+                                        {isOnCanvas ? <IconRefresh size={14} /> : <IconSparkles size={16} />}
+                                    </button>
+                                )
+                            })()}
                             <button
                                 type="button"
                                 className="secondary-cta"
