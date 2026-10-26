@@ -132,7 +132,6 @@ export interface ConnectedBusiness {
 
     customReviews?: ReviewItem[]
     lastSync?: string // e.g. "Just now", "2 min ago"
-    viewsThisMonth?: number
     createdAt: number
 }
 

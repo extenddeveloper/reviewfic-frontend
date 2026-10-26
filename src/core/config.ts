@@ -297,7 +297,6 @@ export function createDefaultBusiness(
 
         customReviews: [],
         lastSync: "Just now",
-        viewsThisMonth: 0,
         createdAt: Date.now(),
     }
 }

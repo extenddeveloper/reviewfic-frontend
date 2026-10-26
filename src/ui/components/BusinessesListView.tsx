@@ -9,8 +9,6 @@ interface BusinessesListViewProps {
     onManageBusinesses: () => void
     onAddBusiness: () => void
     onSyncBusiness: (biz: ConnectedBusiness) => void
-    totalViews?: number
-    maxMonthlyViews?: number
 }
 
 export function BusinessesListView({
@@ -20,8 +18,6 @@ export function BusinessesListView({
     onManageBusinesses,
     onAddBusiness,
     onSyncBusiness,
-    totalViews = 82,
-    maxMonthlyViews = 300,
 }: BusinessesListViewProps) {
     return (
         <div className="cf-biz-container">
@@ -102,13 +98,10 @@ export function BusinessesListView({
                                 )}
                             </div>
 
-                            {/* Metadata Row: Last sync and Views this month */}
+                            {/* Metadata Row: Last sync */}
                             <div className="cf-biz-card-meta">
                                 <span className="cf-biz-meta-sync">
                                     Last sync: <b>{biz.lastSync || "Just now"}</b>
-                                </span>
-                                <span className="cf-biz-meta-views">
-                                    Views this month: <b>{biz.viewsThisMonth ?? 0}</b>
                                 </span>
                             </div>
 
@@ -136,26 +129,6 @@ export function BusinessesListView({
                         </div>
                     )
                 })}
-            </div>
-
-            {/* Views Meter Card */}
-            <div className="cf-biz-footer-meter">
-                <div className="cf-biz-meter-top">
-                    <span className="cf-biz-meter-label">Views this month, all businesses</span>
-                    <span className="cf-biz-meter-count">{totalViews} / {maxMonthlyViews}</span>
-                </div>
-                <div className="cf-biz-meter-track">
-                    <div
-                        className="cf-biz-meter-bar"
-                        role="progressbar"
-                        aria-valuenow={totalViews}
-                        aria-valuemin={0}
-                        aria-valuemax={maxMonthlyViews}
-                    />
-                </div>
-                <p className="cf-biz-meter-note">
-                    Per-business numbers only count widgets inserted recently, so they can add up to less than this total.
-                </p>
             </div>
         </div>
     )

@@ -5307,8 +5307,7 @@ button.cf-btn-tp-sync:disabled {
     gap: 8px;
 }
 
-.cf-biz-meta-sync b,
-.cf-biz-meta-views b {
+.cf-biz-meta-sync b {
     color: var(--cf-text);
     font-weight: 600;
 }
@@ -5352,60 +5351,6 @@ button.cf-btn-tp-sync:disabled {
     border-color: rgba(0, 0, 0, 0.08);
 }
 
-.app.light .cf-biz-footer-meter,
-[data-framer-theme="light"] .cf-biz-footer-meter {
-    background: #ffffff;
-    border-color: rgba(0, 0, 0, 0.08);
-}
-
-.cf-biz-footer-meter {
-    background: var(--cf-bg-secondary);
-    border: 1px solid var(--cf-border);
-    border-radius: 12px;
-    padding: 14px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.cf-biz-meter-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 12px;
-}
-
-.cf-biz-meter-label {
-    color: var(--cf-text-secondary);
-}
-
-.cf-biz-meter-count {
-    font-weight: 600;
-    color: var(--cf-text);
-}
-
-.cf-biz-meter-track {
-    width: 100%;
-    height: 5px;
-    border-radius: 9999px;
-    background: var(--cf-bg-tertiary);
-    overflow: hidden;
-}
-
-.cf-biz-meter-bar {
-    height: 100%;
-    width: 27%;
-    border-radius: 9999px;
-    background: #2563eb;
-    transition: width 0.3s ease;
-}
-
-.cf-biz-meter-note {
-    font-size: 10.5px;
-    color: var(--cf-text-tertiary);
-    margin: 0;
-    line-height: 1.4;
-}
 
 /* 3. Manage Businesses View (Screenshots 4 & 5) */
 .cf-manage-container {

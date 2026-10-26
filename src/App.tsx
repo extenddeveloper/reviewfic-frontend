@@ -1912,8 +1912,6 @@ export function App() {
                                 onManageBusinesses={() => setIsManagingBusinesses(true)}
                                 onAddBusiness={() => setIsAddingBusiness(true)}
                                 onSyncBusiness={handleSyncBusiness}
-                                totalViews={82}
-                                maxMonthlyViews={300}
                             />
                         )}
 
