@@ -90,7 +90,6 @@ export function LayoutThumbnailPreview({ layout }: LayoutThumbnailPreviewProps) 
                         <div className="cf-wf-card vert" />
                         <div className="cf-wf-card vert" />
                         <div className="cf-wf-card vert" />
-                        <div className="cf-wf-card vert" />
                     </div>
                 </div>
             )
@@ -104,9 +103,7 @@ export function LayoutThumbnailPreview({ layout }: LayoutThumbnailPreviewProps) 
                         <div className="cf-wf-card ticker-pill" />
                         <div className="cf-wf-card ticker-pill" />
                         <div className="cf-wf-card ticker-pill" />
-                        <div className="cf-wf-card ticker-pill" />
                         {/* Duplicate for seamless infinite loop */}
-                        <div className="cf-wf-card ticker-pill" />
                         <div className="cf-wf-card ticker-pill" />
                         <div className="cf-wf-card ticker-pill" />
                         <div className="cf-wf-card ticker-pill" />
