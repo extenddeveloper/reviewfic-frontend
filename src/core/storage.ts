@@ -1,6 +1,6 @@
 import { framer } from "@framer/plugin"
 import { ReviewConfig, ConnectedBusiness, ReviewWidget } from "./types"
-import { DEFAULT_CONFIG, normalizeConfig, createDefaultBusiness, createDefaultWidget } from "./config"
+import { DEFAULT_CONFIG, normalizeConfig } from "./config"
 
 const STORAGE_KEY = "reviewfic_config_v1"
 const STORAGE_KEY_BUSINESSES = "reviewfic_businesses_v2"

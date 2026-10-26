@@ -97,8 +97,7 @@ export function ManageBusinessesView({
                                         type="button"
                                         className="cf-manage-btn danger"
                                         onClick={() => onDeleteBusiness(biz.id)}
-                                        disabled={businesses.length <= 1}
-                                        title={businesses.length <= 1 ? "At least one business is required" : "Remove business"}
+                                        title="Remove business"
                                     >
                                         Remove
                                     </button>

@@ -14,7 +14,6 @@ import {
     DEFAULT_CONFIG,
     calculateBlendedStats,
     getActiveReviews,
-    createDefaultBusiness,
     createDefaultWidget,
     mergeBusinessIntoConfig,
 } from "./core/config"
@@ -653,16 +652,15 @@ export function App() {
         showNotice(`Updated business: "${updated.name}"`, "success")
     }
 
-    const handleDeleteBusiness = (businessId: string) => {
-        if (businesses.length <= 1) {
-            showNotice("Cannot remove the only business.", "warning")
-            return
-        }
-
-        // Clean up widgets for this business
+    const handleDeleteBusiness = async (businessId: string) => {
+        // Clean up canvas instances for widgets of this business
         const bizWidgets = widgets.filter((w) => w.businessId === businessId)
         for (const w of bizWidgets) {
-            void deleteCanvasInstancesForWidget(w.id)
+            try {
+                await deleteCanvasInstancesForWidget(w.id)
+            } catch (e) {
+                console.warn(`[Reviewfic] Failed to delete canvas instances for widget ${w.id}:`, e)
+            }
         }
         const remainingWidgets = widgets.filter((w) => w.businessId !== businessId)
         const remainingBiz = businesses.filter((b) => b.id !== businessId)
@@ -671,14 +669,24 @@ export function App() {
         setWidgets(remainingWidgets)
         void saveBusinesses(remainingBiz)
         void saveWidgets(remainingWidgets)
+        void refreshCanvasCounts(remainingWidgets)
 
-        const nextBiz = remainingBiz[0]
-        setActiveBusinessId(nextBiz.id)
-        void saveActiveBusinessId(nextBiz.id)
+        if (remainingBiz.length > 0) {
+            const nextBiz = remainingBiz.find((b) => b.id === activeBusinessId) || remainingBiz[0]
+            setActiveBusinessId(nextBiz.id)
+            void saveActiveBusinessId(nextBiz.id)
 
-        const nextWidgetsForBiz = remainingWidgets.filter((w) => w.businessId === nextBiz.id)
-        setActiveWidgetId(nextWidgetsForBiz[0]?.id || "")
-        void saveActiveWidgetId(nextWidgetsForBiz[0]?.id || "")
+            const nextWidgetsForBiz = remainingWidgets.filter((w) => w.businessId === nextBiz.id)
+            setActiveWidgetId(nextWidgetsForBiz[0]?.id || "")
+            void saveActiveWidgetId(nextWidgetsForBiz[0]?.id || "")
+        } else {
+            setActiveBusinessId("")
+            setActiveWidgetId("")
+            void saveActiveBusinessId("")
+            void saveActiveWidgetId("")
+            setIsManagingBusinesses(false)
+            setTab("home")
+        }
 
         showNotice("Business removed.", "info")
     }
