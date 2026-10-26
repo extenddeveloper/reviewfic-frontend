@@ -1104,17 +1104,6 @@ export function App() {
                                                 {activeWidget?.name || "Review Showcase"}
                                             </span>
                                         </div>
-                                        {activeWidget && (
-                                            <button
-                                                type="button"
-                                                className="cf-builder-del-btn"
-                                                onClick={() => setDeleteWidgetTarget({ id: activeWidget.id, name: activeWidget.name })}
-                                                title={`Delete ${activeWidget.name}`}
-                                            >
-                                                <IconTrash size={13} />
-                                                <span>Delete</span>
-                                            </button>
-                                        )}
                                     </div>
 
                                     {/* Subtabs for Builder and Sources inside Widget Edit */}

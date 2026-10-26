@@ -21,7 +21,7 @@ export function DeleteWidgetModal({
             <div className="cf-modal-dialog" onClick={(e) => e.stopPropagation()}>
                 <div className="cf-modal-header">
                     <div className="cf-modal-icon-wrap danger">
-                        <IconTrash size={18} />
+                        <IconTrash size={14} />
                     </div>
                     <button
                         type="button"
@@ -30,7 +30,7 @@ export function DeleteWidgetModal({
                         disabled={isDeleting}
                         aria-label="Close modal"
                     >
-                        <IconX size={14} />
+                        <IconX size={12} />
                     </button>
                 </div>
 
