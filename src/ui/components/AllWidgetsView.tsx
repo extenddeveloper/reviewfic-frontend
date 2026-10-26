@@ -143,13 +143,6 @@ export function AllWidgetsView({
                                         <div className="cf-widget-item-tags">
                                             <span className="cf-widget-tag layout">{layoutName}</span>
                                             <span className="cf-widget-tag style">{styleName}</span>
-                                            {count > 0 ? (
-                                                <span className="cf-widget-tag canvas-live">
-                                                    ● {count} on Canvas
-                                                </span>
-                                            ) : (
-                                                <span className="cf-widget-tag canvas-draft">Draft</span>
-                                            )}
                                         </div>
                                     </div>
                                 </div>

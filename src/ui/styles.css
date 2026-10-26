@@ -5808,18 +5808,6 @@ button.cf-btn-tp-sync:disabled {
     border: 1px solid var(--cf-border);
 }
 
-.cf-widget-tag.canvas-live {
-    background: rgba(34, 197, 94, 0.12);
-    color: #22c55e;
-    border-color: rgba(34, 197, 94, 0.25);
-    font-weight: 600;
-}
-
-.cf-widget-tag.canvas-draft {
-    background: var(--cf-bg-tertiary);
-    color: var(--cf-text-tertiary);
-}
-
 .cf-widget-item-meta {
     font-size: 10.5px;
     color: var(--cf-text-tertiary);
