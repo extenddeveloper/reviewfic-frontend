@@ -37,9 +37,6 @@ export function DeleteBusinessModal({
                     <p className="cf-modal-desc">
                         Are you sure you want to delete <strong className="cf-modal-highlight">"{businessName}"</strong>? This will remove the business, all of its review widgets, and any active instance(s) from your canvas.
                     </p>
-                    <div className="cf-modal-canvas-warning">
-                        ⚠️ All review widgets belonging to this business on your Framer canvas will also be deleted.
-                    </div>
                 </div>
 
                 <div className="cf-modal-footer">
