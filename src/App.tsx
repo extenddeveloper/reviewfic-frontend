@@ -99,6 +99,7 @@ import { ManageBusinessesView } from "./ui/components/ManageBusinessesView"
 import { AllWidgetsView } from "./ui/components/AllWidgetsView"
 import { HomeView } from "./ui/components/HomeView"
 import { LayoutThumbnailPreview } from "./ui/components/LayoutThumbnailPreview"
+import { DeleteWidgetModal } from "./ui/components/DeleteWidgetModal"
 import "./ui/styles.css"
 
 export type TabId = "home" | "widgets" | "businesses" | "settings"
@@ -126,6 +127,8 @@ export function App() {
     const [isProfileOpen, setIsProfileOpen] = useState(false)
     const [isAddingBusiness, setIsAddingBusiness] = useState(false)
     const [isManagingBusinesses, setIsManagingBusinesses] = useState(false)
+    const [deleteWidgetTarget, setDeleteWidgetTarget] = useState<{ id: string; name: string } | null>(null)
+    const [isDeletingWidget, setIsDeletingWidget] = useState(false)
 
     // Canvas stats
     const [canvasCount, setCanvasCount] = useState<number>(0)
@@ -530,25 +533,42 @@ export function App() {
         }
     }
 
-    const handleDeleteWidget = async (widgetId: string) => {
-        await deleteCanvasInstancesForWidget(widgetId)
-        const nextWidgets = widgets.filter((w) => w.id !== widgetId)
-        setWidgets(nextWidgets)
-        void saveWidgets(nextWidgets)
+    const handleConfirmDeleteWidget = async () => {
+        if (!deleteWidgetTarget) return
+        setIsDeletingWidget(true)
+        const targetId = deleteWidgetTarget.id
+        const targetName = deleteWidgetTarget.name
 
-        if (editingWidgetId === widgetId) {
-            setEditingWidgetId(null)
+        try {
+            const canvasRemoved = await deleteCanvasInstancesForWidget(targetId)
+            const nextWidgets = widgets.filter((w) => w.id !== targetId)
+            setWidgets(nextWidgets)
+            void saveWidgets(nextWidgets)
+
+            if (editingWidgetId === targetId) {
+                setEditingWidgetId(null)
+            }
+
+            if (activeWidgetId === targetId) {
+                const remainingForBiz = nextWidgets.filter((w) => w.businessId === activeBusinessId)
+                const nextActiveId = remainingForBiz[0]?.id || ""
+                setActiveWidgetId(nextActiveId)
+                void saveActiveWidgetId(nextActiveId)
+            }
+
+            void refreshCanvasCounts(nextWidgets)
+            setDeleteWidgetTarget(null)
+
+            if (canvasRemoved > 0) {
+                showNotice(`"${targetName}" and ${canvasRemoved} canvas instance(s) deleted.`, "info")
+            } else {
+                showNotice(`"${targetName}" deleted successfully.`, "info")
+            }
+        } catch (e: any) {
+            showNotice(e?.message || "Failed to delete widget.", "error")
+        } finally {
+            setIsDeletingWidget(false)
         }
-
-        if (activeWidgetId === widgetId) {
-            const remainingForBiz = nextWidgets.filter((w) => w.businessId === activeBusinessId)
-            const nextActiveId = remainingForBiz[0]?.id || ""
-            setActiveWidgetId(nextActiveId)
-            void saveActiveWidgetId(nextActiveId)
-        }
-
-        void refreshCanvasCounts(nextWidgets)
-        showNotice("Widget deleted successfully.", "info")
     }
 
     // Handlers for Businesses
@@ -1065,7 +1085,7 @@ export function App() {
                                     onCreateWidget={handleCreateWidget}
                                     onEditWidget={handleEditWidget}
                                     onInsertWidget={handleInsertWidget}
-                                    onDeleteWidget={handleDeleteWidget}
+                                    onDeleteWidget={(w) => setDeleteWidgetTarget(w)}
                                 />
                             ) : (
                                 <>
@@ -1084,6 +1104,17 @@ export function App() {
                                                 {activeWidget?.name || "Review Showcase"}
                                             </span>
                                         </div>
+                                        {activeWidget && (
+                                            <button
+                                                type="button"
+                                                className="cf-builder-del-btn"
+                                                onClick={() => setDeleteWidgetTarget({ id: activeWidget.id, name: activeWidget.name })}
+                                                title={`Delete ${activeWidget.name}`}
+                                            >
+                                                <IconTrash size={13} />
+                                                <span>Delete</span>
+                                            </button>
+                                        )}
                                     </div>
 
                                     {/* Subtabs for Builder and Sources inside Widget Edit */}
@@ -2116,6 +2147,21 @@ export function App() {
                         </span>
                     </div>
                 </footer>
+            )}
+
+            {/* Delete Widget Confirmation Modal */}
+            {deleteWidgetTarget && (
+                <DeleteWidgetModal
+                    widgetName={deleteWidgetTarget.name}
+                    canvasCount={canvasWidgetCounts[deleteWidgetTarget.id] || 0}
+                    isDeleting={isDeletingWidget}
+                    onConfirm={handleConfirmDeleteWidget}
+                    onCancel={() => {
+                        if (!isDeletingWidget) {
+                            setDeleteWidgetTarget(null)
+                        }
+                    }}
+                />
             )}
         </div>
     )

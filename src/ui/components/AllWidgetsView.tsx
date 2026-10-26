@@ -1,6 +1,5 @@
 import React, { useState } from "react"
 import { ConnectedBusiness, ReviewWidget, ReviewLayout, CardStyle } from "../../core/types"
-import { DeleteWidgetModal } from "./DeleteWidgetModal"
 import {
     IconPlus,
     IconSparkles,
@@ -38,7 +37,7 @@ interface AllWidgetsViewProps {
     onCreateWidget: (name: string, layout: ReviewLayout, cardStyle: CardStyle) => void
     onEditWidget: (widget: ReviewWidget) => void
     onInsertWidget: (widget: ReviewWidget) => void
-    onDeleteWidget: (widgetId: string) => void
+    onDeleteWidget: (widget: { id: string; name: string }) => void
 }
 
 export function AllWidgetsView({
@@ -54,7 +53,6 @@ export function AllWidgetsView({
     const [isCreating, setIsCreating] = useState(false)
     const [newWidgetName, setNewWidgetName] = useState("")
     const [newWidgetLayout, setNewWidgetLayout] = useState<ReviewLayout>("carousel")
-    const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
 
     const handleOpenCreate = () => {
         setNewWidgetName(`Showcase ${widgets.length + 1}`)
@@ -177,8 +175,8 @@ export function AllWidgetsView({
                                     <button
                                         type="button"
                                         className="cf-widget-action-btn delete"
-                                        onClick={() => setDeleteTarget({ id: widget.id, name: widget.name })}
-                                        title="Delete widget"
+                                        onClick={() => onDeleteWidget({ id: widget.id, name: widget.name })}
+                                        title={`Delete ${widget.name}`}
                                     >
                                         <IconTrash size={13} />
                                     </button>
@@ -250,19 +248,6 @@ export function AllWidgetsView({
                         </form>
                     </div>
                 </div>
-            )}
-
-            {/* Delete Modal */}
-            {deleteTarget && (
-                <DeleteWidgetModal
-                    widgetName={deleteTarget.name}
-                    canvasCount={canvasWidgetCounts[deleteTarget.id] || 0}
-                    onConfirm={() => {
-                        onDeleteWidget(deleteTarget.id)
-                        setDeleteTarget(null)
-                    }}
-                    onCancel={() => setDeleteTarget(null)}
-                />
             )}
         </div>
     )
