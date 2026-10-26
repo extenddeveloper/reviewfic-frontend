@@ -307,8 +307,9 @@ export function App() {
     }, [widgets, activeBusiness])
 
     const activeWidget = useMemo(() => {
-        return activeWidgets.find((w) => w.id === activeWidgetId) || activeWidgets[0]
-    }, [activeWidgets, activeWidgetId])
+        const targetId = editingWidgetId || activeWidgetId
+        return activeWidgets.find((w) => w.id === targetId) || activeWidgets[0]
+    }, [activeWidgets, editingWidgetId, activeWidgetId])
 
     // Merged config for the active widget
     const activeConfig: ReviewConfig = useMemo(() => {
@@ -475,11 +476,14 @@ export function App() {
     const updateActiveWidgetConfig = useCallback(
         (updater: (prev: ReviewConfig) => ReviewConfig) => {
             if (!activeWidget || !activeBusiness) return
+            const targetWidgetId = activeWidget.id
 
             setWidgets((prevWidgets) => {
                 const nextWidgets = prevWidgets.map((w) => {
-                    if (w.id === activeWidget.id) {
+                    if (w.id === targetWidgetId) {
                         const nextConfig = updater(w.config)
+                        nextConfig.widgetId = targetWidgetId
+                        nextConfig.businessId = activeBusiness.id
                         const updatedWidget: ReviewWidget = {
                             ...w,
                             config: nextConfig,

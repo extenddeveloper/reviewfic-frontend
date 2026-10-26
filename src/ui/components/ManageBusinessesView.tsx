@@ -1,6 +1,8 @@
 import React, { useState } from "react"
 import { ConnectedBusiness } from "../../core/types"
+import { parseTrustpilotInput } from "../../core/trustpilot"
 import { IconPlus, IconTrash } from "../icons"
+import { DeleteBusinessModal } from "./DeleteBusinessModal"
 
 interface ManageBusinessesViewProps {
     businesses: ConnectedBusiness[]
@@ -23,6 +25,8 @@ export function ManageBusinessesView({
     const [editName, setEditName] = useState("")
     const [editGoogle, setEditGoogle] = useState("")
     const [editTp, setEditTp] = useState("")
+    const [deleteTarget, setDeleteTarget] = useState<ConnectedBusiness | null>(null)
+    const [isDeleting, setIsDeleting] = useState(false)
 
     const handleStartEdit = (biz: ConnectedBusiness) => {
         setEditingBizId(biz.id)
@@ -32,13 +36,14 @@ export function ManageBusinessesView({
     }
 
     const handleSaveEdit = (biz: ConnectedBusiness) => {
+        const cleanTp = editTp.trim() ? parseTrustpilotInput(editTp).domain : ""
         const updated: ConnectedBusiness = {
             ...biz,
             name: editName.trim() || biz.name,
             googleBusinessName: editName.trim() || biz.googleBusinessName || biz.name,
             googleMapsUrl: editGoogle.trim() || biz.googleMapsUrl,
-            trustpilotDomain: editTp.trim() || biz.trustpilotDomain,
-            trustpilotEnabled: Boolean(editTp.trim()),
+            trustpilotDomain: cleanTp,
+            trustpilotEnabled: Boolean(cleanTp),
             lastSync: "Just now",
         }
         onUpdateBusiness(updated)
@@ -96,7 +101,7 @@ export function ManageBusinessesView({
                                     <button
                                         type="button"
                                         className="cf-manage-btn danger"
-                                        onClick={() => onDeleteBusiness(biz.id)}
+                                        onClick={() => setDeleteTarget(biz)}
                                         title="Remove business"
                                     >
                                         Remove
@@ -172,6 +177,26 @@ export function ManageBusinessesView({
                     <span>Add a business</span>
                 </button>
             </div>
+
+            {deleteTarget && (
+                <DeleteBusinessModal
+                    businessName={deleteTarget.name}
+                    isDeleting={isDeleting}
+                    onCancel={() => {
+                        if (!isDeleting) setDeleteTarget(null)
+                    }}
+                    onConfirm={async () => {
+                        const targetId = deleteTarget.id
+                        setIsDeleting(true)
+                        try {
+                            await onDeleteBusiness(targetId)
+                            setDeleteTarget(null)
+                        } finally {
+                            setIsDeleting(false)
+                        }
+                    }}
+                />
+            )}
         </div>
     )
 }

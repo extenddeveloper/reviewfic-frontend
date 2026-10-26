@@ -129,12 +129,29 @@ export function ConnectReviewsView({ onComplete, onCancel, initialBusiness }: Co
         }
     }
 
-    const canContinue = Boolean(connectedGoogle || connectedTp)
+    const canContinue = Boolean(connectedGoogle || connectedTp || tpUrlInput.trim())
 
-    const handleContinue = () => {
-        if (!canContinue) return
+    const handleContinue = async () => {
+        let tp = connectedTp
+        if (!tp && tpUrlInput.trim()) {
+            try {
+                const parsed = parseTrustpilotInput(tpUrlInput)
+                const domain = parsed.domain || tpUrlInput.trim()
+                const profile = await resolveTrustpilotProfile(domain)
+                const reviews = generateReviewsForTrustpilot(domain, 24)
+                tp = {
+                    domain,
+                    rating: profile.rating,
+                    reviewCount: profile.reviewCount,
+                    reviews,
+                }
+            } catch {}
+        }
 
-        const displayName = connectedGoogle?.name || connectedTp?.domain || "My Business"
+        if (!connectedGoogle && !tp) return
+
+        const tpName = tp?.domain ? parseTrustpilotInput(tp.domain).businessName : ""
+        const displayName = connectedGoogle?.name || tpName || "My Business"
         const business = createDefaultBusiness(
             displayName,
             connectedGoogle ? {
@@ -145,11 +162,11 @@ export function ConnectReviewsView({ onComplete, onCancel, initialBusiness }: Co
                 reviewCount: connectedGoogle.reviewCount,
                 reviews: connectedGoogle.reviews,
             } : undefined,
-            connectedTp ? {
-                domain: connectedTp.domain,
-                rating: connectedTp.rating,
-                reviewCount: connectedTp.reviewCount,
-                reviews: connectedTp.reviews,
+            tp ? {
+                domain: tp.domain,
+                rating: tp.rating,
+                reviewCount: tp.reviewCount,
+                reviews: tp.reviews,
             } : undefined
         )
 
@@ -339,6 +356,12 @@ export function ConnectReviewsView({ onComplete, onCancel, initialBusiness }: Co
                                 placeholder="trustpilot.com/review/yourbusiness.com"
                                 value={tpUrlInput}
                                 onChange={(e) => setTpUrlInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        e.preventDefault()
+                                        void handleVerifyTrustpilot()
+                                    }
+                                }}
                             />
                             <p className="cf-connect-field-desc">
                                 Paste the link to your Trustpilot profile.

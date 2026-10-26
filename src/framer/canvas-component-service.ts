@@ -1184,7 +1184,7 @@ export async function insertCanvasComponent(
                     controls: controlPayload,
                     width: targetWidth,
                     minWidth: "320px",
-                    name: `Reviewfic - ${config.layout.charAt(0).toUpperCase() + config.layout.slice(1)} (${config.cardStyle})`,
+                    name: `Reviewfic - ${config.layout.charAt(0).toUpperCase() + config.layout.slice(1)} [${config.widgetId || ""}]`,
                 },
             })) as any
 
@@ -1250,6 +1250,12 @@ export async function syncCanvasInstance(config: ReviewConfig): Promise<boolean>
         const controlPayload = buildControlPayload(config)
 
         for (const node of reviewficNodes) {
+            if (config.widgetId) {
+                const wId = await getCanvasWidgetId(node)
+                if (wId && wId !== config.widgetId) {
+                    continue
+                }
+            }
             if (typeof node.setAttributes === "function") {
                 await node.setAttributes({
                     controls: controlPayload,
@@ -1362,7 +1368,11 @@ export async function removeAllCanvasInstances(): Promise<number> {
 export async function getCanvasWidgetId(node: any): Promise<string | null> {
     if (!node) return null
     if (node.controls && typeof node.controls.widgetId === "string" && node.controls.widgetId.trim() !== "") {
-        return node.controls.widgetId
+        return node.controls.widgetId.trim()
+    }
+    if (typeof node.name === "string") {
+        const match = node.name.match(/\[(widget_[^\]]+)\]/)
+        if (match && match[1]) return match[1].trim()
     }
     try {
         if (typeof node.getPluginData === "function") {
@@ -1388,7 +1398,7 @@ export async function insertCanvasWidget(
     mergedConfig.widgetId = widget.id
     mergedConfig.businessId = business.id
 
-    // Deduplication check: check if an instance for this widget already exists on the canvas
+    // Deduplication check: check if an instance for this specific widget already exists on the canvas
     try {
         const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
         if (instances && instances.length > 0) {
@@ -1401,29 +1411,22 @@ export async function insertCanvasWidget(
                     break
                 }
             }
-            if (!existingTarget) {
-                const allReviewfic = instances.filter(isReviewficInstance)
-                if (allReviewfic.length === 1) {
-                    const soleWId = await getCanvasWidgetId(allReviewfic[0])
-                    if (!soleWId || soleWId === widget.id) {
-                        existingTarget = allReviewfic[0]
-                    }
-                }
-            }
 
-            // If it already exists on canvas, DO NOT duplicate! Update the existing instance:
+            // Only update existing if it truly belongs to THIS widget!
             if (existingTarget || options?.updateExistingOnly) {
-                const synced = await syncCanvasWidget(widget, business)
-                if (existingTarget?.id) {
-                    try {
-                        await framer.setSelection([existingTarget.id])
-                    } catch {}
-                }
-                await enforceSingleWidgetInstances()
-                return {
-                    success: synced,
-                    message: `Updated existing widget "${widget.name}" on canvas.`,
-                    instanceId: existingTarget?.id,
+                if (existingTarget) {
+                    const synced = await syncCanvasWidget(widget, business)
+                    if (existingTarget?.id) {
+                        try {
+                            await framer.setSelection([existingTarget.id])
+                        } catch {}
+                    }
+                    await enforceSingleWidgetInstances()
+                    return {
+                        success: synced,
+                        message: `Updated existing widget "${widget.name}" on canvas.`,
+                        instanceId: existingTarget?.id,
+                    }
                 }
             }
         }
@@ -1432,32 +1435,33 @@ export async function insertCanvasWidget(
     }
 
     const res = await insertCanvasComponent(mergedConfig, options)
-    try {
-        const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
-        if (instances) {
-            for (const inst of instances) {
-                if (!isReviewficInstance(inst)) continue
-                const wId = await getCanvasWidgetId(inst)
-                if (!wId || wId === widget.id) {
-                    if (typeof inst.setPluginData === "function") {
-                        await inst.setPluginData("reviewfic_widget_id", widget.id)
-                        await inst.setPluginData("reviewfic_business_id", business.id)
-                    }
-                    if (typeof inst.setAttributes === "function" && inst.controls) {
-                        await inst.setAttributes({
-                            controls: {
-                                ...inst.controls,
-                                widgetId: widget.id,
-                                businessId: business.id,
-                            },
-                        })
-                    }
+    if (res.success && res.instanceId) {
+        try {
+            const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
+            const newInst = instances?.find((i) => i.id === res.instanceId)
+            if (newInst) {
+                if (typeof newInst.setPluginData === "function") {
+                    await newInst.setPluginData("reviewfic_widget_id", widget.id)
+                    await newInst.setPluginData("reviewfic_business_id", business.id)
+                }
+                if (typeof newInst.setAttributes === "function") {
+                    await newInst.setAttributes({
+                        name: `Reviewfic - ${widget.name} [${widget.id}]`,
+                        controls: {
+                            ...(newInst.controls || {}),
+                            ...buildControlPayload(mergedConfig),
+                            widgetId: widget.id,
+                            businessId: business.id,
+                        },
+                    })
                 }
             }
+        } catch (err) {
+            console.warn("[Reviewfic] Failed to set attributes on new instance:", err)
         }
-    } catch {}
+    }
 
-    // Enforce single instance policy after insertion
+    // Enforce single instance policy per widget
     await enforceSingleWidgetInstances()
 
     return res
@@ -1467,10 +1471,47 @@ export async function syncCanvasWidget(
     widget: ReviewWidget,
     business: ConnectedBusiness
 ): Promise<boolean> {
-    const mergedConfig = mergeBusinessIntoConfig(business, widget.config)
-    mergedConfig.widgetId = widget.id
-    mergedConfig.businessId = business.id
-    return syncCanvasInstance(mergedConfig)
+    try {
+        const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
+        if (!instances || instances.length === 0) return false
+        const reviewficNodes = instances.filter(isReviewficInstance)
+        if (reviewficNodes.length === 0) return false
+
+        // Find the specific instance on canvas matching this widget.id
+        let targetNode: any = null
+        for (const node of reviewficNodes) {
+            const wId = await getCanvasWidgetId(node)
+            if (wId === widget.id) {
+                targetNode = node
+                break
+            }
+        }
+
+        // If this widget has not been inserted onto the canvas yet, do NOT touch other canvas instances!
+        if (!targetNode) {
+            return false
+        }
+
+        const mergedConfig = mergeBusinessIntoConfig(business, widget.config)
+        mergedConfig.widgetId = widget.id
+        mergedConfig.businessId = business.id
+
+        const isBadge = isBadgeLayout(mergedConfig.layout)
+        const targetWidth = isBadge ? "420px" : "1100px"
+        const controlPayload = buildControlPayload(mergedConfig)
+
+        if (typeof targetNode.setAttributes === "function") {
+            await targetNode.setAttributes({
+                name: `Reviewfic - ${widget.name} [${widget.id}]`,
+                controls: controlPayload,
+                width: targetWidth,
+            })
+        }
+        return true
+    } catch (e) {
+        console.warn("[Reviewfic] syncCanvasWidget error:", e)
+        return false
+    }
 }
 
 export async function countCanvasInstancesForWidget(widgetId: string): Promise<number> {
@@ -1483,7 +1524,7 @@ export async function countCanvasInstancesForWidget(widgetId: string): Promise<n
         let count = 0
         for (const inst of reviewficNodes) {
             const wId = await getCanvasWidgetId(inst)
-            if (wId === widgetId || (!wId && reviewficNodes.length === 1)) {
+            if (wId === widgetId) {
                 count++
             }
         }
@@ -1503,8 +1544,7 @@ export async function deleteCanvasInstancesForWidget(widgetId: string): Promise<
         let count = 0
         for (const inst of reviewficNodes) {
             const wId = await getCanvasWidgetId(inst)
-            const isMatch = wId === widgetId || (!wId && reviewficNodes.length === 1)
-            if (isMatch) {
+            if (wId === widgetId) {
                 let deleted = false
                 if (typeof inst.remove === "function") {
                     try {
@@ -1536,10 +1576,10 @@ export async function deleteCanvasInstancesForWidget(widgetId: string): Promise<
 }
 
 /**
- * Enforces the Single-Instance policy across the Framer canvas.
- * If a user attempts to copy or duplicate a widget on the canvas (e.g. via Cmd+D, Alt+drag,
- * or Copy/Paste), this function detects duplicate instances and removes them immediately,
- * ensuring each widget exists at most once on the canvas.
+ * Enforces the Single-Instance policy per widget across the Framer canvas.
+ * If a user attempts to copy or duplicate a specific widget on the canvas (e.g. via Cmd+D, Alt+drag,
+ * or Copy/Paste), this function detects duplicate instances of that specific widget and removes them,
+ * ensuring each widget exists at most once on the canvas while allowing distinct widgets to coexist.
  */
 export async function enforceSingleWidgetInstances(): Promise<{ removedDuplicates: number }> {
     try {
@@ -1549,14 +1589,17 @@ export async function enforceSingleWidgetInstances(): Promise<{ removedDuplicate
         const reviewficNodes = instances.filter(isReviewficInstance)
         if (reviewficNodes.length <= 1) return { removedDuplicates: 0 }
 
-        const seenWidgetIds = new Map<string, any>()
+        const seenWidgetIds = new Set<string>()
         let removedDuplicates = 0
 
         for (const inst of reviewficNodes) {
             const wId = await getCanvasWidgetId(inst)
-            const key = wId || "__single_reviewfic_instance__"
+            // Only deduplicate if we have an identified widget ID for this instance
+            if (!wId) {
+                continue
+            }
 
-            if (seenWidgetIds.has(key)) {
+            if (seenWidgetIds.has(wId)) {
                 let deleted = false
                 if (typeof inst.remove === "function") {
                     try {
@@ -1579,7 +1622,7 @@ export async function enforceSingleWidgetInstances(): Promise<{ removedDuplicate
                     removedDuplicates++
                 }
             } else {
-                seenWidgetIds.set(key, inst)
+                seenWidgetIds.add(wId)
             }
         }
 

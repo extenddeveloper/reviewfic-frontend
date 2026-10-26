@@ -1,7 +1,7 @@
 import { BlendedStats, ReviewConfig, ReviewItem, ConnectedBusiness, ReviewWidget } from "./types"
 import { DEMO_REVIEWS } from "./mock-data"
 import { generateReviewsForBusiness } from "./google-places"
-import { generateReviewsForTrustpilot } from "./trustpilot"
+import { generateReviewsForTrustpilot, parseTrustpilotInput } from "./trustpilot"
 
 export const DEFAULT_CONFIG: ReviewConfig = {
     isDemoMode: true,
@@ -275,25 +275,28 @@ export function createDefaultBusiness(
     }
 ): ConnectedBusiness {
     const id = `biz_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
-    const gName = googleData?.name || name
-    const tpDomain = trustpilotData?.domain || ""
+    const parsedTp = trustpilotData?.domain ? parseTrustpilotInput(trustpilotData.domain) : null
+    const cleanTpDomain = parsedTp?.domain || ""
+    const hasGoogle = Boolean(googleData && googleData.name)
+    const hasTp = Boolean(cleanTpDomain)
+    const gName = (hasGoogle ? googleData?.name : null) || parsedTp?.businessName || name
 
     return {
         id,
         name: gName,
-        googlePlaceId: googleData?.placeId || `ChIJ_${Date.now()}`,
-        googleBusinessName: gName,
-        googleMapsUrl: googleData?.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gName)}`,
-        googleRating: googleData?.rating ?? 4.9,
-        googleReviewCount: googleData?.reviewCount ?? 156,
-        googleReviews: googleData?.reviews || generateReviewsForBusiness(gName),
-        googleEnabled: Boolean(googleData || !trustpilotData),
+        googlePlaceId: hasGoogle ? (googleData?.placeId || `ChIJ_${Date.now()}`) : "",
+        googleBusinessName: hasGoogle ? (googleData?.name || gName) : "",
+        googleMapsUrl: hasGoogle ? (googleData?.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gName)}`) : "",
+        googleRating: hasGoogle ? (googleData?.rating ?? 4.9) : 0,
+        googleReviewCount: hasGoogle ? (googleData?.reviewCount ?? 156) : 0,
+        googleReviews: hasGoogle ? (googleData?.reviews || generateReviewsForBusiness(gName)) : [],
+        googleEnabled: hasGoogle,
 
-        trustpilotDomain: tpDomain,
-        trustpilotRating: trustpilotData?.rating ?? 4.8,
-        trustpilotReviewCount: trustpilotData?.reviewCount ?? 120,
-        trustpilotReviews: tpDomain ? (trustpilotData?.reviews || generateReviewsForTrustpilot(tpDomain, 20)) : [],
-        trustpilotEnabled: Boolean(tpDomain),
+        trustpilotDomain: cleanTpDomain,
+        trustpilotRating: hasTp ? (trustpilotData?.rating ?? 4.8) : 0,
+        trustpilotReviewCount: hasTp ? (trustpilotData?.reviewCount ?? 120) : 0,
+        trustpilotReviews: hasTp ? (trustpilotData?.reviews || generateReviewsForTrustpilot(cleanTpDomain, 20)) : [],
+        trustpilotEnabled: hasTp,
 
         customReviews: [],
         lastSync: "Just now",
