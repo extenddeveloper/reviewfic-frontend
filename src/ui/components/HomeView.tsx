@@ -120,7 +120,7 @@ export function HomeView({
                     />
                     <FrameficCard
                         name="CMS Filter"
-                        description="Transform your Framer CMS with effortless collection and filter field selection, ready-made filter grids, and seamless pagination all fully customizable to match your design."
+                        description="Transform your Framer CMS with effortless collection and filter field selection, filter grids with pagination."
                         logoSrc="./Cmsfilter.png"
                         marketplaceUrl="https://www.framer.com/marketplace/plugins/cms-filter/"
                     />

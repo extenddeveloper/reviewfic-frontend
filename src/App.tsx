@@ -54,7 +54,6 @@ import {
     IconSliders,
     IconCheck,
     IconShieldCheck,
-    IconSearch,
     IconDownload,
     IconUpload,
     IconDatabase,
@@ -74,17 +73,8 @@ import {
     parseCSVToReviews,
 } from "./core/csv-service"
 import { syncReviewsToFramerCMS, exportReviewsForFramerCMS } from "./framer/cms-sync-service"
-import {
-    searchGooglePlaces,
-    parseGoogleMapsInput,
-    generateReviewsForBusiness,
-    GooglePlaceResult,
-} from "./core/google-places"
-import {
-    resolveTrustpilotProfile,
-    generateReviewsForTrustpilot,
-    parseTrustpilotInput,
-} from "./core/trustpilot"
+import { generateReviewsForBusiness } from "./core/google-places"
+import { generateReviewsForTrustpilot } from "./core/trustpilot"
 import { Switch } from "./ui/components/Switch"
 import { Field } from "./ui/components/Field"
 import { Section } from "./ui/components/Section"
@@ -141,12 +131,6 @@ export function App() {
     const [stageTheme, setStageTheme] = useState<"soft" | "dark" | "light">("soft")
     const [selectedLayoutGroup, setSelectedLayoutGroup] = useState<string>("cards")
     const [selectedCardFamily, setSelectedCardFamily] = useState<CardFamily | "all">("modern")
-
-    // Google Places Search states
-    const [googleQuery, setGoogleQuery] = useState("")
-    const [placeResults, setPlaceResults] = useState<GooglePlaceResult[]>([])
-    const [isSearchingPlaces, setIsSearchingPlaces] = useState(false)
-    const [tpInput, setTpInput] = useState("")
 
     // Custom review form state
     const [newAuthor, setNewAuthor] = useState("")
@@ -739,102 +723,6 @@ export function App() {
         updateActiveWidgetConfig(() => ({ ...DEFAULT_CONFIG, widgetId: activeWidget.id, businessId: activeBusiness?.id }))
         showNotice("Widget settings reset to defaults.", "info")
     }
-
-    // Google Places Search in Sources Tab
-    const handleGoogleSearchInput = (val: string) => {
-        setGoogleQuery(val)
-        if (!val.trim()) {
-            setPlaceResults([])
-            return
-        }
-
-        const parsed = parseGoogleMapsInput(val)
-        if (parsed.isValid && (val.includes("maps") || val.startsWith("ChIJ"))) {
-            setPlaceResults([
-                {
-                    placeId: parsed.placeId || `ChIJ${Date.now()}`,
-                    name: parsed.placeName || "Google Verified Location",
-                    address: val,
-                    rating: 4.9,
-                    reviewCount: 168,
-                    mapsUrl: parsed.mapsUrl,
-                    reviews: generateReviewsForBusiness(parsed.placeName || "Google Verified Location"),
-                },
-            ])
-            return
-        }
-
-        setIsSearchingPlaces(true)
-        searchGooglePlaces(val)
-            .then((results) => setPlaceResults(results))
-            .catch(() => setPlaceResults([]))
-            .finally(() => setIsSearchingPlaces(false))
-    }
-
-    const handleSelectPlace = (place: GooglePlaceResult) => {
-        const authenticReviews = place.reviews && place.reviews.length > 0
-            ? place.reviews
-            : generateReviewsForBusiness(place.name, place.category || "Business", place.address)
-
-        const writeReviewUrl = place.placeId?.startsWith("ChIJ")
-            ? `https://search.google.com/local/writereview?placeid=${place.placeId}`
-            : place.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}`
-
-        updateActiveBusiness((prev) => ({
-            ...prev,
-            name: place.name,
-            googleBusinessName: place.name,
-            googlePlaceId: place.placeId,
-            googleMapsUrl: place.mapsUrl,
-            googleRating: place.rating,
-            googleReviewCount: place.reviewCount,
-            googleReviews: authenticReviews,
-            googleEnabled: true,
-            lastSync: "Just now",
-        }))
-
-        updateActiveWidgetConfig((prev) => ({
-            ...prev,
-            writeReviewGoogleUrl: writeReviewUrl,
-            googleEnabled: true,
-            isDemoMode: false,
-        }))
-
-        setGoogleQuery("")
-        setPlaceResults([])
-        showNotice(`Connected to Google: "${place.name}" (${authenticReviews.length} reviews)!`, "success")
-    }
-
-    const handleConnectTrustpilot = useCallback(
-        async (targetDomain?: string) => {
-            const input = (targetDomain || tpInput || activeBusiness?.trustpilotDomain || "").trim()
-            if (!input) return
-            const parsed = parseTrustpilotInput(input)
-            const domain = parsed.domain || input
-            const resolved = await resolveTrustpilotProfile(domain)
-            const fresh = generateReviewsForTrustpilot(domain, 24)
-
-            updateActiveBusiness((prev) => ({
-                ...prev,
-                trustpilotDomain: domain,
-                trustpilotRating: resolved.rating,
-                trustpilotReviewCount: resolved.reviewCount,
-                trustpilotReviews: fresh,
-                trustpilotEnabled: true,
-                lastSync: "Just now",
-            }))
-
-            updateActiveWidgetConfig((prev) => ({
-                ...prev,
-                trustpilotEnabled: true,
-                isDemoMode: false,
-            }))
-
-            setTpInput("")
-            showNotice(`Connected Trustpilot: "${domain}" (${fresh.length} reviews)!`, "success")
-        },
-        [activeBusiness, tpInput, updateActiveBusiness, updateActiveWidgetConfig, showNotice]
-    )
 
     // Custom review handlers
     const handleAddCustomReview = () => {
@@ -1589,13 +1477,14 @@ export function App() {
                                 <Section
                                     title="Source Filter"
                                     subtitle="Choose which platforms to display in this feed"
-                                    icon={<IconGoogle size={15} />}
+                                    icon={<IconSliders size={15} />}
                                 >
                                     <div className="cf-segmented-grid">
                                         {[
                                             { id: "blend", label: "Blended Feed" },
                                             { id: "google_only", label: "Google Only" },
                                             { id: "trustpilot_only", label: "Trustpilot Only" },
+                                            { id: "custom_only", label: "Custom Only" },
                                         ].map((m) => (
                                             <button
                                                 key={m.id}
@@ -1616,233 +1505,52 @@ export function App() {
                                     </div>
                                 </Section>
 
-                                {/* Google Profile Connection */}
+                                {/* Connected Business Sources Overview */}
                                 <Section
-                                    title="Google Business Profile"
-                                    subtitle={
-                                        activeBusiness.googlePlaceId
-                                            ? `Connected: ${activeBusiness.googleBusinessName || activeBusiness.name}`
-                                            : "Connect via live search or Maps URL / Place ID"
-                                    }
-                                    icon={<IconGoogle size={15} />}
+                                    title="Connected Business Sources"
+                                    subtitle={`Reviews for this widget belong to "${activeBusiness.name}"`}
+                                    icon={<IconDatabase size={15} />}
                                 >
-                                    <Switch
-                                        label="Enable Google Reviews"
-                                        checked={activeBusiness.googleEnabled}
-                                        onChange={(v) =>
-                                            updateActiveBusiness((prev) => ({ ...prev, googleEnabled: v }))
-                                        }
-                                    />
-
-                                    {activeBusiness.googleBusinessName && activeBusiness.googlePlaceId ? (
-                                        <div className="cf-location-connected-card">
-                                            <div className="cf-location-conn-head">
-                                                <span className="cf-location-conn-badge">
-                                                    <IconCheck size={12} />
-                                                    <span>Connected &amp; Verified</span>
-                                                </span>
-                                                <button
-                                                    type="button"
-                                                    className="cf-btn-disconnect"
-                                                    onClick={() => {
-                                                        updateActiveBusiness((prev) => ({
-                                                            ...prev,
-                                                            googleBusinessName: "",
-                                                            googlePlaceId: "",
-                                                            googleMapsUrl: "",
-                                                            googleReviews: [],
-                                                            googleEnabled: false,
-                                                        }))
-                                                        setGoogleQuery("")
-                                                    }}
-                                                    title="Disconnect Google profile"
-                                                >
-                                                    Disconnect
-                                                </button>
-                                            </div>
-                                            <h4 className="cf-location-conn-title">{activeBusiness.googleBusinessName}</h4>
-                                            <div className="cf-location-conn-meta">
-                                                <span className="cf-location-conn-score">
-                                                    ★ {activeBusiness.googleRating}
-                                                </span>
-                                                <span>•</span>
-                                                <span>{activeBusiness.googleReviewCount}+ Google Reviews</span>
-                                                <span>•</span>
-                                                <span>Place ID: {activeBusiness.googlePlaceId.slice(0, 14)}...</span>
-                                            </div>
-
-                                            <div className="cf-conn-metrics-row">
-                                                <div className="cf-conn-metric-card">
-                                                    <span className="cf-metric-label">Google Rating</span>
-                                                    <span className="cf-metric-value">★ {activeBusiness.googleRating}</span>
-                                                    <span className="cf-metric-source">Google Maps Live</span>
-                                                </div>
-                                                <div className="cf-conn-metric-card">
-                                                    <span className="cf-metric-label">Total Reviews</span>
-                                                    <span className="cf-metric-value">
-                                                        {activeBusiness.googleReviewCount}+
-                                                    </span>
-                                                    <span className="cf-metric-source">Verified Count</span>
-                                                </div>
-                                            </div>
-
+                                    <div className="cf-location-connected-card">
+                                        <div className="cf-location-conn-head">
+                                            <span className="cf-location-conn-badge">
+                                                <IconCheck size={12} />
+                                                <span>{activeBusiness.name}</span>
+                                            </span>
                                             <button
                                                 type="button"
-                                                className="cf-btn-google-sync"
-                                                onClick={() => handleSyncBusiness(activeBusiness)}
+                                                className="cf-manage-btn"
+                                                onClick={() => setTab("businesses")}
+                                                title="Manage businesses"
                                             >
-                                                <IconRefresh size={14} />
-                                                <span>Sync Google Business Reviews</span>
+                                                Manage in Businesses tab &rarr;
                                             </button>
                                         </div>
-                                    ) : (
-                                        <div className="cf-location-search-wrap">
-                                            <label className="cf-field-label">
-                                                Live Search Location or Paste Maps URL / Place ID
-                                            </label>
-                                            <div className="cf-location-input-row">
-                                                <span className="cf-location-input-icon">
-                                                    <IconSearch size={14} />
+                                        <div className="cf-conn-metrics-row">
+                                            <div className="cf-conn-metric-card">
+                                                <span className="cf-metric-label">Google Reviews</span>
+                                                <span className="cf-metric-value">
+                                                    {activeBusiness.googleBusinessName
+                                                        ? `★ ${activeBusiness.googleRating} (${activeBusiness.googleReviewCount})`
+                                                        : "Not connected"}
                                                 </span>
-                                                <input
-                                                    type="text"
-                                                    className="cf-location-input"
-                                                    placeholder="Type business name or paste Google Maps link..."
-                                                    value={googleQuery}
-                                                    onChange={(e) => handleGoogleSearchInput(e.target.value)}
-                                                />
-                                                {isSearchingPlaces && <span className="cf-location-spinner" />}
+                                                <span className="cf-metric-source">
+                                                    {activeBusiness.googleBusinessName || "Configured in Businesses tab"}
+                                                </span>
                                             </div>
-
-                                            {placeResults.length > 0 && (
-                                                <div className="cf-location-dropdown">
-                                                    {placeResults.map((p) => (
-                                                        <button
-                                                            key={p.placeId}
-                                                            type="button"
-                                                            className="cf-location-item"
-                                                            onClick={() => handleSelectPlace(p)}
-                                                        >
-                                                            <div className="cf-location-item-top">
-                                                                <span className="cf-location-item-name">{p.name}</span>
-                                                                <span className="cf-location-item-rating">
-                                                                    ★ {p.rating} ({p.reviewCount})
-                                                                </span>
-                                                            </div>
-                                                            <span className="cf-location-item-addr">{p.address}</span>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </Section>
-
-                                {/* Trustpilot Connection */}
-                                <Section
-                                    title="Trustpilot Profile"
-                                    subtitle={
-                                        activeBusiness.trustpilotDomain
-                                            ? `Connected: ${activeBusiness.trustpilotDomain}`
-                                            : "Connect your Trustpilot reviews"
-                                    }
-                                    icon={<IconTrustpilot size={15} />}
-                                >
-                                    <Switch
-                                        label="Enable Trustpilot Reviews"
-                                        checked={activeBusiness.trustpilotEnabled}
-                                        onChange={(v) =>
-                                            updateActiveBusiness((prev) => ({ ...prev, trustpilotEnabled: v }))
-                                        }
-                                    />
-
-                                    {activeBusiness.trustpilotDomain ? (
-                                        <div className="cf-tp-connected-card">
-                                            <div className="cf-conn-header">
-                                                <div className="cf-conn-identity">
-                                                    <div className="cf-conn-logo cf-conn-logo-tp">
-                                                        <IconTrustpilot size={16} />
-                                                    </div>
-                                                    <div>
-                                                        <div className="cf-conn-name">{activeBusiness.trustpilotDomain}</div>
-                                                        <div className="cf-tp-badge-tag">
-                                                            <IconCheck size={12} />
-                                                            <span>Verified TrustScore</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    type="button"
-                                                    className="cf-btn-disconnect"
-                                                    onClick={() => {
-                                                        updateActiveBusiness((prev) => ({
-                                                            ...prev,
-                                                            trustpilotDomain: "",
-                                                            trustpilotReviews: [],
-                                                            trustpilotEnabled: false,
-                                                        }))
-                                                    }}
-                                                    title="Disconnect Trustpilot profile"
-                                                >
-                                                    Disconnect
-                                                </button>
+                                            <div className="cf-conn-metric-card">
+                                                <span className="cf-metric-label">Trustpilot</span>
+                                                <span className="cf-metric-value">
+                                                    {activeBusiness.trustpilotDomain
+                                                        ? `★ ${activeBusiness.trustpilotRating} (${activeBusiness.trustpilotReviewCount})`
+                                                        : "Not connected"}
+                                                </span>
+                                                <span className="cf-metric-source">
+                                                    {activeBusiness.trustpilotDomain || "Configured in Businesses tab"}
+                                                </span>
                                             </div>
-
-                                            <div className="cf-conn-metrics-row">
-                                                <div className="cf-conn-metric-card">
-                                                    <span className="cf-metric-label">TrustScore</span>
-                                                    <span className="cf-metric-value">
-                                                        ★ {activeBusiness.trustpilotRating}
-                                                    </span>
-                                                    <span className="cf-metric-source">Trustpilot Verified</span>
-                                                </div>
-                                                <div className="cf-conn-metric-card">
-                                                    <span className="cf-metric-label">Total Reviews</span>
-                                                    <span className="cf-metric-value">
-                                                        {activeBusiness.trustpilotReviewCount}+
-                                                    </span>
-                                                    <span className="cf-metric-source">TrustScore Pool</span>
-                                                </div>
-                                            </div>
-
-                                            <button
-                                                type="button"
-                                                className="cf-btn-tp-sync"
-                                                onClick={() => handleSyncBusiness(activeBusiness)}
-                                            >
-                                                <IconRefresh size={14} />
-                                                <span>Sync Trustpilot Reviews</span>
-                                            </button>
                                         </div>
-                                    ) : (
-                                        <div className="cf-tp-connect-wrap">
-                                            <Field
-                                                label="Trustpilot Domain or URL"
-                                                hint="Enter domain (e.g. themefic.com) or trustpilot.com URL"
-                                            >
-                                                <div className="cf-tp-input-row">
-                                                    <span className="cf-tp-input-icon">
-                                                        <IconTrustpilot size={15} />
-                                                    </span>
-                                                    <input
-                                                        type="text"
-                                                        className="cf-input cf-tp-input"
-                                                        placeholder="e.g. themefic.com or trustpilot.com/review/..."
-                                                        value={tpInput}
-                                                        onChange={(e) => setTpInput(e.target.value)}
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        className="cf-btn-connect-sm"
-                                                        onClick={() => void handleConnectTrustpilot()}
-                                                        disabled={!tpInput.trim()}
-                                                    >
-                                                        Connect
-                                                    </button>
-                                                </div>
-                                            </Field>
-                                        </div>
-                                    )}
+                                    </div>
                                 </Section>
 
                                 {/* Custom Testimonials */}
