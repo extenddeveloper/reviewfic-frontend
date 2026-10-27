@@ -118,6 +118,12 @@ export function HomeView({
                         logoSrc="./Crestbar.png"
                         marketplaceUrl="https://www.framer.com/community/marketplace/plugins/announcement-bar/"
                     />
+                    <FrameficCard
+                        name="CMS Filter"
+                        description="Transform your Framer CMS with effortless collection and filter field selection, ready-made filter grids, and seamless pagination all fully customizable to match your design."
+                        logoSrc="./Cmsfilter.png"
+                        marketplaceUrl="https://www.framer.com/marketplace/plugins/cms-filter/"
+                    />
                 </div>
             </div>
         </div>
