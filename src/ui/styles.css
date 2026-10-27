@@ -2352,10 +2352,21 @@ html[data-framer-theme="light"] .cf-catalog-item.active .cf-wf-card,
     border-radius: 2px;
 }
 
-.cf-wf-pinboard .t-left { transform: rotate(-3deg); }
-.cf-wf-pinboard .t-right { transform: rotate(2.5deg); }
-.cf-wf-pinboard .t-left-sm { transform: rotate(-1.5deg); }
-.cf-wf-pinboard .t-right-sm { transform: rotate(2deg); }
+.cf-wf-pinboard .t-left {
+    transform: rotate(-3deg);
+}
+
+.cf-wf-pinboard .t-right {
+    transform: rotate(2.5deg);
+}
+
+.cf-wf-pinboard .t-left-sm {
+    transform: rotate(-1.5deg);
+}
+
+.cf-wf-pinboard .t-right-sm {
+    transform: rotate(2deg);
+}
 
 /* 2. Duo (Two columns) */
 .cf-wf-duo {
@@ -2488,9 +2499,12 @@ html[data-framer-theme="light"] .cf-catalog-item.active .cf-wf-card,
 }
 
 @keyframes cfPreviewCarouselSlide {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateX(0);
     }
+
     50% {
         transform: translateX(-18px);
     }
@@ -2529,6 +2543,7 @@ html[data-framer-theme="light"] .cf-catalog-item.active .cf-wf-card,
     0% {
         transform: translateX(0);
     }
+
     100% {
         transform: translateX(-50%);
     }
@@ -2565,9 +2580,12 @@ html[data-framer-theme="light"] .cf-catalog-item.active .cf-wf-card,
 }
 
 @keyframes cfPreviewWallDrift {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0);
     }
+
     50% {
         transform: translateY(-5px);
     }
@@ -2627,10 +2645,13 @@ html[data-framer-theme="light"] .cf-wf-avatar-circle,
 }
 
 @keyframes cfPreviewSpotlightPulse {
-    0%, 100% {
+
+    0%,
+    100% {
         opacity: 1;
         transform: scale(1);
     }
+
     50% {
         opacity: 0.75;
         transform: scale(0.97);
@@ -2674,13 +2695,23 @@ html[data-framer-theme="light"] .cf-wf-avatar-circle,
 }
 
 @keyframes cfPreviewFlowLeft {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-16px); }
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-16px);
+    }
 }
 
 @keyframes cfPreviewFlowRight {
-    0% { transform: translateX(-16px); }
-    100% { transform: translateX(0); }
+    0% {
+        transform: translateX(-16px);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
 }
 
 /* 11. Grid */
@@ -2715,9 +2746,17 @@ html[data-framer-theme="light"] .cf-wf-avatar-circle,
     min-width: 0;
 }
 
-.cf-wf-masonry .tall { height: 17px; }
-.cf-wf-masonry .short { height: 9px; }
-.cf-wf-masonry .med { height: 13px; }
+.cf-wf-masonry .tall {
+    height: 17px;
+}
+
+.cf-wf-masonry .short {
+    height: 9px;
+}
+
+.cf-wf-masonry .med {
+    height: 13px;
+}
 
 /* 13. Editorial List */
 .cf-wf-list {
@@ -2756,8 +2795,13 @@ html[data-framer-theme="dark"] .cf-wf-line,
     background: #4B5563;
 }
 
-.cf-wf-line.full { width: 75%; }
-.cf-wf-line.med { width: 55%; }
+.cf-wf-line.full {
+    width: 75%;
+}
+
+.cf-wf-line.med {
+    width: 55%;
+}
 
 /* 14. Trust Badge */
 .cf-wf-badge {
@@ -2895,10 +2939,22 @@ html[data-framer-theme="dark"] .cf-wf-bar,
     background: #4B5563;
 }
 
-.cf-wf-bar.b-5 { width: 100%; background: #FBBF24; }
-.cf-wf-bar.b-4 { width: 75%; }
-.cf-wf-bar.b-3 { width: 45%; }
-.cf-wf-bar.b-2 { width: 25%; }
+.cf-wf-bar.b-5 {
+    width: 100%;
+    background: #FBBF24;
+}
+
+.cf-wf-bar.b-4 {
+    width: 75%;
+}
+
+.cf-wf-bar.b-3 {
+    width: 45%;
+}
+
+.cf-wf-bar.b-2 {
+    width: 25%;
+}
 
 /* 17. Orbit */
 .cf-wf-orbit {
@@ -2926,10 +2982,25 @@ html[data-framer-theme="dark"] .cf-wf-bar,
     background: #94A3B8;
 }
 
-.cf-wf-orbit-dot.od-1 { top: 0; left: 14px; }
-.cf-wf-orbit-dot.od-2 { bottom: 0; left: 14px; }
-.cf-wf-orbit-dot.od-3 { left: 0; top: 14px; }
-.cf-wf-orbit-dot.od-4 { right: 0; top: 14px; }
+.cf-wf-orbit-dot.od-1 {
+    top: 0;
+    left: 14px;
+}
+
+.cf-wf-orbit-dot.od-2 {
+    bottom: 0;
+    left: 14px;
+}
+
+.cf-wf-orbit-dot.od-3 {
+    left: 0;
+    top: 14px;
+}
+
+.cf-wf-orbit-dot.od-4 {
+    right: 0;
+    top: 14px;
+}
 
 /* 18. Default Ribbon */
 .cf-wf-default {
@@ -6166,6 +6237,8 @@ button.cf-btn-tp-sync:disabled {
     align-items: center;
     gap: 4px;
     transition: opacity 0.15s;
+    padding: 4px 8px;
+    border-radius: 6px;
 }
 
 .cf-builder-back-btn:hover {

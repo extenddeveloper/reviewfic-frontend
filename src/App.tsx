@@ -233,7 +233,7 @@ export function App() {
     useEffect(() => {
         let isMounted = true
         async function init() {
-            void cleanupStalePluginDataChunks()
+            void cleanupStalePluginDataChunks().catch(() => {})
             const loadedBiz = await loadBusinesses()
             const loadedWidgets = await loadWidgets()
             const savedBizId = await loadActiveBusinessId()
@@ -256,7 +256,7 @@ export function App() {
                 if (bizWidgets.length === 0) {
                     const defaultWidget = createDefaultWidget(currentBizId, "Default Review Showcase", "carousel", "elevated")
                     currentWidgets = [defaultWidget, ...currentWidgets]
-                    void saveWidgets(currentWidgets)
+                    void saveWidgets(currentWidgets).catch(() => {})
                 }
             }
 

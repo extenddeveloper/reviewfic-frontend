@@ -10,9 +10,10 @@ const STORAGE_KEY_WIDGETS = "reviewfic_widgets_v2"
 const STORAGE_KEY_ACTIVE_BIZ = "reviewfic_active_biz_v2"
 const STORAGE_KEY_ACTIVE_WIDGET = "reviewfic_active_widget_v2"
 
-// Framer enforces a strict total combined limit of 4096 bytes across all plugin data keys on a node.
-// We set a conservative safe limit per key to guarantee the total sum never exceeds 4kB.
-const MAX_SAFE_PLUGIN_DATA_SIZE = 2500
+// Framer strictly asserts: value.length <= 2048 (max 2kB per value)
+// and combined total across all keys on a node <= 4096 (max 4kB combined).
+// We set a strict safety cap of 1800 bytes per key to guarantee zero Framer assertion errors.
+const MAX_PLUGIN_DATA_VALUE_BYTES = 1800
 
 async function ensureStoragePermissions(): Promise<void> {
     try {
@@ -23,8 +24,50 @@ async function ensureStoragePermissions(): Promise<void> {
 }
 
 /**
- * Strips heavy review arrays from a ConnectedBusiness before storing in Framer plugin data.
- * Reviews are re-hydrated dynamically upon load, keeping storage < 500 bytes per business.
+ * Extracts only non-default properties from a ReviewConfig to create an ultra-compact delta (~60-120 bytes).
+ * This prevents arrays of widgets from exceeding Framer's 2kB per-key and 4kB combined limits.
+ */
+export function getWidgetConfigDelta(config: ReviewConfig): Partial<ReviewConfig> {
+    const full = config || DEFAULT_CONFIG
+    const delta: any = {
+        layout: full.layout || "carousel",
+        cardStyle: full.cardStyle || "elevated",
+    }
+
+    if (full.sourceMode && full.sourceMode !== DEFAULT_CONFIG.sourceMode) delta.sourceMode = full.sourceMode
+    if (full.themeMode && full.themeMode !== DEFAULT_CONFIG.themeMode) delta.themeMode = full.themeMode
+    if (full.starColor && full.starColor !== DEFAULT_CONFIG.starColor) delta.starColor = full.starColor
+    if (full.gridColumns && full.gridColumns !== DEFAULT_CONFIG.gridColumns) delta.gridColumns = full.gridColumns
+    if (full.containerBg) delta.containerBg = full.containerBg
+
+    if (full.showStars !== DEFAULT_CONFIG.showStars) delta.showStars = full.showStars
+    if (full.showSourceIcon !== DEFAULT_CONFIG.showSourceIcon) delta.showSourceIcon = full.showSourceIcon
+    if (full.showAvatar !== DEFAULT_CONFIG.showAvatar) delta.showAvatar = full.showAvatar
+    if (full.showDate !== DEFAULT_CONFIG.showDate) delta.showDate = full.showDate
+    if (full.showVerifiedBadge !== DEFAULT_CONFIG.showVerifiedBadge) delta.showVerifiedBadge = full.showVerifiedBadge
+    if (full.showWriteReview !== DEFAULT_CONFIG.showWriteReview) delta.showWriteReview = full.showWriteReview
+    if (full.writeReviewGoogleUrl) delta.writeReviewGoogleUrl = full.writeReviewGoogleUrl
+    if (full.writeReviewTrustpilotUrl) delta.writeReviewTrustpilotUrl = full.writeReviewTrustpilotUrl
+    if (full.minRatingFilter !== DEFAULT_CONFIG.minRatingFilter) delta.minRatingFilter = full.minRatingFilter
+    if (full.hideEmptyText !== DEFAULT_CONFIG.hideEmptyText) delta.hideEmptyText = full.hideEmptyText
+    if (full.maxReviews !== DEFAULT_CONFIG.maxReviews) delta.maxReviews = full.maxReviews
+    if (full.sortOrder !== DEFAULT_CONFIG.sortOrder) delta.sortOrder = full.sortOrder
+    if (full.textClamp !== DEFAULT_CONFIG.textClamp) delta.textClamp = full.textClamp
+    if (full.carouselAutoplay !== DEFAULT_CONFIG.carouselAutoplay) delta.carouselAutoplay = full.carouselAutoplay
+    if (full.carouselSpeed !== DEFAULT_CONFIG.carouselSpeed) delta.carouselSpeed = full.carouselSpeed
+    if (full.carouselInfinite !== DEFAULT_CONFIG.carouselInfinite) delta.carouselInfinite = full.carouselInfinite
+    if (full.marqueeSpeed !== DEFAULT_CONFIG.marqueeSpeed) delta.marqueeSpeed = full.marqueeSpeed
+    if (full.cornerRadius !== DEFAULT_CONFIG.cornerRadius) delta.cornerRadius = full.cornerRadius
+    if (full.cardPadding !== DEFAULT_CONFIG.cardPadding) delta.cardPadding = full.cardPadding
+    if (full.cardGap !== DEFAULT_CONFIG.cardGap) delta.cardGap = full.cardGap
+    if (full.showBrandingBadge !== DEFAULT_CONFIG.showBrandingBadge) delta.showBrandingBadge = full.showBrandingBadge
+    if (full.enableJsonLdSchema !== DEFAULT_CONFIG.enableJsonLdSchema) delta.enableJsonLdSchema = full.enableJsonLdSchema
+
+    return delta
+}
+
+/**
+ * Strips heavy review arrays from a ConnectedBusiness before storing in Framer plugin data (~150 bytes per business).
  */
 export function compactBusiness(b: ConnectedBusiness): ConnectedBusiness {
     return {
@@ -36,13 +79,13 @@ export function compactBusiness(b: ConnectedBusiness): ConnectedBusiness {
         googleRating: b.googleRating ?? 5,
         googleReviewCount: b.googleReviewCount ?? 0,
         googleEnabled: b.googleEnabled ?? true,
-        googleReviews: undefined, // Omit bulky review arrays to stay strictly within 4kB Framer limit
+        googleReviews: undefined, // Omit bulky review arrays to stay strictly within 2kB/4kB Framer limits
         trustpilotDomain: b.trustpilotDomain || "",
         trustpilotRating: b.trustpilotRating ?? 5,
         trustpilotReviewCount: b.trustpilotReviewCount ?? 0,
         trustpilotEnabled: b.trustpilotEnabled ?? false,
         trustpilotReviews: undefined, // Omit bulky review arrays
-        customReviews: Array.isArray(b.customReviews) ? b.customReviews.slice(0, 10) : [],
+        customReviews: Array.isArray(b.customReviews) ? b.customReviews.slice(0, 5) : [],
         lastSync: b.lastSync || "Just now",
         notes: b.notes,
     }
@@ -68,15 +111,14 @@ export function hydrateBusiness(b: ConnectedBusiness): ConnectedBusiness {
 }
 
 /**
- * Strips review arrays from widget config before storing. Reviews are inherited from the active business.
+ * Strips review arrays and default values from widget config before storing (~120 bytes per widget).
  */
-export function compactWidget(w: ReviewWidget): ReviewWidget {
-    const { googleReviews, trustpilotReviews, customReviews, ...restConfig } = w.config || DEFAULT_CONFIG
+export function compactWidget(w: ReviewWidget): any {
     return {
         id: w.id,
         businessId: w.businessId,
         name: w.name,
-        config: restConfig as ReviewConfig,
+        config: getWidgetConfigDelta(w.config),
         createdAt: w.createdAt,
         updatedAt: w.updatedAt,
     }
@@ -87,15 +129,17 @@ export function compactWidget(w: ReviewWidget): ReviewWidget {
  */
 export async function cleanupStalePluginDataChunks(): Promise<void> {
     if (typeof (framer as any).setPluginData !== "function") return
-    await ensureStoragePermissions()
-    const keys = [STORAGE_KEY_BUSINESSES, STORAGE_KEY_WIDGETS, STORAGE_KEY]
-    for (const key of keys) {
-        for (let i = 0; i < 10; i++) {
-            try {
-                await (framer as any).setPluginData(`${key}_c${i}`, null)
-            } catch {}
+    try {
+        await ensureStoragePermissions()
+        const keys = [STORAGE_KEY_BUSINESSES, STORAGE_KEY_WIDGETS, STORAGE_KEY]
+        for (const key of keys) {
+            for (let i = 0; i < 5; i++) {
+                try {
+                    await (framer as any).setPluginData(`${key}_c${i}`, null)
+                } catch {}
+            }
         }
-    }
+    } catch {}
 }
 
 async function readStorage(key: string): Promise<string | null> {
@@ -114,7 +158,7 @@ async function readStorage(key: string): Promise<string | null> {
                             const chunk = await (framer as any).getPluginData(`${key}_c${i}`)
                             if (chunk) full += chunk
                         }
-                        return full
+                        if (full) return full
                     }
                 } catch {}
                 return raw
@@ -142,24 +186,18 @@ async function writeStorage(key: string, val: string): Promise<boolean> {
     const isFramer = typeof (framer as any).setPluginData === "function"
 
     if (isFramer) {
+        // STRICT SAFETY CHECK: Framer throws Assertion Error if val.length > 2048
+        if (val.length > MAX_PLUGIN_DATA_VALUE_BYTES) {
+            console.warn(`[Reviewfic] Payload for ${key} (${val.length} bytes) exceeds safe limit (${MAX_PLUGIN_DATA_VALUE_BYTES} bytes). Preserved in localStorage to protect Framer quota.`)
+            return true
+        }
+
         try {
             await ensureStoragePermissions()
-
-            if (val.length <= MAX_SAFE_PLUGIN_DATA_SIZE) {
-                await (framer as any).setPluginData(key, val)
-                // Clean up any historical chunk keys for this key
-                for (let i = 0; i < 5; i++) {
-                    try {
-                        await (framer as any).setPluginData(`${key}_c${i}`, null)
-                    } catch {}
-                }
-                return true
-            } else {
-                console.warn(`[Reviewfic] Payload for ${key} (${val.length} bytes) exceeds safe limit, relying on local storage to preserve Framer 4kB quota.`)
-                return true
-            }
+            await (framer as any).setPluginData(key, val)
+            return true
         } catch (e) {
-            console.warn(`[Reviewfic] Failed to save ${key} to Framer plugin data (using local storage):`, e)
+            console.warn(`[Reviewfic] Failed to save ${key} to Framer plugin data:`, e)
             return false
         }
     }
@@ -196,7 +234,12 @@ export async function loadWidgets(): Promise<ReviewWidget[]> {
             if (Array.isArray(list) && list.length > 0) {
                 return list.map((w) => ({
                     ...w,
-                    config: normalizeConfig(w.config || DEFAULT_CONFIG),
+                    config: normalizeConfig({
+                        ...DEFAULT_CONFIG,
+                        ...(w.config || {}),
+                        widgetId: w.id,
+                        businessId: w.businessId,
+                    }),
                 }))
             }
         }
@@ -240,6 +283,6 @@ export async function loadReviewConfig(): Promise<ReviewConfig> {
 }
 
 export async function saveReviewConfig(config: ReviewConfig): Promise<boolean> {
-    const { googleReviews, trustpilotReviews, customReviews, ...rest } = config
-    return writeStorage(STORAGE_KEY, JSON.stringify(rest))
+    const delta = getWidgetConfigDelta(config)
+    return writeStorage(STORAGE_KEY, JSON.stringify(delta))
 }
