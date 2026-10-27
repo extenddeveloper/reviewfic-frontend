@@ -27,6 +27,7 @@ import {
     saveActiveBusinessId,
     loadActiveWidgetId,
     saveActiveWidgetId,
+    cleanupStalePluginDataChunks,
 } from "./core/storage"
 import {
     insertCanvasWidget,
@@ -232,6 +233,7 @@ export function App() {
     useEffect(() => {
         let isMounted = true
         async function init() {
+            void cleanupStalePluginDataChunks()
             const loadedBiz = await loadBusinesses()
             const loadedWidgets = await loadWidgets()
             const savedBizId = await loadActiveBusinessId()

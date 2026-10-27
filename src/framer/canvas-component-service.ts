@@ -1121,6 +1121,22 @@ export function isBadgeLayout(layout?: string): boolean {
     return ["badge", "avatars", "ratingcard", "gbadge", "trustpilot"].includes(layout || "")
 }
 
+export async function ensureFramerCanvasPermissions(): Promise<void> {
+    try {
+        if (typeof (framer as any).isAllowedTo === "function") {
+            await (framer as any).isAllowedTo(
+                "setAttributes",
+                "getNodesWithType",
+                "createCodeFile",
+                "addComponentInstance",
+                "setSelection",
+                "setPluginData",
+                "getPluginData"
+            )
+        }
+    } catch {}
+}
+
 export async function insertCanvasComponent(
     config: ReviewConfig,
     options?: { updateExistingOnly?: boolean }
@@ -1132,11 +1148,7 @@ export async function insertCanvasComponent(
     const controlPayload = buildControlPayload(config)
 
     try {
-        if (typeof (framer as any).isAllowedTo === "function") {
-            try {
-                await (framer as any).isAllowedTo("createCodeFile", "addComponentInstance", "setSelection", "getNodesWithType")
-            } catch {}
-        }
+        await ensureFramerCanvasPermissions()
 
         const files = await framer.getCodeFiles()
         let file = files.find((f) => f.name === fileName || f.name === "Reviewfic")
@@ -1227,6 +1239,7 @@ export async function insertCanvasComponent(
  */
 export async function syncCanvasInstance(config: ReviewConfig): Promise<boolean> {
     try {
+        await ensureFramerCanvasPermissions()
         const code = generateReviewficComponentCode(config)
         const fileName = "Reviewfic.tsx"
 
@@ -1394,6 +1407,7 @@ export async function insertCanvasWidget(
     business: ConnectedBusiness,
     options?: { updateExistingOnly?: boolean }
 ): Promise<{ success: boolean; message: string; instanceId?: string }> {
+    await ensureFramerCanvasPermissions()
     const mergedConfig = mergeBusinessIntoConfig(business, widget.config)
     mergedConfig.widgetId = widget.id
     mergedConfig.businessId = business.id
@@ -1437,13 +1451,16 @@ export async function insertCanvasWidget(
     const res = await insertCanvasComponent(mergedConfig, options)
     if (res.success && res.instanceId) {
         try {
+            await ensureFramerCanvasPermissions()
             const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
             const newInst = instances?.find((i) => i.id === res.instanceId)
             if (newInst) {
-                if (typeof newInst.setPluginData === "function") {
-                    await newInst.setPluginData("reviewfic_widget_id", widget.id)
-                    await newInst.setPluginData("reviewfic_business_id", business.id)
-                }
+                try {
+                    if (typeof newInst.setPluginData === "function") {
+                        await newInst.setPluginData("reviewfic_widget_id", widget.id)
+                        await newInst.setPluginData("reviewfic_business_id", business.id)
+                    }
+                } catch {}
                 if (typeof newInst.setAttributes === "function") {
                     await newInst.setAttributes({
                         name: `Reviewfic - ${widget.name} [${widget.id}]`,
@@ -1472,6 +1489,7 @@ export async function syncCanvasWidget(
     business: ConnectedBusiness
 ): Promise<boolean> {
     try {
+        await ensureFramerCanvasPermissions()
         const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
         if (!instances || instances.length === 0) return false
         const reviewficNodes = instances.filter(isReviewficInstance)
@@ -1516,6 +1534,7 @@ export async function syncCanvasWidget(
 
 export async function countCanvasInstancesForWidget(widgetId: string): Promise<number> {
     try {
+        await ensureFramerCanvasPermissions()
         const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
         if (!instances || instances.length === 0) return 0
         const reviewficNodes = instances.filter(isReviewficInstance)
@@ -1536,6 +1555,7 @@ export async function countCanvasInstancesForWidget(widgetId: string): Promise<n
 
 export async function deleteCanvasInstancesForWidget(widgetId: string): Promise<number> {
     try {
+        await ensureFramerCanvasPermissions()
         const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
         if (!instances || instances.length === 0) return 0
         const reviewficNodes = instances.filter(isReviewficInstance)
@@ -1583,6 +1603,7 @@ export async function deleteCanvasInstancesForWidget(widgetId: string): Promise<
  */
 export async function enforceSingleWidgetInstances(): Promise<{ removedDuplicates: number }> {
     try {
+        await ensureFramerCanvasPermissions()
         const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
         if (!instances || instances.length === 0) return { removedDuplicates: 0 }
 

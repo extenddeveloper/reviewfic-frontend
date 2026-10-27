@@ -48,7 +48,9 @@ try {
         (framer as any).showUncheckedPermissionToasts = false
     }
     if (typeof (framer as any).isAllowedTo === "function") {
-        ; (framer as any).isAllowedTo(
+        void (framer as any).isAllowedTo(
+            "setAttributes",
+            "getNodesWithType",
             "createCodeFile",
             "addComponentInstance",
             "setSelection",
