@@ -85,6 +85,7 @@ export interface ReviewConfig {
     maxReviews: number
     sortOrder: "newest" | "highest" | "random"
     textClamp: boolean
+    pinnedReviewIds?: string[]
 
     // Engine options
     carouselAutoplay: boolean

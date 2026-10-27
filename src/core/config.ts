@@ -51,6 +51,7 @@ export const DEFAULT_CONFIG: ReviewConfig = {
     maxReviews: 24,
     sortOrder: "newest",
     textClamp: true,
+    pinnedReviewIds: [],
 
     // Engine
     carouselAutoplay: true,
@@ -80,6 +81,7 @@ export function normalizeConfig(saved?: Partial<ReviewConfig> | null): ReviewCon
         googleReviews: Array.isArray(saved.googleReviews) ? saved.googleReviews : DEFAULT_CONFIG.googleReviews,
         trustpilotReviews: Array.isArray(saved.trustpilotReviews) ? saved.trustpilotReviews : DEFAULT_CONFIG.trustpilotReviews,
         trustpilotStarStyle: saved.trustpilotStarStyle !== undefined ? saved.trustpilotStarStyle : DEFAULT_CONFIG.trustpilotStarStyle,
+        pinnedReviewIds: Array.isArray(saved.pinnedReviewIds) ? saved.pinnedReviewIds : [],
     }
 }
 
@@ -159,39 +161,49 @@ export function calculateBlendedStats(config: ReviewConfig, _activeReviews?: Rev
     }
 }
 
-export function getActiveReviews(config: ReviewConfig): ReviewItem[] {
+export function getCandidateReviews(config: ReviewConfig, business?: ConnectedBusiness): ReviewItem[] {
     let list: ReviewItem[] = []
 
-    const hasGoogleReviews = config.googleEnabled && Array.isArray(config.googleReviews) && config.googleReviews.length > 0
-    const hasGoogleConn = config.googleEnabled && Boolean(config.googleBusinessName && config.googleBusinessName !== "Company Studio")
+    const effectiveGoogleReviews = business?.googleReviews || config.googleReviews || []
+    const effectiveGoogleName = business?.googleBusinessName || config.googleBusinessName || ""
+    const effectiveGoogleMapsUrl = business?.googleMapsUrl || config.googleMapsUrl || ""
+    const effectiveGoogleEnabled = business?.googleEnabled ?? config.googleEnabled
 
-    const hasTpReviews = config.trustpilotEnabled && Array.isArray(config.trustpilotReviews) && config.trustpilotReviews.length > 0
-    const hasTpConn = config.trustpilotEnabled && Boolean(config.trustpilotDomain && config.trustpilotDomain !== "company.com")
+    const effectiveTpReviews = business?.trustpilotReviews || config.trustpilotReviews || []
+    const effectiveTpDomain = business?.trustpilotDomain || config.trustpilotDomain || ""
+    const effectiveTpEnabled = business?.trustpilotEnabled ?? config.trustpilotEnabled
 
-    const hasCustomReviews = Array.isArray(config.customReviews) && config.customReviews.length > 0
+    const effectiveCustomReviews = business?.customReviews || config.customReviews || []
 
+    const hasGoogleReviews = effectiveGoogleEnabled && effectiveGoogleReviews.length > 0
+    const hasGoogleConn = effectiveGoogleEnabled && Boolean(effectiveGoogleName && effectiveGoogleName !== "Company Studio")
+
+    const hasTpReviews = effectiveTpEnabled && effectiveTpReviews.length > 0
+    const hasTpConn = effectiveTpEnabled && Boolean(effectiveTpDomain && effectiveTpDomain !== "company.com")
+
+    const hasCustomReviews = effectiveCustomReviews.length > 0
     const isConnected = hasGoogleReviews || hasGoogleConn || hasTpReviews || hasTpConn || hasCustomReviews
 
     if (isConnected && !config.isDemoMode) {
         let gList: ReviewItem[] = []
-        if (config.googleEnabled) {
+        if (effectiveGoogleEnabled) {
             if (hasGoogleReviews) {
-                gList = config.googleReviews
+                gList = effectiveGoogleReviews
             } else if (hasGoogleConn) {
-                gList = generateReviewsForBusiness(config.googleBusinessName, "Business", config.googleMapsUrl)
+                gList = generateReviewsForBusiness(effectiveGoogleName, "Business", effectiveGoogleMapsUrl)
             }
         }
 
         let tpList: ReviewItem[] = []
-        if (config.trustpilotEnabled) {
+        if (effectiveTpEnabled) {
             if (hasTpReviews) {
-                tpList = config.trustpilotReviews
+                tpList = effectiveTpReviews
             } else if (hasTpConn) {
-                tpList = generateReviewsForTrustpilot(config.trustpilotDomain, 24)
+                tpList = generateReviewsForTrustpilot(effectiveTpDomain, 24)
             }
         }
 
-        const cList = config.customReviews || []
+        const cList = effectiveCustomReviews
 
         if (config.sourceMode === "google_only") {
             list = [...gList]
@@ -214,7 +226,13 @@ export function getActiveReviews(config: ReviewConfig): ReviewItem[] {
         list = [...DEMO_REVIEWS]
     }
 
-    // Filter by source mode
+    return list.filter((r) => !r.hidden)
+}
+
+export function getActiveReviews(config: ReviewConfig): ReviewItem[] {
+    let list = getCandidateReviews(config)
+
+    // Filter by source mode (defense in depth)
     if (config.sourceMode === "google_only") {
         list = list.filter((r) => r.source === "google")
     } else if (config.sourceMode === "trustpilot_only") {
@@ -236,10 +254,25 @@ export function getActiveReviews(config: ReviewConfig): ReviewItem[] {
     // Exclude hidden
     list = list.filter((r) => !r.hidden)
 
-    // Sort: Pinned first, then by chosen sortOrder
+    // Map pinned status from widget-specific pinnedReviewIds
+    const pinnedIds = config.pinnedReviewIds || []
+    const pinnedSet = new Set(pinnedIds)
+    list = list.map((r) => ({
+        ...r,
+        pinned: pinnedSet.has(r.id) || Boolean(r.pinned),
+    }))
+
+    // Sort: Pinned first (preserving pin priority), then by chosen sortOrder
     list.sort((a, b) => {
         if (a.pinned && !b.pinned) return -1
         if (!a.pinned && b.pinned) return 1
+        if (a.pinned && b.pinned) {
+            const idxA = pinnedIds.indexOf(a.id)
+            const idxB = pinnedIds.indexOf(b.id)
+            if (idxA !== -1 && idxB !== -1) {
+                return idxA - idxB
+            }
+        }
         if (config.sortOrder === "highest") {
             return b.rating - a.rating
         }
@@ -337,6 +370,7 @@ export function mergeBusinessIntoConfig(
         businessId: business.id,
         widgetId: widgetConfig.widgetId,
         isDemoMode: false,
+        pinnedReviewIds: widgetConfig.pinnedReviewIds || [],
         googleBusinessName: business.googleBusinessName || business.name,
         googlePlaceId: business.googlePlaceId || "",
         googleMapsUrl: business.googleMapsUrl || "",

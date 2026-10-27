@@ -62,6 +62,7 @@ export function getWidgetConfigDelta(config: ReviewConfig): Partial<ReviewConfig
     if (full.cardGap !== DEFAULT_CONFIG.cardGap) delta.cardGap = full.cardGap
     if (full.showBrandingBadge !== DEFAULT_CONFIG.showBrandingBadge) delta.showBrandingBadge = full.showBrandingBadge
     if (full.enableJsonLdSchema !== DEFAULT_CONFIG.enableJsonLdSchema) delta.enableJsonLdSchema = full.enableJsonLdSchema
+    if (Array.isArray(full.pinnedReviewIds) && full.pinnedReviewIds.length > 0) delta.pinnedReviewIds = full.pinnedReviewIds
 
     return delta
 }

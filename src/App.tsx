@@ -14,6 +14,7 @@ import {
     DEFAULT_CONFIG,
     calculateBlendedStats,
     getActiveReviews,
+    getCandidateReviews,
     createDefaultWidget,
     mergeBusinessIntoConfig,
 } from "./core/config"
@@ -66,6 +67,8 @@ import {
     IconNoticeWarning,
     IconNoticeError,
     IconX,
+    IconPin,
+    IconSearch,
 } from "./ui/icons"
 import {
     reviewsToCSVString,
@@ -312,6 +315,48 @@ export function App() {
     const activeReviews = useMemo(() => getActiveReviews(activeConfig), [activeConfig])
     const stats = useMemo(() => calculateBlendedStats(activeConfig, activeReviews), [activeConfig, activeReviews])
 
+    // Review Curation & Pinning state
+    const [curateSearchQuery, setCurateSearchQuery] = useState("")
+    const [curateRatingFilter, setCurateRatingFilter] = useState<number | "pinned">(0)
+
+    const candidateReviews = useMemo(() => {
+        return getCandidateReviews(activeConfig, activeBusiness)
+    }, [activeConfig, activeBusiness])
+
+    const pinnedReviewIds = useMemo(() => {
+        return activeConfig.pinnedReviewIds || []
+    }, [activeConfig.pinnedReviewIds])
+
+    const filteredCandidateReviews = useMemo(() => {
+        let list = candidateReviews
+
+        // 1. Rating or Pinned filter
+        if (curateRatingFilter === "pinned") {
+            list = list.filter((r) => pinnedReviewIds.includes(r.id))
+        } else if (typeof curateRatingFilter === "number" && curateRatingFilter > 0) {
+            list = list.filter((r) => r.rating === curateRatingFilter)
+        }
+
+        // 2. Search query filter by reviewer name or review text
+        const query = curateSearchQuery.trim().toLowerCase()
+        if (query) {
+            list = list.filter((r) => {
+                const authorMatch = r.authorName?.toLowerCase().includes(query)
+                const textMatch = r.text?.toLowerCase().includes(query)
+                return Boolean(authorMatch || textMatch)
+            })
+        }
+
+        // Sort: pinned items first within curation list for easy management
+        return [...list].sort((a, b) => {
+            const aPinned = pinnedReviewIds.includes(a.id)
+            const bPinned = pinnedReviewIds.includes(b.id)
+            if (aPinned && !bPinned) return -1
+            if (!aPinned && bPinned) return 1
+            return 0
+        })
+    }, [candidateReviews, pinnedReviewIds, curateRatingFilter, curateSearchQuery])
+
     // Catalog filtering
     const filteredLayouts = useMemo(() => {
         if (selectedLayoutGroup === "all") return ALL_LAYOUTS
@@ -486,6 +531,31 @@ export function App() {
         },
         [activeWidget, activeBusiness]
     )
+
+    // Pinning Handlers
+    const handleTogglePinReview = useCallback(
+        (reviewId: string) => {
+            updateActiveWidgetConfig((prev) => {
+                const currentPinned = prev.pinnedReviewIds || []
+                const isPinned = currentPinned.includes(reviewId)
+                const nextPinned = isPinned
+                    ? currentPinned.filter((id) => id !== reviewId)
+                    : [...currentPinned, reviewId]
+                return {
+                    ...prev,
+                    pinnedReviewIds: nextPinned,
+                }
+            })
+        },
+        [updateActiveWidgetConfig]
+    )
+
+    const handleClearAllPins = useCallback(() => {
+        updateActiveWidgetConfig((prev) => ({
+            ...prev,
+            pinnedReviewIds: [],
+        }))
+    }, [updateActiveWidgetConfig])
 
     // Business updater
     const updateActiveBusiness = useCallback(
@@ -1507,50 +1577,168 @@ export function App() {
                                     </div>
                                 </Section>
 
-                                {/* Connected Business Sources Overview */}
+                                {/* Pin Reviews Curation */}
                                 <Section
-                                    title="Connected Business Sources"
-                                    subtitle={`Reviews for this widget belong to "${activeBusiness.name}"`}
-                                    icon={<IconDatabase size={15} />}
+                                    title="Pin Reviews"
+                                    subtitle="Pin top reviews to display them first in this widget"
+                                    icon={<IconPin size={15} filled={pinnedReviewIds.length > 0} />}
                                 >
-                                    <div className="cf-location-connected-card">
-                                        <div className="cf-location-conn-head">
-                                            <span className="cf-location-conn-badge">
-                                                <IconCheck size={12} />
-                                                <span>{activeBusiness.name}</span>
-                                            </span>
-                                            <button
-                                                type="button"
-                                                className="cf-manage-btn"
-                                                onClick={() => setTab("businesses")}
-                                                title="Manage businesses"
-                                            >
-                                                Manage in Businesses tab &rarr;
-                                            </button>
+                                    <div className="cf-curate-box">
+                                        {/* Header row with stats & clear */}
+                                        <div className="cf-curate-top">
+                                            <div className="cf-curate-top-info">
+                                                <span className="cf-curate-badge">
+                                                    <IconPin size={11} filled={true} />
+                                                    <span>{pinnedReviewIds.length} Pinned</span>
+                                                </span>
+                                                <span className="cf-curate-total-hint">
+                                                    {candidateReviews.length} reviews available
+                                                </span>
+                                            </div>
+                                            {pinnedReviewIds.length > 0 && (
+                                                <button
+                                                    type="button"
+                                                    className="cf-curate-clear-btn"
+                                                    onClick={handleClearAllPins}
+                                                    title="Clear all pinned reviews"
+                                                >
+                                                    Clear All
+                                                </button>
+                                            )}
                                         </div>
-                                        <div className="cf-conn-metrics-row">
-                                            <div className="cf-conn-metric-card">
-                                                <span className="cf-metric-label">Google Reviews</span>
-                                                <span className="cf-metric-value">
-                                                    {activeBusiness.googleBusinessName
-                                                        ? `★ ${activeBusiness.googleRating} (${activeBusiness.googleReviewCount})`
-                                                        : "Not connected"}
-                                                </span>
-                                                <span className="cf-metric-source">
-                                                    {activeBusiness.googleBusinessName || "Configured in Businesses tab"}
-                                                </span>
-                                            </div>
-                                            <div className="cf-conn-metric-card">
-                                                <span className="cf-metric-label">Trustpilot</span>
-                                                <span className="cf-metric-value">
-                                                    {activeBusiness.trustpilotDomain
-                                                        ? `★ ${activeBusiness.trustpilotRating} (${activeBusiness.trustpilotReviewCount})`
-                                                        : "Not connected"}
-                                                </span>
-                                                <span className="cf-metric-source">
-                                                    {activeBusiness.trustpilotDomain || "Configured in Businesses tab"}
-                                                </span>
-                                            </div>
+
+                                        {/* Search input bar */}
+                                        <div className="cf-curate-search-wrap">
+                                            <span className="cf-curate-search-icon">
+                                                <IconSearch size={14} />
+                                            </span>
+                                            <input
+                                                type="text"
+                                                className="cf-curate-search-input"
+                                                placeholder="Search reviews by name or text..."
+                                                value={curateSearchQuery}
+                                                onChange={(e) => setCurateSearchQuery(e.target.value)}
+                                            />
+                                            {curateSearchQuery && (
+                                                <button
+                                                    type="button"
+                                                    className="cf-curate-search-clear"
+                                                    onClick={() => setCurateSearchQuery("")}
+                                                    title="Clear search"
+                                                    aria-label="Clear search"
+                                                >
+                                                    <IconX size={12} />
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {/* Rating & filter pills */}
+                                        <div className="cf-curate-filter-bar">
+                                            {[
+                                                { id: 0, label: "All" },
+                                                { id: 5, label: "5 ★" },
+                                                { id: 4, label: "4 ★" },
+                                                { id: 3, label: "3 ★" },
+                                                { id: 2, label: "2 ★" },
+                                                { id: 1, label: "1 ★" },
+                                                { id: "pinned" as const, label: `Pinned (${pinnedReviewIds.length})` },
+                                            ].map((f) => {
+                                                const isActive = curateRatingFilter === f.id
+                                                return (
+                                                    <button
+                                                        key={String(f.id)}
+                                                        type="button"
+                                                        className={`cf-curate-pill ${isActive ? "active" : ""}`}
+                                                        onClick={() => setCurateRatingFilter(f.id)}
+                                                    >
+                                                        {f.label}
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+
+                                        {/* Count summary */}
+                                        <div className="cf-curate-count-bar">
+                                            <span>
+                                                Showing {filteredCandidateReviews.length} of {candidateReviews.length} reviews
+                                            </span>
+                                        </div>
+
+                                        {/* Scrollable list of reviews */}
+                                        <div className="cf-curate-list">
+                                            {filteredCandidateReviews.length === 0 ? (
+                                                <div className="cf-curate-empty">
+                                                    <span>No reviews found matching your search or rating filter.</span>
+                                                    {(curateSearchQuery || curateRatingFilter !== 0) && (
+                                                        <button
+                                                            type="button"
+                                                            className="cf-curate-reset-filter-btn"
+                                                            onClick={() => {
+                                                                setCurateSearchQuery("")
+                                                                setCurateRatingFilter(0)
+                                                            }}
+                                                        >
+                                                            Reset Filters
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                filteredCandidateReviews.map((rev) => {
+                                                    const isPinned = pinnedReviewIds.includes(rev.id)
+                                                    return (
+                                                        <div
+                                                            key={rev.id}
+                                                            className={`cf-curate-card ${isPinned ? "is-pinned" : ""}`}
+                                                        >
+                                                            <div className="cf-curate-card-head">
+                                                                <div className="cf-curate-author-wrap">
+                                                                    <span className="cf-curate-author-avatar">
+                                                                        {rev.authorName ? rev.authorName.charAt(0).toUpperCase() : "U"}
+                                                                    </span>
+                                                                    <div className="cf-curate-author-details">
+                                                                        <div className="cf-curate-name-row">
+                                                                            <span className="cf-curate-author-name">{rev.authorName || "Anonymous"}</span>
+                                                                            <span className={`cf-curate-source-pill ${rev.source}`} title={`Source: ${rev.source}`}>
+                                                                                {rev.source === "google" && <IconGoogle size={11} />}
+                                                                                {rev.source === "trustpilot" && <IconTrustpilot size={11} />}
+                                                                                <span>{rev.source === "google" ? "Google" : rev.source === "trustpilot" ? "Trustpilot" : "Custom"}</span>
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="cf-curate-rating-row">
+                                                                            <div className="cf-curate-stars">
+                                                                                {[1, 2, 3, 4, 5].map((s) => (
+                                                                                    <IconStar
+                                                                                        key={s}
+                                                                                        size={11}
+                                                                                        filled={s <= rev.rating}
+                                                                                        color={rev.source === "trustpilot" ? "#00B67A" : "#FBBC05"}
+                                                                                    />
+                                                                                ))}
+                                                                            </div>
+                                                                            {rev.date && <span className="cf-curate-date">{rev.date}</span>}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <button
+                                                                    type="button"
+                                                                    className={`cf-curate-pin-btn ${isPinned ? "active" : ""}`}
+                                                                    onClick={() => handleTogglePinReview(rev.id)}
+                                                                    title={isPinned ? "Unpin review" : "Pin review to top"}
+                                                                    aria-label={isPinned ? "Unpin review" : "Pin review to top"}
+                                                                >
+                                                                    <IconPin size={12} filled={isPinned} />
+                                                                    <span>{isPinned ? "Pinned" : "Pin"}</span>
+                                                                </button>
+                                                            </div>
+
+                                                            {rev.text && (
+                                                                <p className="cf-curate-text">{rev.text}</p>
+                                                            )}
+                                                        </div>
+                                                    )
+                                                })
+                                            )}
                                         </div>
                                     </div>
                                 </Section>
