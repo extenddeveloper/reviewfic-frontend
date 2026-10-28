@@ -213,6 +213,33 @@ export default function Reviewfic(props: ReviewficProps) {
         return () => clearInterval(timer)
     }, [layout, isHovered, reviews.length])
 
+    // Card entrance observer for scroll-triggered animation presets
+    const containerRef = React.useRef<HTMLDivElement>(null)
+    React.useEffect(() => {
+        if (!containerRef.current) return
+        const cards = containerRef.current.querySelectorAll(".vr-card")
+        if (!cards.length) return
+
+        if (typeof IntersectionObserver === "undefined") {
+            cards.forEach((c) => c.classList.add("vr-in"))
+            return
+        }
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("vr-in")
+                    }
+                })
+            },
+            { threshold: 0.05 }
+        )
+
+        cards.forEach((c) => observer.observe(c))
+        return () => observer.disconnect()
+    }, [reviews, cardStyle, layout])
+
     const breakdownRows = React.useMemo(() => {
         const total = reviews.length || 1
         return [5, 4, 3, 2, 1].map((s) => {
@@ -382,6 +409,7 @@ export default function Reviewfic(props: ReviewficProps) {
 
     return (
         <div
+            ref={containerRef}
             className={"vr-root vrp-" + cardStyle + " " + themeMode}
             style={rootStyleObj}
             onMouseEnter={() => setIsHovered(true)}

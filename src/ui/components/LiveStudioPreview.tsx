@@ -109,6 +109,33 @@ export function LiveStudioPreview({
         return () => clearInterval(t)
     }, [layout, reviews.length])
 
+    // Card entrance observer for scroll-triggered animation presets
+    const rootRef = useRef<HTMLDivElement>(null)
+    useEffect(() => {
+        if (!rootRef.current) return
+        const cards = rootRef.current.querySelectorAll(".vr-card")
+        if (!cards.length) return
+
+        if (typeof IntersectionObserver === "undefined") {
+            cards.forEach((c) => c.classList.add("vr-in"))
+            return
+        }
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("vr-in")
+                    }
+                })
+            },
+            { threshold: 0.05 }
+        )
+
+        cards.forEach((c) => observer.observe(c))
+        return () => observer.disconnect()
+    }, [reviews, cardStyle, layout])
+
     // Rating breakdown distribution
     const breakdownRows = useMemo(() => {
         const total = reviews.length || 1
@@ -262,7 +289,7 @@ export function LiveStudioPreview({
     }
 
     return (
-        <div className={`vr-root vrp-${cardStyle} ${stageTheme}`} style={rootStyleObj}>
+        <div ref={rootRef} className={`vr-root vrp-${cardStyle} ${stageTheme}`} style={rootStyleObj}>
             {/* Header for non-badge and non-rotator layouts */}
             {![
                 "badge",
