@@ -121,20 +121,31 @@ export function LiveStudioPreview({
             return
         }
 
+        // Reset .vr-in on cardStyle / layout / reviews change so entrance animations trigger fresh
+        cards.forEach((c) => c.classList.remove("vr-in"))
+
+        const scrollStage = rootRef.current.closest(".cf-preview-stage")
+
         const observer = new IntersectionObserver(
             (entries) => {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add("vr-in")
+                        observer.unobserve(entry.target)
                     }
                 })
             },
-            { threshold: 0.05 }
+            {
+                root: scrollStage || null,
+                threshold: 0.08,
+                rootMargin: "0px 0px -20px 0px",
+            }
         )
 
         cards.forEach((c) => observer.observe(c))
         return () => observer.disconnect()
-    }, [reviews, cardStyle, layout])
+    }, [reviews, cardStyle, layout, stageTheme])
+
 
     // Rating breakdown distribution
     const breakdownRows = useMemo(() => {

@@ -16,7 +16,7 @@ export function generateReviewficComponentCode(config: ReviewConfig): string {
     const serializedCSS = JSON.stringify(WIDGET_BUNDLE_CSS)
 
     return `import * as React from "react"
-import { addPropertyControls, ControlType } from "framer"
+import { addPropertyControls, ControlType, RenderTarget } from "framer"
 
 export type ReviewLayout =
     | "grid" | "masonry" | "highlight" | "list"
@@ -220,7 +220,9 @@ export default function Reviewfic(props: ReviewficProps) {
         const cards = containerRef.current.querySelectorAll(".vr-card")
         if (!cards.length) return
 
-        if (typeof IntersectionObserver === "undefined") {
+        const isCanvas = typeof RenderTarget !== "undefined" && RenderTarget.current() === RenderTarget.canvas
+
+        if (isCanvas || typeof IntersectionObserver === "undefined") {
             cards.forEach((c) => c.classList.add("vr-in"))
             return
         }
@@ -230,10 +232,14 @@ export default function Reviewfic(props: ReviewficProps) {
                 entries.forEach((entry) => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add("vr-in")
+                        observer.unobserve(entry.target)
                     }
                 })
             },
-            { threshold: 0.05 }
+            {
+                threshold: 0.08,
+                rootMargin: "0px 0px -20px 0px",
+            }
         )
 
         cards.forEach((c) => observer.observe(c))

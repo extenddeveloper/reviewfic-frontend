@@ -333,27 +333,28 @@ a.vr-chip:hover,a.vr-badge:hover{border-color:var(--vr-accent);opacity:1;}
 .vrp-broad .vr-avatar{display:none;}
 .vrp-reveal.vr-card{border-radius:16px;border:1px solid var(--vr-card-border);box-shadow:0 10px 30px -14px rgba(16,24,40,.22);transition:transform .25s cubic-bezier(.2,.7,.3,1),box-shadow .25s ease,border-color .2s ease;}
 .vrp-reveal.vr-card:hover{transform:translateY(-4px);box-shadow:0 20px 42px -14px rgba(16,24,40,.28);border-color:color-mix(in srgb,var(--vr-accent) 40%,transparent);}
-.vrp-reveal.vr-card>*{animation:vrRevealFadeUp .65s cubic-bezier(.2,.7,.3,1) both;}
-.vrp-reveal.vr-card>*:nth-child(1){animation-delay:.04s;}
-.vrp-reveal.vr-card>*:nth-child(2){animation-delay:.10s;}
-.vrp-reveal.vr-card>*:nth-child(3){animation-delay:.18s;}
-.vrp-reveal.vr-card>*:nth-child(4){animation-delay:.26s;}
-.vrp-reveal.vr-card>*:nth-child(5){animation-delay:.34s;}
-.vrp-reveal.vr-in>*{opacity:1;transform:none;}
-@keyframes vrRevealFadeUp{0%{opacity:0;transform:translateY(16px);}100%{opacity:1;transform:translateY(0);}}
+.vrp-reveal.vr-card:not(.vr-in)>*, .vrp-reveal .vr-card:not(.vr-in)>*{opacity:0;transform:translateY(18px);will-change:opacity,transform;}
+.vrp-reveal.vr-in>*, .vrp-reveal .vr-card.vr-in>*{animation:vrRevealFadeUp .65s cubic-bezier(.2,.7,.3,1) both;}
+.vrp-reveal.vr-in>*:nth-child(1), .vrp-reveal .vr-card.vr-in>*:nth-child(1){animation-delay:.04s;}
+.vrp-reveal.vr-in>*:nth-child(2), .vrp-reveal .vr-card.vr-in>*:nth-child(2){animation-delay:.10s;}
+.vrp-reveal.vr-in>*:nth-child(3), .vrp-reveal .vr-card.vr-in>*:nth-child(3){animation-delay:.18s;}
+.vrp-reveal.vr-in>*:nth-child(4), .vrp-reveal .vr-card.vr-in>*:nth-child(4){animation-delay:.26s;}
+.vrp-reveal.vr-in>*:nth-child(5), .vrp-reveal .vr-card.vr-in>*:nth-child(5){animation-delay:.34s;}
+@keyframes vrRevealFadeUp{0%{opacity:0;transform:translateY(18px);}100%{opacity:1;transform:translateY(0);}}
 
-.vrp-unfold.vr-card{border-radius:18px;border:1px solid var(--vr-card-border);box-shadow:0 12px 30px -14px rgba(16,24,40,.25);transform-origin:50% 0%;animation:vrUnfoldSwing .75s cubic-bezier(.18,.92,.26,1.06) both;transition:transform .25s ease,box-shadow .25s ease,border-color .2s ease;}
-.vrp-unfold.vr-card:hover{transform:perspective(1200px) rotateX(-2deg) translateY(-4px);box-shadow:0 22px 46px -16px rgba(16,24,40,.32);border-color:color-mix(in srgb,var(--vr-accent) 45%,transparent);}
-.vr-grid .vrp-unfold.vr-card:nth-child(1),.vr-track .vrp-unfold.vr-card:nth-child(1),.vr-masonry .vrp-unfold.vr-card:nth-child(1){animation-delay:.02s;}
-.vr-grid .vrp-unfold.vr-card:nth-child(2),.vr-track .vrp-unfold.vr-card:nth-child(2),.vr-masonry .vrp-unfold.vr-card:nth-child(2){animation-delay:.08s;}
-.vr-grid .vrp-unfold.vr-card:nth-child(3),.vr-track .vrp-unfold.vr-card:nth-child(3),.vr-masonry .vrp-unfold.vr-card:nth-child(3){animation-delay:.15s;}
-.vr-grid .vrp-unfold.vr-card:nth-child(4),.vr-track .vrp-unfold.vr-card:nth-child(4),.vr-masonry .vrp-unfold.vr-card:nth-child(4){animation-delay:.21s;}
-.vr-grid .vrp-unfold.vr-card:nth-child(5),.vr-track .vrp-unfold.vr-card:nth-child(5),.vr-masonry .vrp-unfold.vr-card:nth-child(5){animation-delay:.27s;}
-.vr-grid .vrp-unfold.vr-card:nth-child(6),.vr-track .vrp-unfold.vr-card:nth-child(6),.vr-masonry .vrp-unfold.vr-card:nth-child(6){animation-delay:.33s;}
-.vr-grid .vrp-unfold.vr-card:nth-child(7),.vr-track .vrp-unfold.vr-card:nth-child(7),.vr-masonry .vrp-unfold.vr-card:nth-child(7){animation-delay:.38s;}
-.vr-grid .vrp-unfold.vr-card:nth-child(8),.vr-track .vrp-unfold.vr-card:nth-child(8),.vr-masonry .vrp-unfold.vr-card:nth-child(8){animation-delay:.42s;}
-.vr-grid .vrp-unfold.vr-card:nth-child(9),.vr-track .vrp-unfold.vr-card:nth-child(9),.vr-masonry .vrp-unfold.vr-card:nth-child(9){animation-delay:.45s;}
-.vrp-unfold.vr-in{opacity:1;transform:perspective(1200px) rotateX(0deg);}
+.vrp-unfold.vr-card{border-radius:18px;border:1px solid var(--vr-card-border);box-shadow:0 12px 30px -14px rgba(16,24,40,.25);transform-origin:50% 0%;will-change:opacity,transform;transition:box-shadow .25s ease,border-color .2s ease;}
+.vrp-unfold.vr-card:not(.vr-in), .vrp-unfold .vr-card:not(.vr-in){opacity:0;transform:perspective(1200px) rotateX(-75deg);pointer-events:none;}
+.vrp-unfold.vr-in, .vrp-unfold .vr-card.vr-in{animation:vrUnfoldSwing .75s cubic-bezier(.18,.92,.26,1.06) both;pointer-events:auto;}
+.vrp-unfold.vr-card.vr-in:hover, .vrp-unfold .vr-card.vr-in:hover{transform:perspective(1200px) rotateX(-2deg) translateY(-4px);box-shadow:0 22px 46px -16px rgba(16,24,40,.32);border-color:color-mix(in srgb,var(--vr-accent) 45%,transparent);transition:transform .25s ease,box-shadow .25s ease,border-color .2s ease;}
+.vr-grid .vrp-unfold.vr-in:nth-child(1),.vr-track .vrp-unfold.vr-in:nth-child(1),.vr-masonry .vrp-unfold.vr-in:nth-child(1),.vr-grid .vrp-unfold .vr-card.vr-in:nth-child(1),.vr-track .vrp-unfold .vr-card.vr-in:nth-child(1),.vr-masonry .vrp-unfold .vr-card.vr-in:nth-child(1){animation-delay:.02s;}
+.vr-grid .vrp-unfold.vr-in:nth-child(2),.vr-track .vrp-unfold.vr-in:nth-child(2),.vr-masonry .vrp-unfold.vr-in:nth-child(2),.vr-grid .vrp-unfold .vr-card.vr-in:nth-child(2),.vr-track .vrp-unfold .vr-card.vr-in:nth-child(2),.vr-masonry .vrp-unfold .vr-card.vr-in:nth-child(2){animation-delay:.08s;}
+.vr-grid .vrp-unfold.vr-in:nth-child(3),.vr-track .vrp-unfold.vr-in:nth-child(3),.vr-masonry .vrp-unfold.vr-in:nth-child(3),.vr-grid .vrp-unfold .vr-card.vr-in:nth-child(3),.vr-track .vrp-unfold .vr-card.vr-in:nth-child(3),.vr-masonry .vrp-unfold .vr-card.vr-in:nth-child(3){animation-delay:.15s;}
+.vr-grid .vrp-unfold.vr-in:nth-child(4),.vr-track .vrp-unfold.vr-in:nth-child(4),.vr-masonry .vrp-unfold.vr-in:nth-child(4),.vr-grid .vrp-unfold .vr-card.vr-in:nth-child(4),.vr-track .vrp-unfold .vr-card.vr-in:nth-child(4),.vr-masonry .vrp-unfold .vr-card.vr-in:nth-child(4){animation-delay:.21s;}
+.vr-grid .vrp-unfold.vr-in:nth-child(5),.vr-track .vrp-unfold.vr-in:nth-child(5),.vr-masonry .vrp-unfold.vr-in:nth-child(5),.vr-grid .vrp-unfold .vr-card.vr-in:nth-child(5),.vr-track .vrp-unfold .vr-card.vr-in:nth-child(5),.vr-masonry .vrp-unfold .vr-card.vr-in:nth-child(5){animation-delay:.27s;}
+.vr-grid .vrp-unfold.vr-in:nth-child(6),.vr-track .vrp-unfold.vr-in:nth-child(6),.vr-masonry .vrp-unfold.vr-in:nth-child(6),.vr-grid .vrp-unfold .vr-card.vr-in:nth-child(6),.vr-track .vrp-unfold .vr-card.vr-in:nth-child(6),.vr-masonry .vrp-unfold .vr-card.vr-in:nth-child(6){animation-delay:.33s;}
+.vr-grid .vrp-unfold.vr-in:nth-child(7),.vr-track .vrp-unfold.vr-in:nth-child(7),.vr-masonry .vrp-unfold.vr-in:nth-child(7),.vr-grid .vrp-unfold .vr-card.vr-in:nth-child(7),.vr-track .vrp-unfold .vr-card.vr-in:nth-child(7),.vr-masonry .vrp-unfold .vr-card.vr-in:nth-child(7){animation-delay:.38s;}
+.vr-grid .vrp-unfold.vr-in:nth-child(8),.vr-track .vrp-unfold.vr-in:nth-child(8),.vr-masonry .vrp-unfold.vr-in:nth-child(8),.vr-grid .vrp-unfold .vr-card.vr-in:nth-child(8),.vr-track .vrp-unfold .vr-card.vr-in:nth-child(8),.vr-masonry .vrp-unfold .vr-card.vr-in:nth-child(8){animation-delay:.42s;}
+.vr-grid .vrp-unfold.vr-in:nth-child(9),.vr-track .vrp-unfold.vr-in:nth-child(9),.vr-masonry .vrp-unfold.vr-in:nth-child(9),.vr-grid .vrp-unfold .vr-card.vr-in:nth-child(9),.vr-track .vrp-unfold .vr-card.vr-in:nth-child(9),.vr-masonry .vrp-unfold .vr-card.vr-in:nth-child(9){animation-delay:.45s;}
 @keyframes vrUnfoldSwing{0%{opacity:0;transform:perspective(1200px) rotateX(-75deg);}60%{opacity:1;transform:perspective(1200px) rotateX(8deg);}80%{transform:perspective(1200px) rotateX(-3deg);}100%{opacity:1;transform:perspective(1200px) rotateX(0deg);}}
 .vrp-tilt.vr-card{border-radius:16px;box-shadow:0 14px 34px -16px rgba(16,24,40,.3);transition:transform .18s ease-out,box-shadow .25s;transform:perspective(900px) rotateY(var(--vr-ry,0deg)) rotateX(var(--vr-rx,0deg));}
 .vrp-tilt.vr-card:hover{box-shadow:0 30px 60px -22px rgba(16,24,40,.4);}
@@ -375,9 +376,10 @@ a.vr-chip:hover,a.vr-badge:hover{border-color:var(--vr-accent);opacity:1;}
 .vrp-pop.vr-card:hover .vr-stars svg:nth-child(5){transition-delay:.16s}
 .vrp-unblur.vr-card{border-radius:16px;border:1px solid var(--vr-card-border);box-shadow:0 10px 26px -14px rgba(16,24,40,.2);transition:transform .25s ease,box-shadow .25s ease;}
 .vrp-unblur.vr-card:hover{transform:translateY(-3px);box-shadow:0 18px 36px -14px rgba(16,24,40,.28);}
-.vrp-unblur .vr-body{animation:vrUnblurFade .65s cubic-bezier(.2,.7,.3,1) both;}
-.vrp-unblur .vr-id,.vrp-unblur .vr-src,.vrp-unblur .vr-bl,.vrp-unblur .vr-br{animation:vrUnblurFade .5s cubic-bezier(.2,.7,.3,1) .08s both;}
-.vrp-unblur.vr-in .vr-body,.vrp-unblur.vr-in .vr-id,.vrp-unblur.vr-in .vr-src,.vrp-unblur.vr-in .vr-bl,.vrp-unblur.vr-in .vr-br{opacity:1;filter:none;transform:none;}
+.vrp-unblur.vr-card:not(.vr-in) .vr-body, .vrp-unblur .vr-card:not(.vr-in) .vr-body{opacity:0;filter:blur(8px);transform:translateY(8px);will-change:opacity,filter,transform;}
+.vrp-unblur.vr-card:not(.vr-in) .vr-id, .vrp-unblur.vr-card:not(.vr-in) .vr-src, .vrp-unblur.vr-card:not(.vr-in) .vr-bl, .vrp-unblur.vr-card:not(.vr-in) .vr-br, .vrp-unblur .vr-card:not(.vr-in) .vr-id, .vrp-unblur .vr-card:not(.vr-in) .vr-src, .vrp-unblur .vr-card:not(.vr-in) .vr-bl, .vrp-unblur .vr-card:not(.vr-in) .vr-br{opacity:0;filter:blur(4px);transform:translateY(6px);will-change:opacity,filter,transform;}
+.vrp-unblur.vr-in .vr-body, .vrp-unblur .vr-card.vr-in .vr-body{animation:vrUnblurFade .65s cubic-bezier(.2,.7,.3,1) both;}
+.vrp-unblur.vr-in .vr-id, .vrp-unblur.vr-in .vr-src, .vrp-unblur.vr-in .vr-bl, .vrp-unblur.vr-in .vr-br, .vrp-unblur .vr-card.vr-in .vr-id, .vrp-unblur .vr-card.vr-in .vr-src, .vrp-unblur .vr-card.vr-in .vr-bl, .vrp-unblur .vr-card.vr-in .vr-br{animation:vrUnblurFade .5s cubic-bezier(.2,.7,.3,1) .08s both;}
 @keyframes vrUnblurFade{0%{opacity:0;filter:blur(8px);transform:translateY(8px);}100%{opacity:1;filter:none;transform:translateY(0);}}
 @property --vr-lr{syntax:'<length>';inherits:true;initial-value:20px}
 .vrp-liquid.vr-card{position:relative;border:none;background:var(--vr-card-bg);border-radius:var(--vr-lr);animation:vrliquidr 9s ease-in-out infinite;box-shadow:0 14px 34px -20px color-mix(in srgb,var(--vr-accent) 60%,transparent);}
@@ -956,3 +958,37 @@ a.vr-chip:hover,a.vr-badge:hover{border-color:var(--vr-accent);opacity:1;}
   color: #00B67A;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .vrp-reveal.vr-card > *,
+  .vrp-reveal .vr-card > *,
+  .vrp-reveal.vr-in > *,
+  .vrp-reveal .vr-card.vr-in > * {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  .vrp-unfold.vr-card,
+  .vrp-unfold .vr-card,
+  .vrp-unfold.vr-in,
+  .vrp-unfold .vr-card.vr-in {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+    pointer-events: auto !important;
+  }
+  .vrp-unblur .vr-body,
+  .vrp-unblur .vr-id,
+  .vrp-unblur .vr-src,
+  .vrp-unblur .vr-bl,
+  .vrp-unblur .vr-br,
+  .vrp-unblur .vr-card .vr-body,
+  .vrp-unblur .vr-card .vr-id,
+  .vrp-unblur .vr-card .vr-src,
+  .vrp-unblur .vr-card .vr-bl,
+  .vrp-unblur .vr-card .vr-br {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
