@@ -991,16 +991,6 @@ export function App() {
                     </button>
                     <button
                         type="button"
-                        className={"cf-tab " + (!isProfileOpen && tab === "widgets" ? "active" : "")}
-                        onClick={() => {
-                            setIsProfileOpen(false)
-                            setTab("widgets")
-                        }}
-                    >
-                        Widgets
-                    </button>
-                    <button
-                        type="button"
                         className={"cf-tab " + (!isProfileOpen && tab === "businesses" ? "active" : "")}
                         onClick={() => {
                             setIsProfileOpen(false)
@@ -1008,6 +998,16 @@ export function App() {
                         }}
                     >
                         Businesses
+                    </button>
+                    <button
+                        type="button"
+                        className={"cf-tab " + (!isProfileOpen && tab === "widgets" ? "active" : "")}
+                        onClick={() => {
+                            setIsProfileOpen(false)
+                            setTab("widgets")
+                        }}
+                    >
+                        Widgets
                     </button>
                     <button
                         type="button"
