@@ -132,7 +132,7 @@ export function App() {
     const mainRef = useRef<HTMLElement>(null)
 
     // Studio states
-    const [stageTheme, setStageTheme] = useState<"soft" | "dark" | "light">("soft")
+    const [stageTheme, setStageTheme] = useState<"light" | "dark">("light")
     const [selectedLayoutGroup, setSelectedLayoutGroup] = useState<string>("cards")
     const [selectedCardFamily, setSelectedCardFamily] = useState<CardFamily | "all">("modern")
 
@@ -1151,36 +1151,25 @@ export function App() {
                                 {/* Live Studio Stage with Backdrop Switcher */}
                                 <div className="cf-studio-wrap">
                                     <div className="cf-stage-header">
-                                        <div className="cf-stage-title-wrap">
-                                            <span className="cf-preview-title">
-                                                Live Studio Preview ({activeConfig.layout})
-                                            </span>
-                                            <span className="cf-badge cf-badge-brand">{activeConfig.cardStyle}</span>
-                                        </div>
+                                        <span className="cf-stage-label">Preview Theme</span>
                                         <div className="cf-stage-backdrop-btns">
                                             <button
                                                 type="button"
-                                                className={`cf-stage-btn ${stageTheme === "soft" ? "active" : ""}`}
-                                                onClick={() => setStageTheme("soft")}
-                                                title="Soft Canvas backdrop"
+                                                className={`cf-stage-btn ${stageTheme === "light" ? "active" : ""}`}
+                                                onClick={() => setStageTheme("light")}
+                                                title="Light Preview Backdrop"
                                             >
-                                                Soft
+                                                <IconSun size={12} />
+                                                <span>Light</span>
                                             </button>
                                             <button
                                                 type="button"
                                                 className={`cf-stage-btn ${stageTheme === "dark" ? "active" : ""}`}
                                                 onClick={() => setStageTheme("dark")}
-                                                title="Midnight Dark backdrop"
+                                                title="Dark Preview Backdrop"
                                             >
-                                                Dark
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className={`cf-stage-btn ${stageTheme === "light" ? "active" : ""}`}
-                                                onClick={() => setStageTheme("light")}
-                                                title="Pure Light backdrop"
-                                            >
-                                                Light
+                                                <IconMoon size={12} />
+                                                <span>Dark</span>
                                             </button>
                                         </div>
                                     </div>
@@ -1192,13 +1181,7 @@ export function App() {
                                             reviews={activeReviews}
                                             stats={stats}
                                             config={activeConfig}
-                                            stageTheme={
-                                                stageTheme === "dark"
-                                                    ? "dark"
-                                                    : stageTheme === "light"
-                                                    ? "light"
-                                                    : "auto"
-                                            }
+                                            stageTheme={stageTheme}
                                         />
                                     </div>
                                 </div>

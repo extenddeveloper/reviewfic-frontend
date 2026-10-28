@@ -1439,14 +1439,16 @@ button.cf-btn-icon-del:hover {
 }
 
 /* 1. Mandatory .primary-cta Double-Gradient Button Standard */
-.primary-cta {
+.primary-cta,
+.primary-btn {
     font-family: inherit;
     font-size: 13px;
     font-weight: 600 !important;
     letter-spacing: 0.15px;
     line-height: 1;
     width: 100%;
-    height: 38px;
+    height: 36px !important;
+    min-height: 36px !important;
     padding: 0 16px;
     background: var(--cf-primary-cta-bg) !important;
     color: var(--cf-primary-cta-color) !important;
@@ -1465,37 +1467,43 @@ button.cf-btn-icon-del:hover {
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.primary-cta:hover:not(:disabled) {
+.primary-cta:hover:not(:disabled),
+.primary-btn:hover:not(:disabled) {
     background: var(--cf-primary-cta-bg-hover) !important;
     transform: translateY(-1px);
 }
 
-.primary-cta:active:not(:disabled) {
+.primary-cta:active:not(:disabled),
+.primary-btn:active:not(:disabled) {
     background: var(--cf-primary-cta-bg-active) !important;
     transform: scale(0.985);
 }
 
-.primary-cta:disabled {
+.primary-cta:disabled,
+.primary-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     transform: none !important;
     box-shadow: none !important;
 }
 
-.primary-cta svg {
+.primary-cta svg,
+.primary-btn svg {
     width: 16px;
     height: 16px;
     flex-shrink: 0;
 }
 
 /* 2. Mandatory .secondary-cta Button Standard */
-.secondary-cta {
+.secondary-cta,
+.btn-reset {
     font-family: inherit;
     font-size: 13px;
     font-weight: 500 !important;
     letter-spacing: 0.15px;
     line-height: 1;
-    height: 38px !important;
+    height: 36px !important;
+    min-height: 36px !important;
     padding: 0 16px !important;
     background: var(--cf-secondary-cta-bg) !important;
     color: var(--cf-secondary-cta-color) !important;
@@ -1514,26 +1522,30 @@ button.cf-btn-icon-del:hover {
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-.secondary-cta:hover:not(:disabled) {
+.secondary-cta:hover:not(:disabled),
+.btn-reset:hover:not(:disabled) {
     background: var(--cf-secondary-cta-hover-bg) !important;
     border-color: var(--cf-secondary-cta-hover-border) !important;
     color: var(--cf-secondary-cta-color) !important;
     transform: translateY(-1px);
 }
 
-.secondary-cta:active:not(:disabled) {
+.secondary-cta:active:not(:disabled),
+.btn-reset:active:not(:disabled) {
     transform: scale(0.985) !important;
     background: var(--cf-secondary-cta-bg) !important;
 }
 
-.secondary-cta:disabled {
+.secondary-cta:disabled,
+.btn-reset:disabled {
     opacity: 0.5 !important;
     cursor: not-allowed !important;
     pointer-events: none !important;
     transform: none !important;
 }
 
-.secondary-cta svg {
+.secondary-cta svg,
+.btn-reset svg {
     width: 14px;
     height: 14px;
     flex-shrink: 0;
@@ -1555,7 +1567,8 @@ button.cf-btn-icon-del:hover {
     font-family: inherit;
     font-size: 13px;
     font-weight: 500 !important;
-    height: 38px !important;
+    height: 36px !important;
+    min-height: 36px !important;
     padding: 0 14px !important;
     background: var(--cf-bg-tertiary) !important;
     color: var(--cf-text) !important;
@@ -1600,16 +1613,22 @@ button.cf-btn-icon-del:hover {
     align-items: center !important;
 }
 
-.cf-footer-grid .primary-cta {
+.cf-footer-grid .primary-cta,
+.cf-footer-grid .primary-btn {
     width: 100% !important;
     min-width: 0 !important;
+    height: 36px !important;
+    min-height: 36px !important;
     white-space: nowrap !important;
     flex: unset !important;
 }
 
-.cf-footer-grid .secondary-cta {
+.cf-footer-grid .secondary-cta,
+.cf-footer-grid .btn-reset {
     width: auto !important;
     min-width: auto !important;
+    height: 36px !important;
+    min-height: 36px !important;
     white-space: nowrap !important;
     flex-shrink: 0 !important;
 }
@@ -1962,6 +1981,13 @@ button.cf-color-chip-btn,
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+    padding: 2px 0 4px;
+}
+
+.cf-stage-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cf-text-secondary);
 }
 
 .cf-stage-title-wrap {
@@ -1981,11 +2007,14 @@ button.cf-color-chip-btn,
 }
 
 button.cf-stage-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
     padding: 3px 8px !important;
     background: transparent !important;
     border: none !important;
     border-radius: var(--cf-radius-full) !important;
-    font-size: 10.5px !important;
+    font-size: 11px !important;
     font-weight: 600 !important;
     color: var(--cf-text-muted) !important;
     cursor: pointer !important;
@@ -6394,7 +6423,8 @@ button.cf-btn-tp-sync:disabled {
 .cf-home-hero-actions .cf-home-hero-btn {
     flex: 1;
     width: auto !important;
-    height: 38px !important;
+    height: 36px !important;
+    min-height: 36px !important;
     padding: 0 14px !important;
     font-size: 13px !important;
     font-weight: 600 !important;

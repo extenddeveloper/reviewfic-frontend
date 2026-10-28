@@ -64,7 +64,7 @@ try {
     framer.showUI({
         position: "top right",
         width: 400,
-        height: 650,
+        height: 590,
     })
 } catch { }
 
