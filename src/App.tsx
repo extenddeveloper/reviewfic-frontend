@@ -83,7 +83,6 @@ import { Switch } from "./ui/components/Switch"
 import { Field } from "./ui/components/Field"
 import { Section } from "./ui/components/Section"
 import { ProfilePage } from "./ui/components/ProfilePage"
-import { LiveStudioPreview } from "./ui/components/LiveStudioPreview"
 import { CustomColorPicker } from "./ui/components/CustomColorPicker"
 import { HelpRow } from "./ui/components/HelpRow"
 import { FrameficCard } from "./ui/components/FrameficCard"
@@ -132,7 +131,6 @@ export function App() {
     const mainRef = useRef<HTMLElement>(null)
 
     // Studio states
-    const [stageTheme, setStageTheme] = useState<"light" | "dark">("light")
     const [selectedLayoutGroup, setSelectedLayoutGroup] = useState<string>("cards")
     const [selectedCardFamily, setSelectedCardFamily] = useState<CardFamily | "all">("modern")
 
@@ -1147,50 +1145,39 @@ export function App() {
                                     {/* Subtab 1: Builder */}
                                     {widgetEditTab === "builder" && (
                                         <>
+                                            {/* Widget Theme Option */}
+                                            <div className="cf-flex-between cf-theme-option-bar">
+                                                <div className="cf-setting-info">
+                                                    <span className="cf-field-label">Card Theme</span>
+                                                    <span className="cf-field-hint">Choose light or dark card styling</span>
+                                                </div>
+                                                <div className="cf-stage-backdrop-btns">
+                                                    <button
+                                                        type="button"
+                                                        className={`cf-stage-btn ${activeConfig.themeMode !== "dark" ? "active" : ""}`}
+                                                        onClick={() => updateActiveWidgetConfig((prev) => ({ ...prev, themeMode: "light" }))}
+                                                        title="Light Theme"
+                                                    >
+                                                        <IconSun size={12} />
+                                                        <span>Light</span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className={`cf-stage-btn ${activeConfig.themeMode === "dark" ? "active" : ""}`}
+                                                        onClick={() => updateActiveWidgetConfig((prev) => ({ ...prev, themeMode: "dark" }))}
+                                                        title="Dark Theme"
+                                                    >
+                                                        <IconMoon size={12} />
+                                                        <span>Dark</span>
+                                                    </button>
+                                                </div>
+                                            </div>
 
-                                {/* Live Studio Stage with Backdrop Switcher */}
-                                <div className="cf-studio-wrap">
-                                    <div className="cf-stage-header">
-                                        <span className="cf-stage-label">Preview Theme</span>
-                                        <div className="cf-stage-backdrop-btns">
-                                            <button
-                                                type="button"
-                                                className={`cf-stage-btn ${stageTheme === "light" ? "active" : ""}`}
-                                                onClick={() => setStageTheme("light")}
-                                                title="Light Preview Backdrop"
+                                            {/* Display Layouts */}
+                                            <Section
+                                                title="Display Layouts"
+                                                icon={<IconLayoutCarousel size={15} />}
                                             >
-                                                <IconSun size={12} />
-                                                <span>Light</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className={`cf-stage-btn ${stageTheme === "dark" ? "active" : ""}`}
-                                                onClick={() => setStageTheme("dark")}
-                                                title="Dark Preview Backdrop"
-                                            >
-                                                <IconMoon size={12} />
-                                                <span>Dark</span>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div className={`cf-preview-stage backdrop-${stageTheme}`}>
-                                        <LiveStudioPreview
-                                            layout={activeConfig.layout}
-                                            cardStyle={activeConfig.cardStyle}
-                                            reviews={activeReviews}
-                                            stats={stats}
-                                            config={activeConfig}
-                                            stageTheme={stageTheme}
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Display Layouts */}
-                                <Section
-                                    title="Display Layouts"
-                                    icon={<IconLayoutCarousel size={15} />}
-                                >
                                     <Field label="Category">
                                         <select
                                             className="cf-select"
@@ -1328,6 +1315,33 @@ export function App() {
                                     title="Card Style & Aesthetics"
                                     icon={<IconSparkles size={15} />}
                                 >
+                                    <div className="cf-flex-between cf-theme-option-row">
+                                        <div className="cf-setting-info">
+                                            <span className="cf-field-label">Card Theme</span>
+                                            <span className="cf-field-hint">Light or dark appearance</span>
+                                        </div>
+                                        <div className="cf-stage-backdrop-btns">
+                                            <button
+                                                type="button"
+                                                className={`cf-stage-btn ${activeConfig.themeMode !== "dark" ? "active" : ""}`}
+                                                onClick={() => updateActiveWidgetConfig((prev) => ({ ...prev, themeMode: "light" }))}
+                                                title="Light Theme"
+                                            >
+                                                <IconSun size={12} />
+                                                <span>Light</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className={`cf-stage-btn ${activeConfig.themeMode === "dark" ? "active" : ""}`}
+                                                onClick={() => updateActiveWidgetConfig((prev) => ({ ...prev, themeMode: "dark" }))}
+                                                title="Dark Theme"
+                                            >
+                                                <IconMoon size={12} />
+                                                <span>Dark</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
                                     <Field label="Style Family">
                                         <select
                                             className="cf-select"

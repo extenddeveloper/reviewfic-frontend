@@ -1968,7 +1968,25 @@ button.cf-color-chip-btn,
     box-sizing: border-box;
 }
 
-/* Live Studio Stage */
+/* Live Studio Stage & Theme Options */
+.cf-theme-option-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    background: var(--cf-bg-secondary);
+    border: 1px solid var(--cf-border);
+    border-radius: var(--cf-radius-lg, 12px);
+}
+
+.cf-theme-option-row {
+    padding: 6px 0 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--cf-border);
+}
+
 .cf-studio-wrap {
     display: flex;
     flex-direction: column;
