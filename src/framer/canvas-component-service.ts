@@ -259,6 +259,8 @@ export default function Reviewfic(props: ReviewficProps) {
         const resetCard = (card: HTMLElement) => {
             card.style.setProperty("--vr-rx", "0deg")
             card.style.setProperty("--vr-ry", "0deg")
+            card.style.setProperty("--vr-x", "50%")
+            card.style.setProperty("--vr-y", "50%")
             card.style.setProperty("--vr-mx", "50%")
             card.style.setProperty("--vr-my", "50%")
         }
@@ -289,6 +291,8 @@ export default function Reviewfic(props: ReviewficProps) {
 
             card.style.setProperty("--vr-rx", rx + "deg")
             card.style.setProperty("--vr-ry", ry + "deg")
+            card.style.setProperty("--vr-x", x.toFixed(1) + "px")
+            card.style.setProperty("--vr-y", y.toFixed(1) + "px")
             card.style.setProperty("--vr-mx", px.toFixed(1) + "%")
             card.style.setProperty("--vr-my", py.toFixed(1) + "%")
         }
@@ -481,6 +485,7 @@ export default function Reviewfic(props: ReviewficProps) {
         <div
             ref={containerRef}
             className={"vr-root vrp-" + cardStyle + " " + themeMode}
+            data-theme={themeMode}
             style={rootStyleObj}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}

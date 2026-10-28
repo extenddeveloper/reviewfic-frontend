@@ -159,6 +159,8 @@ export function LiveStudioPreview({
         const resetCard = (card: HTMLElement) => {
             card.style.setProperty("--vr-rx", "0deg")
             card.style.setProperty("--vr-ry", "0deg")
+            card.style.setProperty("--vr-x", "50%")
+            card.style.setProperty("--vr-y", "50%")
             card.style.setProperty("--vr-mx", "50%")
             card.style.setProperty("--vr-my", "50%")
         }
@@ -189,6 +191,8 @@ export function LiveStudioPreview({
 
             card.style.setProperty("--vr-rx", `${rx}deg`)
             card.style.setProperty("--vr-ry", `${ry}deg`)
+            card.style.setProperty("--vr-x", `${x.toFixed(1)}px`)
+            card.style.setProperty("--vr-y", `${y.toFixed(1)}px`)
             card.style.setProperty("--vr-mx", `${px.toFixed(1)}%`)
             card.style.setProperty("--vr-my", `${py.toFixed(1)}%`)
         }
@@ -364,7 +368,7 @@ export function LiveStudioPreview({
     }
 
     return (
-        <div ref={rootRef} className={`vr-root vrp-${cardStyle} ${stageTheme}`} style={rootStyleObj}>
+        <div ref={rootRef} className={`vr-root vrp-${cardStyle} ${stageTheme}${isDark ? " dark" : ""}`} data-theme={isDark ? "dark" : "light"} style={rootStyleObj}>
             {/* Header for non-badge and non-rotator layouts */}
             {![
                 "badge",
