@@ -1203,13 +1203,12 @@ export function App() {
                                     </div>
                                 </div>
 
-                                {/* Display Layouts (25 Presets) */}
+                                {/* Display Layouts */}
                                 <Section
-                                    title="Display Layouts (25 Presets)"
-                                    subtitle="Choose from 25 curated interactive layouts"
+                                    title="Display Layouts"
                                     icon={<IconLayoutCarousel size={15} />}
                                 >
-                                    <Field label="Layout Category (Group)" hint="Filter layouts by category">
+                                    <Field label="Category">
                                         <select
                                             className="cf-select"
                                             value={selectedLayoutGroup}
@@ -1341,13 +1340,12 @@ export function App() {
                                     )}
                                 </Section>
 
-                                {/* Card Style & Aesthetics (57 Presets) */}
+                                {/* Card Style & Aesthetics */}
                                 <Section
-                                    title="Card Style & Aesthetics (57 Presets)"
-                                    subtitle="Choose from 57 curated design presets"
+                                    title="Card Style & Aesthetics"
                                     icon={<IconSparkles size={15} />}
                                 >
-                                    <Field label="Style Family (Group)" hint="Filter card presets by style family">
+                                    <Field label="Style Family">
                                         <select
                                             className="cf-select"
                                             value={selectedCardFamily}
