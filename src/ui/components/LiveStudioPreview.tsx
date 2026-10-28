@@ -146,6 +146,70 @@ export function LiveStudioPreview({
         return () => observer.disconnect()
     }, [reviews, cardStyle, layout, stageTheme])
 
+    // Cursor-following 3D tilt & dynamic spotlight tracking for interactive presets
+    useEffect(() => {
+        const root = rootRef.current
+        if (!root) return
+
+        const isCursorPreset = ["tilt", "spotlight", "sheen", "pearl"].includes(cardStyle)
+        if (!isCursorPreset) return
+
+        let activeCard: HTMLElement | null = null
+
+        const resetCard = (card: HTMLElement) => {
+            card.style.setProperty("--vr-rx", "0deg")
+            card.style.setProperty("--vr-ry", "0deg")
+            card.style.setProperty("--vr-mx", "50%")
+            card.style.setProperty("--vr-my", "50%")
+        }
+
+        const handleMouseMove = (e: MouseEvent) => {
+            const target = e.target as HTMLElement | null
+            const card = target?.closest(".vr-card") as HTMLElement | null
+
+            if (activeCard && activeCard !== card) {
+                resetCard(activeCard)
+                activeCard = null
+            }
+
+            if (!card) return
+            activeCard = card
+
+            const rect = card.getBoundingClientRect()
+            if (!rect.width || !rect.height) return
+
+            const x = e.clientX - rect.left
+            const y = e.clientY - rect.top
+            const px = Math.max(0, Math.min(100, (x / rect.width) * 100))
+            const py = Math.max(0, Math.min(100, (y / rect.height) * 100))
+
+            const maxTilt = 12
+            const rx = (((y - rect.height / 2) / (rect.height / 2)) * maxTilt).toFixed(2)
+            const ry = (((x - rect.width / 2) / (rect.width / 2)) * -maxTilt).toFixed(2)
+
+            card.style.setProperty("--vr-rx", `${rx}deg`)
+            card.style.setProperty("--vr-ry", `${ry}deg`)
+            card.style.setProperty("--vr-mx", `${px.toFixed(1)}%`)
+            card.style.setProperty("--vr-my", `${py.toFixed(1)}%`)
+        }
+
+        const handleMouseLeave = () => {
+            if (activeCard) {
+                resetCard(activeCard)
+                activeCard = null
+            }
+        }
+
+        root.addEventListener("mousemove", handleMouseMove, { passive: true })
+        root.addEventListener("mouseleave", handleMouseLeave, { passive: true })
+
+        return () => {
+            if (activeCard) resetCard(activeCard)
+            root.removeEventListener("mousemove", handleMouseMove)
+            root.removeEventListener("mouseleave", handleMouseLeave)
+        }
+    }, [cardStyle, layout, reviews])
+
 
     // Rating breakdown distribution
     const breakdownRows = useMemo(() => {

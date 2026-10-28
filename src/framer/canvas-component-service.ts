@@ -246,6 +246,70 @@ export default function Reviewfic(props: ReviewficProps) {
         return () => observer.disconnect()
     }, [reviews, cardStyle, layout])
 
+    // Cursor-following 3D tilt & dynamic spotlight tracking for interactive presets
+    React.useEffect(() => {
+        const container = containerRef.current
+        if (!container) return
+
+        const isCursorPreset = ["tilt", "spotlight", "sheen", "pearl"].includes(cardStyle)
+        if (!isCursorPreset) return
+
+        let activeCard: HTMLElement | null = null
+
+        const resetCard = (card: HTMLElement) => {
+            card.style.setProperty("--vr-rx", "0deg")
+            card.style.setProperty("--vr-ry", "0deg")
+            card.style.setProperty("--vr-mx", "50%")
+            card.style.setProperty("--vr-my", "50%")
+        }
+
+        const handleMouseMove = (e: MouseEvent) => {
+            const target = e.target as HTMLElement | null
+            const card = target?.closest(".vr-card") as HTMLElement | null
+
+            if (activeCard && activeCard !== card) {
+                resetCard(activeCard)
+                activeCard = null
+            }
+
+            if (!card) return
+            activeCard = card
+
+            const rect = card.getBoundingClientRect()
+            if (!rect.width || !rect.height) return
+
+            const x = e.clientX - rect.left
+            const y = e.clientY - rect.top
+            const px = Math.max(0, Math.min(100, (x / rect.width) * 100))
+            const py = Math.max(0, Math.min(100, (y / rect.height) * 100))
+
+            const maxTilt = 12
+            const rx = (((y - rect.height / 2) / (rect.height / 2)) * maxTilt).toFixed(2)
+            const ry = (((x - rect.width / 2) / (rect.width / 2)) * -maxTilt).toFixed(2)
+
+            card.style.setProperty("--vr-rx", rx + "deg")
+            card.style.setProperty("--vr-ry", ry + "deg")
+            card.style.setProperty("--vr-mx", px.toFixed(1) + "%")
+            card.style.setProperty("--vr-my", py.toFixed(1) + "%")
+        }
+
+        const handleMouseLeave = () => {
+            if (activeCard) {
+                resetCard(activeCard)
+                activeCard = null
+            }
+        }
+
+        container.addEventListener("mousemove", handleMouseMove, { passive: true })
+        container.addEventListener("mouseleave", handleMouseLeave, { passive: true })
+
+        return () => {
+            if (activeCard) resetCard(activeCard)
+            container.removeEventListener("mousemove", handleMouseMove)
+            container.removeEventListener("mouseleave", handleMouseLeave)
+        }
+    }, [cardStyle, layout, reviews])
+
     const breakdownRows = React.useMemo(() => {
         const total = reviews.length || 1
         return [5, 4, 3, 2, 1].map((s) => {
