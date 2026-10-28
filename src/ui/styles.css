@@ -1884,24 +1884,36 @@ button.cf-btn-icon-del:hover {
 
 button.cf-color-dot {
     all: unset !important;
-    width: 24px !important;
-    height: 24px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 22px !important;
+    height: 22px !important;
     border-radius: 50% !important;
-    border: 2px solid transparent !important;
     cursor: pointer !important;
-    flex: 0 0 24px !important;
-    transition: transform 0.15s ease, box-shadow 0.15s ease !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    flex: 0 0 22px !important;
+    padding: 0 !important;
+    margin: 0 !important;
     box-sizing: border-box !important;
+    outline: 2px solid transparent !important;
+    outline-offset: 2.5px !important;
+    transition: transform 0.15s ease, outline-color 0.15s ease !important;
+}
+
+button.cf-color-dot svg {
+    display: block !important;
+    width: 22px !important;
+    height: 22px !important;
+    border-radius: 50% !important;
 }
 
 button.cf-color-dot:hover {
-    transform: scale(1.15) !important;
+    transform: scale(1.08) !important;
 }
 
 button.cf-color-dot.active {
-    transform: scale(1.18) !important;
-    box-shadow: 0 0 0 2px var(--cf-bg), 0 0 0 4px var(--cf-accent) !important;
+    outline-color: var(--Secondary-Default, #5271FF) !important;
+    transform: scale(1.04) !important;
 }
 
 /* ==========================================================================
