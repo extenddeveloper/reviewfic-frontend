@@ -1365,36 +1365,6 @@ export function App() {
                                         </select>
                                     </Field>
 
-                                    <Field
-                                        label="Select Card Style Preset"
-                                        hint="Pick any card style preset across all families"
-                                    >
-                                        <select
-                                            className="cf-select"
-                                            value={activeConfig.cardStyle}
-                                            onChange={(e) => {
-                                                const nextId = e.target.value as any
-                                                const preset = ALL_CARD_PRESETS.find((p) => p.id === nextId)
-                                                if (preset) setSelectedCardFamily(preset.family)
-                                                updateActiveWidgetConfig((prev) => ({ ...prev, cardStyle: nextId }))
-                                            }}
-                                        >
-                                            {CARD_FAMILIES.map((f) => {
-                                                const items = ALL_CARD_PRESETS.filter((p) => p.family === f.id)
-                                                return (
-                                                    <optgroup key={f.id} label={`${f.name} (${items.length})`}>
-                                                        {items.map((p) => (
-                                                            <option key={p.id} value={p.id}>
-                                                                {p.name} {p.platform ? `[${p.platform.toUpperCase()}]` : ""}{" "}
-                                                                {p.tier === "pro" ? "✦ PRO" : ""} — {p.note}
-                                                            </option>
-                                                        ))}
-                                                    </optgroup>
-                                                )
-                                            })}
-                                        </select>
-                                    </Field>
-
                                     <div className="cf-presets-grid">
                                         {filteredPresets.map((p) => {
                                             const isActive = activeConfig.cardStyle === p.id
