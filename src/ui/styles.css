@@ -683,7 +683,7 @@ button.cf-tab-profile.active {
     min-width: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
-    overflow: hidden !important;
+    overflow: visible;
 }
 
 .cf-section-header {

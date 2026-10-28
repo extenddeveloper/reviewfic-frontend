@@ -96,9 +96,9 @@ export function CustomColorPicker({
     if (!isOpen || !containerRef.current) return
     try {
       const rect = containerRef.current.getBoundingClientRect()
-      const popoverWidth = 230
+      const popoverWidth = 220
       const windowWidth = window.innerWidth || document.documentElement.clientWidth || 360
-      if (rect.left + popoverWidth > windowWidth - 10 || rect.right > windowWidth - 40) {
+      if (rect.left + popoverWidth > windowWidth - 10) {
         setAlignRight(true)
       } else {
         setAlignRight(false)
