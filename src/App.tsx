@@ -1132,7 +1132,7 @@ export function App() {
                                             onClick={() => setWidgetEditTab("builder")}
                                         >
                                             <IconSliders size={13} />
-                                            <span>Builder (Layout &amp; Style)</span>
+                                            <span>Layout &amp; Style</span>
                                         </button>
                                         <button
                                             type="button"
@@ -2065,7 +2065,7 @@ export function App() {
                             <IconExternalLink size={12} />
                         </a>
                         <span className="cf-shell-version">
-                            v1.0.0 · {canvasCount > 0 ? `${canvasCount} on Canvas` : "Ready"}
+                            v1.0.0
                         </span>
                     </div>
                 </footer>
