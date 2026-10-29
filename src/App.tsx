@@ -39,6 +39,7 @@ import {
     enforceSingleWidgetInstances,
 } from "./framer/canvas-component-service"
 import {
+    IconCrown,
     IconGoogle,
     IconTrustpilot,
     IconStar,
@@ -82,7 +83,30 @@ import { generateReviewsForTrustpilot } from "./core/trustpilot"
 import { Switch } from "./ui/components/Switch"
 import { Field } from "./ui/components/Field"
 import { Section } from "./ui/components/Section"
-import { ProfilePage } from "./ui/components/ProfilePage"
+import { ProfilePage } from "./profile/ProfilePage"
+import { SubscriptionPage } from "./profile/SubscriptionPage"
+import { useAuth } from "./features/auth/hooks/useAuth"
+import { usePaymentFlow } from "./features/payment/hooks/usePaymentFlow"
+import { AuthModal } from "./features/auth/components/AuthModal"
+import { PaymentModal } from "./features/payment/components/PaymentModal"
+import { PaymentSuccessModal } from "./features/payment/components/PaymentSuccessModal"
+import { TrialStatusModal } from "./features/auth/components/TrialStatusModal"
+import { checkTrialEligibility } from "./features/payment/services/paymentService"
+import { getSiteInfo } from "./lib/framer/project"
+import { loadStripe } from "@stripe/stripe-js"
+
+const stripePromiseMap: Record<string, ReturnType<typeof loadStripe>> = {}
+const getStripe = (key: string) => {
+    if (!key) return null
+    if (!stripePromiseMap[key]) {
+        stripePromiseMap[key] = loadStripe(key).catch((err) => {
+            console.error("Failed to load Stripe SDK:", err)
+            delete stripePromiseMap[key]
+            return null
+        })
+    }
+    return stripePromiseMap[key]
+}
 import { CustomColorPicker } from "./ui/components/CustomColorPicker"
 import { HelpRow } from "./ui/components/HelpRow"
 import { FrameficCard } from "./ui/components/FrameficCard"
@@ -167,6 +191,150 @@ export function App() {
         } catch {}
     }, [])
 
+    // Auth & Subscription flows
+    const auth = useAuth()
+
+    const notify = useCallback((payload: { type: "Success" | "Error"; message: string }) => {
+        showNotice(payload.message, payload.type === "Success" ? "success" : "error")
+    }, [showNotice])
+
+    const paymentFlow = usePaymentFlow({
+        notify,
+        userEmail: auth.user?.email,
+        userName: auth.user?.username,
+    })
+
+    const [profileView, setProfileView] = useState<"profile" | "subscription">("profile")
+    const [forceShowPlans, setForceShowPlans] = useState<number>(0)
+    const [trialModalStatus, setTrialModalStatus] = useState<"started" | "expired" | null>(null)
+    const [pendingPaymentPlan, setPendingPaymentPlan] = useState<string | null>(null)
+    const authSuccessInProgressRef = useRef<boolean>(false)
+
+    const isSubscriptionFullyActive = useMemo(() => {
+        return (
+            paymentFlow.isPaid &&
+            (!paymentFlow.planDetails ||
+                paymentFlow.planDetails.plan === "lifetime" ||
+                paymentFlow.planDetails.status === "active" ||
+                paymentFlow.planDetails.status === "trialing" ||
+                paymentFlow.planDetails.status === "paid" ||
+                paymentFlow.planDetails.status === "Scheduled to cancel")
+        )
+    }, [paymentFlow.isPaid, paymentFlow.planDetails])
+
+    const hasActiveAccess = auth.isLoggedIn && isSubscriptionFullyActive
+
+    const isTrialActive = useMemo(() => {
+        return Boolean(
+            hasActiveAccess &&
+            (paymentFlow.planDetails?.isTrial || paymentFlow.planDetails?.plan === "trial")
+        )
+    }, [hasActiveAccess, paymentFlow.planDetails])
+
+    const isProTabLocked = !isProfileOpen && tab !== "home" && !hasActiveAccess
+
+    const handleTabClick = useCallback(
+        (targetTab: TabId) => {
+            setIsProfileOpen(false)
+            setTab(targetTab)
+            if (targetTab !== "home" && !hasActiveAccess) {
+                if (!auth.isLoggedIn) {
+                    auth.openAuthModal("register")
+                } else {
+                    setTrialModalStatus("expired")
+                }
+            }
+        },
+        [auth, hasActiveAccess]
+    )
+
+    const handlePay = useCallback(
+        (event: any, planId: string) => {
+            if (!auth.isLoggedIn) {
+                setPendingPaymentPlan(planId)
+                auth.openAuthModal("register")
+                return
+            }
+            void paymentFlow.makePayment(event, planId)
+        },
+        [auth, paymentFlow]
+    )
+
+    const handleAuthSuccess = useCallback(
+        async (loggedInEmail?: string) => {
+            authSuccessInProgressRef.current = true
+            try {
+                let isPaidAfterRefresh = await paymentFlow.refreshSubscriptionStatus(loggedInEmail)
+
+                if (!isPaidAfterRefresh) {
+                    try {
+                        const siteInfo = await getSiteInfo().catch(() => ({ siteId: "", userId: null, userName: null, userEmail: null }))
+                        const resolvedEmail = loggedInEmail || auth.user?.email || (siteInfo as any).userEmail
+                        const eligibility = await checkTrialEligibility(siteInfo.siteId, resolvedEmail)
+
+                        if (eligibility.eligible) {
+                            if (paymentFlow.handleStartTrial) {
+                                await paymentFlow.handleStartTrial()
+                                isPaidAfterRefresh = true
+                            }
+                            setTrialModalStatus("started")
+                        } else {
+                            setTrialModalStatus("expired")
+                        }
+                    } catch (err) {
+                        console.error("Error checking trial eligibility after auth:", err)
+                    }
+                }
+
+                if (pendingPaymentPlan) {
+                    const planToBuy = pendingPaymentPlan
+                    setPendingPaymentPlan(null)
+                    void paymentFlow.makePayment(null, planToBuy)
+                }
+            } finally {
+                authSuccessInProgressRef.current = false
+            }
+        },
+        [auth.user, paymentFlow, pendingPaymentPlan]
+    )
+
+    const trialBanner = useMemo(() => {
+        if (!auth.isLoggedIn || !paymentFlow.isPaid || paymentFlow.currentPlan !== "trial") return null
+
+        const secondsRemaining = paymentFlow.planDetails?.trialSecondsRemaining ?? 0
+        let countdownDisplay: string
+
+        if (secondsRemaining <= 0) {
+            countdownDisplay = "0:00:00"
+        } else if (secondsRemaining < 86400) {
+            const hours = Math.floor(secondsRemaining / 3600).toString().padStart(2, "0")
+            const minutes = Math.floor((secondsRemaining % 3600) / 60).toString().padStart(2, "0")
+            const secs = (secondsRemaining % 60).toString().padStart(2, "0")
+            countdownDisplay = `${hours}:${minutes}:${secs}`
+        } else {
+            const days = Math.ceil(secondsRemaining / 86400)
+            countdownDisplay = `${days} ${days === 1 ? "day" : "days"}`
+        }
+
+        return (
+            <div className="framefic-trial-sticky-banner">
+                <span>Free trial! <strong>{countdownDisplay}</strong> left</span>
+                <button
+                    type="button"
+                    className="framefic-trial-sticky-upgrade-btn"
+                    onClick={() => {
+                        setForceShowPlans((prev) => prev + 1)
+                        setIsProfileOpen(true)
+                        setProfileView("subscription")
+                    }}
+                >
+                    <IconCrown size={12} className="framefic-trial-sticky-btn-icon" />
+                    <span>Upgrade</span>
+                </button>
+            </div>
+        )
+    }, [auth.isLoggedIn, paymentFlow.isPaid, paymentFlow.currentPlan, paymentFlow.planDetails?.trialSecondsRemaining])
+
     // Refresh canvas counts for all widgets
     const refreshCanvasCounts = useCallback(async (allWidgets: ReviewWidget[]) => {
         try {
@@ -192,13 +360,17 @@ export function App() {
         let unsubSelection: (() => void) | undefined
 
         const handleCanvasCheck = async () => {
-            const { removedDuplicates } = await enforceSingleWidgetInstances()
-            if (removedDuplicates > 0) {
-                showNotice(
-                    "Reviewfic widgets cannot be duplicated. Each widget has a single canvas instance that can be updated or deleted.",
-                    "warning"
-                )
-                void refreshCanvasCounts(widgets)
+            try {
+                const res = await enforceSingleWidgetInstances().catch(() => ({ removedDuplicates: 0 }))
+                if (res && res.removedDuplicates > 0) {
+                    showNotice(
+                        "Reviewfic widgets cannot be duplicated. Each widget has a single canvas instance that can be updated or deleted.",
+                        "warning"
+                    )
+                    void refreshCanvasCounts(widgets)
+                }
+            } catch (err) {
+                console.warn("[Reviewfic] handleCanvasCheck error suppressed:", err)
             }
         }
 
@@ -619,6 +791,14 @@ export function App() {
     }
 
     const handleInsertWidget = async (widget: ReviewWidget) => {
+        if (!hasActiveAccess) {
+            if (!auth.isLoggedIn) {
+                auth.openAuthModal("register")
+            } else {
+                setTrialModalStatus("expired")
+            }
+            return
+        }
         if (!activeBusiness) return
         setInserting(true)
         try {
@@ -770,6 +950,14 @@ export function App() {
 
     // "Go with this design" handler in Builder
     const handleGoWithThisDesign = async () => {
+        if (!hasActiveAccess) {
+            if (!auth.isLoggedIn) {
+                auth.openAuthModal("register")
+            } else {
+                setTrialModalStatus("expired")
+            }
+            return
+        }
         if (!activeWidget || !activeBusiness) return
         setInserting(true)
         try {
@@ -974,54 +1162,50 @@ export function App() {
 
     return (
         <div className={`app ${resolvedTheme}`}>
+            {trialBanner}
             {/* Top Navigation Tabs */}
             <nav className="cf-tabs">
                 <div className="cf-tabs-list">
                     <button
                         type="button"
                         className={"cf-tab " + (!isProfileOpen && tab === "home" ? "active" : "")}
-                        onClick={() => {
-                            setIsProfileOpen(false)
-                            setTab("home")
-                        }}
+                        onClick={() => handleTabClick("home")}
                     >
                         Home
                     </button>
                     <button
                         type="button"
                         className={"cf-tab " + (!isProfileOpen && tab === "businesses" ? "active" : "")}
-                        onClick={() => {
-                            setIsProfileOpen(false)
-                            setTab("businesses")
-                        }}
+                        onClick={() => handleTabClick("businesses")}
                     >
                         Businesses
                     </button>
                     <button
                         type="button"
                         className={"cf-tab " + (!isProfileOpen && tab === "widgets" ? "active" : "")}
-                        onClick={() => {
-                            setIsProfileOpen(false)
-                            setTab("widgets")
-                        }}
+                        onClick={() => handleTabClick("widgets")}
                     >
                         Widgets
                     </button>
                     <button
                         type="button"
                         className={"cf-tab " + (!isProfileOpen && tab === "settings" ? "active" : "")}
-                        onClick={() => {
-                            setIsProfileOpen(false)
-                            setTab("settings")
-                        }}
+                        onClick={() => handleTabClick("settings")}
                     >
                         Settings
                     </button>
                 </div>
+
                 <button
                     type="button"
                     className={"cf-tab-profile " + (isProfileOpen ? "active" : "")}
-                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    onClick={() => {
+                        if (!auth.isLoggedIn && !isProfileOpen) {
+                            auth.openAuthModal("register")
+                        }
+                        setIsProfileOpen(!isProfileOpen)
+                        setProfileView("profile")
+                    }}
                     title="Account & Profile"
                     aria-label="Account & Profile"
                 >
@@ -1030,7 +1214,7 @@ export function App() {
             </nav>
 
             {/* Main Content */}
-            <main className="content" ref={mainRef}>
+            <main className={"content" + (isProTabLocked ? " cf-content-blurred" : "")} ref={mainRef}>
                 {/* Framer Callout Notice Banner */}
                 {notice && (
                     <div className={"cf-notice " + notice.type}>
@@ -1065,7 +1249,37 @@ export function App() {
                 )}
 
                 {isProfileOpen ? (
-                    <ProfilePage onBack={() => setIsProfileOpen(false)} />
+                    profileView === "subscription" ? (
+                        <SubscriptionPage
+                            onClose={() => {
+                                setProfileView("profile")
+                                setIsProfileOpen(false)
+                            }}
+                            hasSubscription={paymentFlow.isPaid}
+                            planDetails={paymentFlow.planDetails}
+                            isCreatingPayment={paymentFlow.isCreatingPayment}
+                            payingPlan={paymentFlow.payingPlan}
+                            lifetimeAvailability={paymentFlow.lifetimeAvailability}
+                            onPay={handlePay}
+                            onRefreshSubscription={paymentFlow.refreshSubscriptionStatus}
+                            notify={notify}
+                            defaultShowPlans={forceShowPlans}
+                        />
+                    ) : (
+                        <ProfilePage
+                            onBack={() => setIsProfileOpen(false)}
+                            authUser={auth.user}
+                            planDetails={paymentFlow.planDetails}
+                            hasSubscription={paymentFlow.isPaid}
+                            theme={resolvedTheme}
+                            onSignIn={() => auth.openAuthModal("login")}
+                            onSignUp={() => auth.openAuthModal("register")}
+                            onLogout={auth.logout}
+                            onManageSubscription={() => setProfileView("subscription")}
+                            onRefreshSubscription={paymentFlow.refreshSubscriptionStatus}
+                            onStartTrial={paymentFlow.handleStartTrial}
+                        />
+                    )
                 ) : (
                     <>
                         {/* TAB 1: HOME */}
@@ -1075,18 +1289,9 @@ export function App() {
                                 businesses={businesses}
                                 widgets={widgets}
                                 stats={stats}
-                                onCreateNewWidget={() => {
-                                    setTab("widgets")
-                                    setEditingWidgetId(null)
-                                }}
-                                onOpenBusinesses={() => {
-                                    setTab("businesses")
-                                    setEditingWidgetId(null)
-                                }}
-                                onOpenWidgets={() => {
-                                    setTab("widgets")
-                                    setEditingWidgetId(null)
-                                }}
+                                onCreateNewWidget={() => { setEditingWidgetId(null); handleTabClick("widgets"); }}
+                                onOpenBusinesses={() => { setEditingWidgetId(null); handleTabClick("businesses"); }}
+                                onOpenWidgets={() => { setEditingWidgetId(null); handleTabClick("widgets"); }}
                             />
                         )}
 
@@ -2012,12 +2217,25 @@ export function App() {
                         )}
                     </>
                 )}
+
+                {isProTabLocked && (
+                    <div
+                        className="cf-tab-blur-overlay"
+                        onClick={() => {
+                            if (!auth.isLoggedIn) {
+                                auth.openAuthModal("register")
+                            } else {
+                                setTrialModalStatus("expired")
+                            }
+                        }}
+                    />
+                )}
             </main>
 
             {/* Bottom Actions Footer */}
             {!isProfileOpen && (
                 <footer className="actions">
-                    {tab === "widgets" && editingWidgetId !== null && (
+                    {tab !== "home" && !isProTabLocked && editingWidgetId !== null && (
                         <div className="cf-footer-grid">
                             {(() => {
                                 const isOnCanvas = Boolean(activeWidget && (canvasWidgetCounts[activeWidget.id] || 0) > 0)
@@ -2082,6 +2300,75 @@ export function App() {
                     }}
                 />
             )}
+            {/* Auth & Payment Modals */}
+            <AuthModal
+                isOpen={auth.showAuthModal}
+                initialMode={auth.authModalMode}
+                onRegister={async (data) => {
+                    let siteId = null
+                    try {
+                        const info = await getSiteInfo()
+                        siteId = info.siteId || null
+                    } catch {}
+                    await auth.register({ ...data, siteId })
+                }}
+                onVerifySignup={async (email, code) => {
+                    await auth.verifySignup({ email, code })
+                    void handleAuthSuccess(email)
+                }}
+                onLogin={async (data) => {
+                    const res = await auth.login(data)
+                    if (data.code) {
+                        void handleAuthSuccess(data.email)
+                    }
+                    return res
+                }}
+                onSocialAuthSuccess={(data) => {
+                    auth.socialLogin(data.token, data.user)
+                    void handleAuthSuccess(data.user?.email)
+                }}
+                onClose={auth.closeAuthModal}
+            />
+
+            <PaymentModal
+                isOpen={paymentFlow.showPaymentModal}
+                clientSecret={paymentFlow.clientSecret}
+                showPaymentSuccessModal={paymentFlow.showPaymentSuccessModal}
+                showAmount={paymentFlow.showAmount}
+                showType={paymentFlow.showType}
+                plan={paymentFlow.payingPlan}
+                stripePromise={
+                    paymentFlow.showPaymentModal && paymentFlow.publishableKey
+                        ? getStripe(paymentFlow.publishableKey)
+                        : null
+                }
+                onClose={paymentFlow.closePaymentModal}
+                defaultEmail={auth.user?.email ?? null}
+                subscriptionId={paymentFlow.activeSubscriptionId}
+                setClientSecret={paymentFlow.setClientSecret}
+                setShowAmount={paymentFlow.setShowAmount}
+                onSuccess={() => {
+                    paymentFlow.handlePaymentSuccess()
+                }}
+                notify={notify}
+            />
+
+            <PaymentSuccessModal isOpen={paymentFlow.showPaymentSuccessModal} />
+
+            <TrialStatusModal
+                isOpen={trialModalStatus !== null}
+                status={trialModalStatus}
+                onClose={() => setTrialModalStatus(null)}
+                onUpgrade={() => {
+                    setIsProfileOpen(true)
+                    setProfileView("subscription")
+                    setTrialModalStatus(null)
+                }}
+                onLogout={() => {
+                    auth.logout()
+                    setTrialModalStatus(null)
+                }}
+            />
         </div>
     )
 }

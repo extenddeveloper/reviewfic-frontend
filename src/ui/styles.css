@@ -1438,33 +1438,35 @@ button.cf-btn-icon-del:hover {
     background: rgba(239, 68, 68, 0.15) !important;
 }
 
-/* 1. Mandatory .primary-cta Double-Gradient Button Standard */
+/* 1. Mandatory .primary-cta Double-Gradient Button Standard (Medium 32px height, 12px font) */
 .primary-cta,
 .primary-btn {
     font-family: inherit;
-    font-size: 13px;
+    font-size: 12px !important;
     font-weight: 600 !important;
     letter-spacing: 0.15px;
     line-height: 1;
-    width: 100%;
-    height: 36px !important;
-    min-height: 36px !important;
-    padding: 0 16px;
+    width: auto;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 0 12px !important;
     background: var(--cf-primary-cta-bg) !important;
     color: var(--cf-primary-cta-color) !important;
-    border: 2px solid transparent !important;
-    border-radius: var(--cf-primary-cta-radius, 10px);
+    border: 1px solid transparent !important;
+    border-radius: 8px !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px !important;
     position: relative;
     cursor: pointer;
     box-sizing: border-box;
     text-decoration: none;
     user-select: none;
     outline: none;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 1px 4px -1px var(--cf-primary-cta-shadow, rgba(82, 113, 255, 0.3));
+    white-space: nowrap;
 }
 
 .primary-cta:hover:not(:disabled),
@@ -1489,26 +1491,26 @@ button.cf-btn-icon-del:hover {
 
 .primary-cta svg,
 .primary-btn svg {
-    width: 16px;
-    height: 16px;
+    width: 13px !important;
+    height: 13px !important;
     flex-shrink: 0;
 }
 
-/* 2. Mandatory .secondary-cta Button Standard */
+/* 2. Mandatory .secondary-cta Button Standard (Medium 32px height, 12px font) */
 .secondary-cta,
 .btn-reset {
     font-family: inherit;
-    font-size: 13px;
+    font-size: 12px !important;
     font-weight: 500 !important;
     letter-spacing: 0.15px;
     line-height: 1;
-    height: 36px !important;
-    min-height: 36px !important;
-    padding: 0 16px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 0 12px !important;
     background: var(--cf-secondary-cta-bg) !important;
     color: var(--cf-secondary-cta-color) !important;
     border: 1px solid var(--cf-secondary-cta-border) !important;
-    border-radius: var(--cf-secondary-cta-radius, 10px) !important;
+    border-radius: 8px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -1519,7 +1521,8 @@ button.cf-btn-icon-del:hover {
     text-decoration: none !important;
     user-select: none !important;
     outline: none !important;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    white-space: nowrap;
 }
 
 .secondary-cta:hover:not(:disabled),
@@ -1546,8 +1549,8 @@ button.cf-btn-icon-del:hover {
 
 .secondary-cta svg,
 .btn-reset svg {
-    width: 14px;
-    height: 14px;
+    width: 13px !important;
+    height: 13px !important;
     flex-shrink: 0;
 }
 
@@ -1613,14 +1616,29 @@ button.cf-btn-icon-del:hover {
     align-items: center !important;
 }
 
+/* Shell Footer Buttons: "Go with this design" retains standard 36px height */
 .cf-footer-grid .primary-cta,
-.cf-footer-grid .primary-btn {
+.cf-footer-grid .primary-btn,
+.cf-footer-btn {
     width: 100% !important;
     min-width: 0 !important;
     height: 36px !important;
     min-height: 36px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    line-height: 36px !important;
+    padding: 0 16px !important;
+    border-radius: 10px !important;
+    gap: 8px !important;
     white-space: nowrap !important;
     flex: unset !important;
+}
+
+.cf-footer-grid .primary-cta svg,
+.cf-footer-grid .primary-btn svg,
+.cf-footer-btn svg {
+    width: 15px !important;
+    height: 15px !important;
 }
 
 .cf-footer-grid .secondary-cta,
@@ -1629,8 +1647,20 @@ button.cf-btn-icon-del:hover {
     min-width: auto !important;
     height: 36px !important;
     min-height: 36px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    line-height: 36px !important;
+    padding: 0 16px !important;
+    border-radius: 10px !important;
+    gap: 8px !important;
     white-space: nowrap !important;
     flex-shrink: 0 !important;
+}
+
+.cf-footer-grid .secondary-cta svg,
+.cf-footer-grid .btn-reset svg {
+    width: 14px !important;
+    height: 14px !important;
 }
 
 /* Shell Footer Bar */
@@ -1643,7 +1673,7 @@ button.cf-btn-icon-del:hover {
     border-top: none;
 }
 
-.cf-footer-grid + .cf-shell-footer-bar {
+.cf-footer-grid+.cf-shell-footer-bar {
     padding-top: 8px;
     margin-top: 4px;
     border-top: 1px solid var(--cf-border);
@@ -5325,12 +5355,20 @@ button.cf-btn-tp-sync:disabled {
 
 .cf-biz-header-actions .cf-biz-head-btn {
     height: 32px !important;
+    min-height: 32px !important;
+    line-height: 1 !important;
     padding: 0 12px !important;
     font-size: 12px !important;
     font-weight: 600 !important;
     border-radius: 8px !important;
     width: auto !important;
-    white-space: nowrap;
+    white-space: nowrap !important;
+    gap: 6px !important;
+}
+
+.cf-biz-header-actions .cf-biz-head-btn svg {
+    width: 13px !important;
+    height: 13px !important;
 }
 
 .cf-biz-card-list {
@@ -5463,12 +5501,20 @@ button.cf-btn-tp-sync:disabled {
 
 .cf-biz-card-actions-row .cf-biz-action-btn {
     flex: 1;
-    height: 34px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    line-height: 1 !important;
     padding: 0 12px !important;
-    font-size: 12.5px !important;
+    font-size: 12px !important;
     font-weight: 600 !important;
     border-radius: 8px !important;
     width: auto !important;
+    gap: 6px !important;
+}
+
+.cf-biz-card-actions-row .cf-biz-action-btn svg {
+    width: 13px !important;
+    height: 13px !important;
 }
 
 .cf-biz-arrow {
@@ -6441,12 +6487,20 @@ button.cf-btn-tp-sync:disabled {
 .cf-home-hero-actions .cf-home-hero-btn {
     flex: 1;
     width: auto !important;
-    height: 36px !important;
-    min-height: 36px !important;
-    padding: 0 14px !important;
-    font-size: 13px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    line-height: 1 !important;
+    padding: 0 12px !important;
+    font-size: 12px !important;
     font-weight: 600 !important;
+    border-radius: 8px !important;
     white-space: nowrap !important;
+    gap: 6px !important;
+}
+
+.cf-home-hero-actions .cf-home-hero-btn svg {
+    width: 13px !important;
+    height: 13px !important;
 }
 
 .cf-home-cta-primary {
@@ -7076,4 +7130,229 @@ button.cf-btn-tp-sync:disabled {
     font-weight: 600;
     color: var(--Secondary-Default, #5271FF);
     text-decoration: underline;
+}
+
+/* ── Trial & Pro Plan Header Badges ── */
+.cf-trial-pill {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 12px;
+    background: rgba(82, 113, 255, 0.15);
+    border: 1px solid rgba(82, 113, 255, 0.35);
+    color: #708aff;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.cf-trial-pill:hover {
+    background: rgba(82, 113, 255, 0.25);
+    border-color: #5271ff;
+    color: #ffffff;
+}
+
+.cf-upgrade-pill {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 24px;
+    padding: 0 9px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #5271ff 0%, #3b82f6 100%);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(82, 113, 255, 0.3);
+    transition: all 0.15s ease;
+}
+
+.cf-upgrade-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(82, 113, 255, 0.45);
+}
+
+/* ── Trial & Pro Plan Header Badges ── */
+.cf-trial-pill {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 12px;
+    background: rgba(82, 113, 255, 0.15);
+    border: 1px solid rgba(82, 113, 255, 0.35);
+    color: #708aff;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.cf-trial-pill:hover {
+    background: rgba(82, 113, 255, 0.25);
+    border-color: #5271ff;
+    color: #ffffff;
+}
+
+.cf-upgrade-pill {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 24px;
+    padding: 0 9px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #5271ff 0%, #3b82f6 100%);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(82, 113, 255, 0.3);
+    transition: all 0.15s ease;
+}
+
+.cf-upgrade-pill:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(82, 113, 255, 0.45);
+}
+
+/* ── Locked Pro Tab Blur Layer ── */
+.content.cf-content-blurred {
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.content.cf-content-blurred > *:not(.cf-tab-blur-overlay):not(.cf-notice) {
+    filter: blur(8px);
+    -webkit-filter: blur(8px);
+    opacity: 0.35;
+    pointer-events: none !important;
+    user-select: none !important;
+}
+
+.cf-tab-blur-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    background: transparent;
+    cursor: pointer;
+}
+
+.cf-signin-header-btn {
+    all: unset;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    padding: 0 8px;
+    border-radius: 6px;
+    color: var(--cf-text-secondary, #94a3b8);
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+
+.cf-signin-header-btn:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.cf-tabs-auth-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: auto;
+    margin-right: 4px;
+}
+
+/* ── Sticky Trial Banner ── */
+.framefic-trial-sticky-banner {
+    background-color: #ffd02c;
+    color: #111111;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    font-family: "Inter", sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    z-index: 50;
+}
+
+.framefic-trial-sticky-banner span {
+    color: #111111;
+    font-family: "Inter", sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.framefic-trial-sticky-banner strong {
+    color: #111111;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.3px;
+}
+
+.framefic-trial-sticky-upgrade-btn {
+    background: #111827 !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(0, 0, 0, 0.4) !important;
+    border-radius: 6px;
+    font-family: "Inter", sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 3px 10px;
+    transition: all 0.2s ease;
+    text-align: center;
+    white-space: nowrap;
+    width: auto;
+    min-width: 86px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    box-sizing: border-box;
+}
+
+.framefic-trial-sticky-upgrade-btn:hover {
+    background: #000000 !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+}
+
+.framefic-trial-sticky-upgrade-btn span {
+    color: #ffffff !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+}
+
+.framefic-trial-sticky-upgrade-btn svg,
+.framefic-trial-sticky-btn-icon {
+    stroke: #fbbf24 !important;
+    fill: #fbbf24 !important;
+    color: #fbbf24 !important;
+    flex-shrink: 0;
+    margin-right: 0 !important;
 }

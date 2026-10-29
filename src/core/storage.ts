@@ -99,21 +99,22 @@ export function hydrateBusiness(b: ConnectedBusiness): ConnectedBusiness {
     const hasGoogleReviews = Array.isArray(b.googleReviews) && b.googleReviews.length > 0
     const hasTpReviews = Array.isArray(b.trustpilotReviews) && b.trustpilotReviews.length > 0
 
+    const googleReviews = hasGoogleReviews
+        ? b.googleReviews
+        : (b.googleBusinessName ? generateReviewsForBusiness(b.googleBusinessName, "Business", b.googleMapsUrl) : [])
+
+    const trustpilotReviews = hasTpReviews
+        ? b.trustpilotReviews
+        : (b.trustpilotDomain ? generateReviewsForTrustpilot(b.trustpilotDomain, 24) : [])
+
     return {
         ...b,
-        googleReviews: hasGoogleReviews
-            ? b.googleReviews
-            : (b.googleBusinessName ? generateReviewsForBusiness(b.googleBusinessName, "Business", b.googleMapsUrl) : []),
-        trustpilotReviews: hasTpReviews
-            ? b.trustpilotReviews
-            : (b.trustpilotDomain ? generateReviewsForTrustpilot(b.trustpilotDomain, 24) : []),
-        customReviews: b.customReviews || [],
+        googleReviews,
+        trustpilotReviews,
+        customReviews: Array.isArray(b.customReviews) ? b.customReviews : [],
     }
 }
 
-/**
- * Strips review arrays and default values from widget config before storing (~120 bytes per widget).
- */
 export function compactWidget(w: ReviewWidget): any {
     return {
         id: w.id,
@@ -206,7 +207,23 @@ async function writeStorage(key: string, val: string): Promise<boolean> {
     return true
 }
 
+const STORAGE_KEY_FULL_BUSINESSES = "reviewfic_businesses_full_v2"
+
 export async function loadBusinesses(): Promise<ConnectedBusiness[]> {
+    // 1. First check localStorage for full businesses with real reviews intact
+    try {
+        const fullLocal = localStorage.getItem(STORAGE_KEY_FULL_BUSINESSES)
+        if (fullLocal) {
+            const list = JSON.parse(fullLocal)
+            if (Array.isArray(list) && list.length > 0) {
+                return list.map(hydrateBusiness)
+            }
+        }
+    } catch (e) {
+        console.warn("[Reviewfic] Failed to parse full businesses from localStorage:", e)
+    }
+
+    // 2. Fallback to Framer plugin data
     try {
         const raw = await readStorage(STORAGE_KEY_BUSINESSES)
         if (raw) {
@@ -223,6 +240,12 @@ export async function loadBusinesses(): Promise<ConnectedBusiness[]> {
 }
 
 export async function saveBusinesses(businesses: ConnectedBusiness[]): Promise<boolean> {
+    // 1. Always save full businesses with real reviews in localStorage
+    try {
+        localStorage.setItem(STORAGE_KEY_FULL_BUSINESSES, JSON.stringify(businesses))
+    } catch {}
+
+    // 2. Compact for Framer plugin data to respect 2kB limit
     const compacted = businesses.map(compactBusiness)
     return writeStorage(STORAGE_KEY_BUSINESSES, JSON.stringify(compacted))
 }

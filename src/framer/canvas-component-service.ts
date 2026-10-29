@@ -1,6 +1,7 @@
 import { framer } from "@framer/plugin"
 import { ReviewConfig, ReviewWidget, ConnectedBusiness } from "../core/types"
 import { calculateBlendedStats, getActiveReviews, mergeBusinessIntoConfig } from "../core/config"
+import { fetchGooglePlaceDetails, fetchTrustpilotLiveReviews } from "../core/api-client"
 import { WIDGET_BUNDLE_CSS } from "./widget-styles-const"
 
 export function generateReviewficComponentCode(config: ReviewConfig): string {
@@ -1231,6 +1232,8 @@ export async function ensureFramerCanvasPermissions(): Promise<void> {
                 "setAttributes",
                 "getNodesWithType",
                 "createCodeFile",
+                "setCodeFileContent",
+                "getCodeFiles",
                 "addComponentInstance",
                 "setSelection",
                 "setPluginData",
@@ -1305,10 +1308,7 @@ export async function insertCanvasComponent(
 
             if (instance) {
                 try {
-                    if (typeof instance.setPluginData === "function") {
-                        if (config.widgetId) await instance.setPluginData("reviewfic_widget_id", config.widgetId)
-                        if (config.businessId) await instance.setPluginData("reviewfic_business_id", config.businessId)
-                    }
+                    // Canvas nodes store data in controls rather than node-level plugin data to avoid Framer bridge Node-not-found RPC errors
                 } catch {}
 
                 if (instance.id) {
@@ -1490,18 +1490,6 @@ export async function getCanvasWidgetId(node: any): Promise<string | null> {
         const match = node.name.match(/\[(widget_[^\]]+)\]/)
         if (match && match[1]) return match[1].trim()
     }
-    try {
-        if (typeof node.getPluginData === "function") {
-            const val = await node.getPluginData("reviewfic_widget_id")
-            if (val) return val
-        }
-    } catch {}
-    try {
-        if (typeof (framer as any).getPluginDataForNode === "function") {
-            const val = await (framer as any).getPluginDataForNode(node.id, "reviewfic_widget_id")
-            if (val) return val
-        }
-    } catch {}
     return null
 }
 
@@ -1558,12 +1546,6 @@ export async function insertCanvasWidget(
             const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
             const newInst = instances?.find((i) => i.id === res.instanceId)
             if (newInst) {
-                try {
-                    if (typeof newInst.setPluginData === "function") {
-                        await newInst.setPluginData("reviewfic_widget_id", widget.id)
-                        await newInst.setPluginData("reviewfic_business_id", business.id)
-                    }
-                } catch {}
                 if (typeof newInst.setAttributes === "function") {
                     await newInst.setAttributes({
                         name: `Reviewfic - ${widget.name} [${widget.id}]`,
@@ -1593,6 +1575,29 @@ export async function syncCanvasWidget(
 ): Promise<boolean> {
     try {
         await ensureFramerCanvasPermissions()
+
+        // 1. Ensure real connected business reviews are present
+        if (business.googlePlaceId && (!business.googleReviews || business.googleReviews.length === 0 || business.googleReviews[0]?.authorName === "Sarah Jenkins")) {
+            try {
+                const details = await fetchGooglePlaceDetails(business.googlePlaceId)
+                if (details && details.reviews && details.reviews.length > 0) {
+                    business.googleReviews = details.reviews
+                    business.googleRating = details.rating
+                    business.googleReviewCount = details.reviewCount
+                }
+            } catch {}
+        }
+        if (business.trustpilotDomain && (!business.trustpilotReviews || business.trustpilotReviews.length === 0)) {
+            try {
+                const liveTp = await fetchTrustpilotLiveReviews(business.trustpilotDomain)
+                if (liveTp && liveTp.reviews && liveTp.reviews.length > 0) {
+                    business.trustpilotReviews = liveTp.reviews
+                    business.trustpilotRating = liveTp.rating
+                    business.trustpilotReviewCount = liveTp.reviewCount
+                }
+            } catch {}
+        }
+
         const instances = (await framer.getNodesWithType("ComponentInstanceNode")) as any[]
         if (!instances || instances.length === 0) return false
         const reviewficNodes = instances.filter(isReviewficInstance)
@@ -1616,6 +1621,18 @@ export async function syncCanvasWidget(
         const mergedConfig = mergeBusinessIntoConfig(business, widget.config)
         mergedConfig.widgetId = widget.id
         mergedConfig.businessId = business.id
+
+        // Also update code file so default data matches live business
+        try {
+            const componentCode = generateReviewficComponentCode(mergedConfig)
+            const files = await framer.getCodeFiles()
+            const file = files.find((f) => f.name === "Reviewfic.tsx" || f.name === "Reviewfic")
+            if (file) {
+                await file.setFileContent(componentCode)
+            }
+        } catch (codeErr) {
+            console.warn("[Reviewfic] Could not update code file during sync:", codeErr)
+        }
 
         const isBadge = isBadgeLayout(mergedConfig.layout)
         const targetWidth = isBadge ? "420px" : "1100px"

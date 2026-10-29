@@ -3,6 +3,7 @@ import { ConnectedBusiness, ReviewItem } from "../../core/types"
 import { createDefaultBusiness } from "../../core/config"
 import { searchGooglePlaces, parseGoogleMapsInput, generateReviewsForBusiness, GooglePlaceResult } from "../../core/google-places"
 import { resolveTrustpilotProfile, generateReviewsForTrustpilot, parseTrustpilotInput } from "../../core/trustpilot"
+import { fetchGooglePlacesPredictions, fetchGooglePlaceDetails, fetchTrustpilotLiveReviews } from "../../core/api-client"
 import { IconGoogle, IconTrustpilot, IconStar, IconCheck, IconSearch, IconRefresh } from "../icons"
 
 interface ConnectReviewsViewProps {
@@ -83,20 +84,50 @@ export function ConnectReviewsView({ onComplete, onCancel, initialBusiness }: Co
         }
 
         setIsSearchingGoogle(true)
-        searchGooglePlaces(val)
-            .then((res) => setGoogleResults(res))
-            .catch(() => setGoogleResults([]))
+        fetchGooglePlacesPredictions(val)
+            .then(async (backendResults) => {
+                if (backendResults !== null && backendResults.length > 0) {
+                    setGoogleResults(backendResults)
+                } else {
+                    const fallback = await searchGooglePlaces(val)
+                    setGoogleResults(fallback)
+                }
+            })
+            .catch(async () => {
+                const fallback = await searchGooglePlaces(val)
+                setGoogleResults(fallback)
+            })
             .finally(() => setIsSearchingGoogle(false))
     }, [])
 
-    const handleSelectGooglePlace = (place: GooglePlaceResult) => {
-        const reviews = place.reviews?.length ? place.reviews : generateReviewsForBusiness(place.name, place.category, place.address)
+    const handleSelectGooglePlace = async (place: GooglePlaceResult) => {
+        let reviews = place.reviews?.length ? place.reviews : []
+        let rating = place.rating
+        let reviewCount = place.reviewCount
+        let address = place.address
+
+        if (place.placeId) {
+            try {
+                const details = await fetchGooglePlaceDetails(place.placeId)
+                if (details && details.reviews.length > 0) {
+                    reviews = details.reviews
+                    rating = details.rating
+                    reviewCount = details.reviewCount
+                    address = details.address || address
+                }
+            } catch {}
+        }
+
+        if (!reviews.length) {
+            reviews = generateReviewsForBusiness(place.name, place.category, address)
+        }
+
         setConnectedGoogle({
             name: place.name,
             placeId: place.placeId,
             mapsUrl: place.mapsUrl,
-            rating: place.rating,
-            reviewCount: place.reviewCount,
+            rating,
+            reviewCount,
             reviews,
         })
         setIsChangingGoogle(false)
@@ -112,6 +143,19 @@ export function ConnectReviewsView({ onComplete, onCancel, initialBusiness }: Co
         try {
             const parsed = parseTrustpilotInput(tpUrlInput)
             const domain = parsed.domain || tpUrlInput.trim()
+
+            const liveTp = await fetchTrustpilotLiveReviews(domain, 20)
+            if (liveTp && liveTp.reviews.length > 0) {
+                setConnectedTp({
+                    domain: liveTp.domain,
+                    rating: liveTp.rating,
+                    reviewCount: liveTp.reviewCount,
+                    reviews: liveTp.reviews,
+                })
+                setIsChangingTp(false)
+                return
+            }
+
             const profile = await resolveTrustpilotProfile(domain)
             const reviews = generateReviewsForTrustpilot(domain, 24)
 

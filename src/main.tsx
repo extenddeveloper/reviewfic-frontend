@@ -52,6 +52,8 @@ try {
             "setAttributes",
             "getNodesWithType",
             "createCodeFile",
+            "setCodeFileContent",
+            "getCodeFiles",
             "addComponentInstance",
             "setSelection",
             "setPluginData",
@@ -63,7 +65,7 @@ try {
 try {
     framer.showUI({
         position: "top right",
-        width: 400,
+        width: 360,
         height: 590,
     })
 } catch { }
