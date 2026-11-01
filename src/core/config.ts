@@ -332,7 +332,8 @@ export function createDefaultBusiness(
         trustpilotEnabled: hasTp,
 
         customReviews: [],
-        lastSync: "Just now",
+        lastSyncTime: Date.now(),
+        lastSync: new Date().toISOString(),
         createdAt: Date.now(),
     }
 }
@@ -389,3 +390,60 @@ export function mergeBusinessIntoConfig(
     }
 }
 
+
+export function formatLastSync(biz?: { lastSyncTime?: number; lastSync?: string | number; createdAt?: number }): string {
+    if (!biz) return "Just now"
+
+    let timeMs: number | null = null
+
+    if (typeof biz.lastSyncTime === "number" && !isNaN(biz.lastSyncTime) && biz.lastSyncTime > 0) {
+        timeMs = biz.lastSyncTime
+    } else if (typeof biz.lastSync === "number" && !isNaN(biz.lastSync) && biz.lastSync > 0) {
+        timeMs = biz.lastSync
+    } else if (typeof biz.lastSync === "string" && biz.lastSync !== "Just now") {
+        const parsed = Date.parse(biz.lastSync)
+        if (!isNaN(parsed) && parsed > 0) {
+            timeMs = parsed
+        }
+    }
+
+    // Fallback to createdAt if lastSync was just the static string "Just now"
+    if (!timeMs && typeof biz.createdAt === "number" && biz.createdAt > 0) {
+        timeMs = biz.createdAt
+    }
+
+    if (!timeMs) return "Just now"
+
+    const diffSeconds = Math.max(0, Math.floor((Date.now() - timeMs) / 1000))
+
+    if (diffSeconds < 45) {
+        return "Just now"
+    }
+    if (diffSeconds < 90) {
+        return "1 min ago"
+    }
+    const diffMinutes = Math.floor(diffSeconds / 60)
+    if (diffMinutes < 60) {
+        return `${diffMinutes} mins ago`
+    }
+    const diffHours = Math.floor(diffMinutes / 60)
+    if (diffHours === 1) {
+        return "1 hr ago"
+    }
+    if (diffHours < 24) {
+        return `${diffHours} hrs ago`
+    }
+    const diffDays = Math.floor(diffHours / 24)
+    if (diffDays === 1) {
+        return "Yesterday"
+    }
+    if (diffDays < 7) {
+        return `${diffDays} days ago`
+    }
+    if (diffDays < 30) {
+        const weeks = Math.floor(diffDays / 7)
+        return `${weeks} ${weeks === 1 ? "week" : "weeks"} ago`
+    }
+    const d = new Date(timeMs)
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+}

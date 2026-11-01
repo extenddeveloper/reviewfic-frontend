@@ -87,7 +87,8 @@ export function compactBusiness(b: ConnectedBusiness): ConnectedBusiness {
         trustpilotEnabled: b.trustpilotEnabled ?? false,
         trustpilotReviews: undefined, // Omit bulky review arrays
         customReviews: Array.isArray(b.customReviews) ? b.customReviews.slice(0, 5) : [],
-        lastSync: b.lastSync || "Just now",
+        lastSync: b.lastSync || new Date().toISOString(),
+        lastSyncTime: b.lastSyncTime || (typeof b.lastSync === "number" ? b.lastSync : (b.createdAt || Date.now())),
         notes: b.notes,
     }
 }
@@ -112,6 +113,7 @@ export function hydrateBusiness(b: ConnectedBusiness): ConnectedBusiness {
         googleReviews,
         trustpilotReviews,
         customReviews: Array.isArray(b.customReviews) ? b.customReviews : [],
+        lastSyncTime: b.lastSyncTime || (b.createdAt || Date.now()),
     }
 }
 

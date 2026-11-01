@@ -1,4 +1,5 @@
-import React from "react"
+import React, { useState, useEffect } from "react"
+import { formatLastSync } from "../../core/config"
 import { ConnectedBusiness } from "../../core/types"
 import { IconGoogle, IconTrustpilot, IconRefresh, IconPlus } from "../icons"
 
@@ -19,6 +20,11 @@ export function BusinessesListView({
     onAddBusiness,
     onSyncBusiness,
 }: BusinessesListViewProps) {
+    const [, setTick] = useState(0)
+    useEffect(() => {
+        const timer = setInterval(() => setTick((t) => t + 1), 30000)
+        return () => clearInterval(timer)
+    }, [])
     return (
         <div className="cf-biz-container">
             {/* Header: Title, Description & Action Buttons */}
@@ -101,7 +107,7 @@ export function BusinessesListView({
                             {/* Metadata Row: Last sync */}
                             <div className="cf-biz-card-meta">
                                 <span className="cf-biz-meta-sync">
-                                    Last sync: <b>{biz.lastSync || "Just now"}</b>
+                                    Last sync: <b>{formatLastSync(biz)}</b>
                                 </span>
                             </div>
 

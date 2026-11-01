@@ -44,7 +44,8 @@ export function ManageBusinessesView({
             googleMapsUrl: editGoogle.trim() || biz.googleMapsUrl,
             trustpilotDomain: cleanTp,
             trustpilotEnabled: Boolean(cleanTp),
-            lastSync: "Just now",
+            lastSyncTime: Date.now(),
+            lastSync: new Date().toISOString(),
         }
         onUpdateBusiness(updated)
         setEditingBizId(null)

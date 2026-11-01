@@ -930,18 +930,31 @@ export function App() {
     }
 
     const handleSyncBusiness = async (biz: ConnectedBusiness) => {
-        const freshGoogle = biz.googleBusinessName
-            ? generateReviewsForBusiness(biz.googleBusinessName, "Business", biz.googleMapsUrl)
-            : []
-        const freshTp = biz.trustpilotDomain
-            ? generateReviewsForTrustpilot(biz.trustpilotDomain, 24)
-            : []
+        let freshGoogle = biz.googleReviews || []
+        let gRating = biz.googleRating
+        let gReviewCount = biz.googleReviewCount
 
+        if (biz.googlePlaceId) {
+            try {
+                const details = await fetchGooglePlaceDetails(biz.googlePlaceId, true)
+                if (details && Array.isArray(details.reviews) && details.reviews.length > 0) {
+                    freshGoogle = details.reviews
+                    gRating = details.rating || gRating
+                    gReviewCount = details.reviewCount || freshGoogle.length
+                }
+            } catch (err) {
+                console.warn("Failed to fetch fresh reviews from backend:", err)
+            }
+        }
+
+        const now = Date.now()
         const updatedBiz: ConnectedBusiness = {
             ...biz,
-            googleReviews: freshGoogle.length ? freshGoogle : biz.googleReviews,
-            trustpilotReviews: freshTp.length ? freshTp : biz.trustpilotReviews,
-            lastSync: "Just now",
+            googleReviews: freshGoogle,
+            googleRating: gRating,
+            googleReviewCount: gReviewCount,
+            lastSyncTime: now,
+            lastSync: new Date(now).toISOString(),
         }
 
         handleUpdateBusiness(updatedBiz)

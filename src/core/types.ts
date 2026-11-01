@@ -132,7 +132,8 @@ export interface ConnectedBusiness {
     trustpilotEnabled?: boolean
 
     customReviews?: ReviewItem[]
-    lastSync?: string // e.g. "Just now", "2 min ago"
+    lastSync?: string
+    lastSyncTime?: number
     createdAt: number
 }
 
