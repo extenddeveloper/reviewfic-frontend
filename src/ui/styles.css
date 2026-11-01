@@ -6416,72 +6416,77 @@ button.cf-btn-tp-sync:disabled {
 }
 
 .cf-home-hero {
-    background: var(--cf-bg-secondary);
-    border: 1px solid var(--cf-border);
+    background: radial-gradient(130% 120% at 50% 0%, rgba(82, 113, 255, 0.16) 0%, rgba(15, 17, 23, 0.6) 100%), var(--cf-bg-secondary);
+    border: 1px solid rgba(82, 113, 255, 0.22);
     border-radius: 14px;
-    padding: 18px 16px;
+    padding: 16px 14px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.25), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
 }
 
 .cf-home-badge {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--Secondary-Default, #5271FF);
-    background: var(--cf-tint-subtle, rgba(82, 113, 255, 0.12));
-    padding: 3px 9px;
-    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: #7c94ff;
+    background: rgba(82, 113, 255, 0.14);
+    padding: 3px 8px;
+    border-radius: 9999px;
     align-self: flex-start;
-    border: 1px solid rgba(82, 113, 255, 0.25);
+    border: 1px solid rgba(82, 113, 255, 0.28);
 }
 
 .cf-home-title {
-    font-size: 16px;
+    font-size: 15.5px;
     font-weight: 700;
     color: var(--cf-text);
     margin: 0;
-    line-height: 1.35;
+    line-height: 1.3;
     letter-spacing: -0.2px;
 }
 
 .cf-home-subtitle {
-    font-size: 12px;
+    font-size: 11.5px;
     color: var(--cf-text-secondary);
     margin: 0;
     line-height: 1.45;
 }
 
 .cf-home-hero-actions {
-    display: flex;
-    align-items: center;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
-    margin-top: 6px;
+    margin-top: 4px;
     width: 100%;
 }
 
 .cf-home-hero-actions .cf-home-hero-btn {
-    flex: 1;
-    width: auto !important;
-    height: 32px !important;
-    min-height: 32px !important;
+    width: 100% !important;
+    height: 34px !important;
+    min-height: 34px !important;
     line-height: 1 !important;
-    padding: 0 12px !important;
+    padding: 0 10px !important;
     font-size: 12px !important;
     font-weight: 600 !important;
     border-radius: 8px !important;
     white-space: nowrap !important;
+    justify-content: center !important;
     gap: 6px !important;
+    box-sizing: border-box !important;
 }
 
 .cf-home-hero-actions .cf-home-hero-btn svg {
     width: 13px !important;
     height: 13px !important;
+    flex-shrink: 0;
 }
 
 .cf-home-cta-primary {

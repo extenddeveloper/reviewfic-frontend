@@ -3,7 +3,7 @@ import { ConnectedBusiness, ReviewWidget } from "../../core/types"
 import {
     IconSparkles,
     IconPlus,
-    IconShieldCheck,
+    IconSliders,
     IconStar,
 } from "../icons"
 import { HelpRow } from "./HelpRow"
@@ -43,29 +43,31 @@ export function HomeView({
             {/* Hero Card */}
             <div className="cf-home-hero">
                 <div className="cf-home-badge">
-                    <IconSparkles size={13} />
-                    <span>Official Reviewfic</span>
+                    <IconSparkles size={11} />
+                    <span>REVIEWFIC WIDGETS</span>
                 </div>
-                <h1 className="cf-home-title">Google &amp; Trustpilot Reviews for Framer</h1>
+                <h1 className="cf-home-title">Showcase Verified Reviews</h1>
                 <p className="cf-home-subtitle">
-                    Aggregate verified social proof, customize responsive review layouts, and insert live-syncing widgets directly onto your canvas.
+                    Add live Google &amp; Trustpilot review widgets directly to your Framer canvas.
                 </p>
                 <div className="cf-home-hero-actions">
                     <button
                         type="button"
                         className="primary-cta cf-home-hero-btn"
                         onClick={onCreateNewWidget}
+                        title="Create a new review widget"
                     >
-                        <IconPlus size={14} />
-                        <span>Create New Widget</span>
+                        <IconPlus size={13} />
+                        <span>New Widget</span>
                     </button>
                     <button
                         type="button"
                         className="secondary-cta cf-home-hero-btn"
                         onClick={onOpenBusinesses}
+                        title="Manage connected businesses"
                     >
-                        <IconShieldCheck size={14} />
-                        <span>Manage Businesses</span>
+                        <IconSliders size={13} />
+                        <span>Businesses</span>
                     </button>
                 </div>
             </div>
