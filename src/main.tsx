@@ -47,18 +47,25 @@ try {
     if ((framer as any).showUncheckedPermissionToasts !== undefined) {
         (framer as any).showUncheckedPermissionToasts = false
     }
-    if (typeof (framer as any).isAllowedTo === "function") {
-        void (framer as any).isAllowedTo(
+        if (typeof (framer as any).isAllowedTo === "function") {
+        const methods = [
+            "CodeFile.setFileContent",
+            "setCodeFileContent",
+            "createCodeFile",
+            "getCodeFiles",
+            "getCodeFile",
             "setAttributes",
             "getNodesWithType",
-            "createCodeFile",
-            "setCodeFileContent",
-            "getCodeFiles",
             "addComponentInstance",
             "setSelection",
             "setPluginData",
-            "getPluginData"
-        )
+            "getPluginData",
+        ]
+        for (const m of methods) {
+            try {
+                (framer as any).isAllowedTo(m)
+            } catch {}
+        }
     }
 } catch { }
 

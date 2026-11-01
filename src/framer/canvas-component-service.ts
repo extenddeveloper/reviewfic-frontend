@@ -1244,22 +1244,48 @@ export function isBadgeLayout(layout?: string): boolean {
     return ["badge", "avatars", "ratingcard", "gbadge", "trustpilot"].includes(layout || "")
 }
 
-export async function ensureFramerCanvasPermissions(): Promise<void> {
+export function ensureFramerCanvasPermissions(): void {
     try {
         if (typeof (framer as any).isAllowedTo === "function") {
-            await (framer as any).isAllowedTo(
+            const methods = [
+                "CodeFile.setFileContent",
+                "setCodeFileContent",
+                "createCodeFile",
+                "getCodeFiles",
+                "getCodeFile",
                 "setAttributes",
                 "getNodesWithType",
-                "createCodeFile",
-                "setCodeFileContent",
-                "getCodeFiles",
                 "addComponentInstance",
                 "setSelection",
                 "setPluginData",
-                "getPluginData"
-            )
+                "getPluginData",
+            ]
+            for (const m of methods) {
+                try {
+                    (framer as any).isAllowedTo(m)
+                } catch {}
+            }
         }
     } catch {}
+}
+
+export async function safeSetFileContent(file: any, code: string): Promise<boolean> {
+    if (!file) return false
+    try {
+        ensureFramerCanvasPermissions()
+        if (typeof file.isAllowedTo === "function") {
+            try { file.isAllowedTo("setFileContent") } catch {}
+        }
+        if (typeof (framer as any).isAllowedTo === "function") {
+            try { (framer as any).isAllowedTo("CodeFile.setFileContent") } catch {}
+            try { (framer as any).isAllowedTo("setCodeFileContent") } catch {}
+        }
+        await file.setFileContent(code)
+        return true
+    } catch (err: any) {
+        console.warn("[Reviewfic] Notice: code file setFileContent skipped or desynced:", err?.message || err)
+        return false
+    }
 }
 
 export async function insertCanvasComponent(
@@ -1279,9 +1305,13 @@ export async function insertCanvasComponent(
         let file = files.find((f) => f.name === fileName || f.name === "Reviewfic")
 
         if (file) {
-            await file.setFileContent(code)
+            await safeSetFileContent(file, code)
         } else {
-            file = await framer.createCodeFile(fileName, code, { editViaPlugin: true })
+            try {
+                file = await framer.createCodeFile(fileName, code, { editViaPlugin: true })
+            } catch (createErr) {
+                console.warn("[Reviewfic] createCodeFile notice:", createErr)
+            }
         }
 
         // If the user explicitly only wants to update existing canvas instances:
@@ -1370,7 +1400,7 @@ export async function syncCanvasInstance(config: ReviewConfig): Promise<boolean>
             const files = await framer.getCodeFiles()
             const file = files.find((f) => f.name === fileName || f.name === "Reviewfic")
             if (file) {
-                await file.setFileContent(code)
+                await safeSetFileContent(file, code)
             }
         } catch (e) {
             console.warn("[Reviewfic] Failed to update code file in syncCanvasInstance:", e)
@@ -1641,17 +1671,7 @@ export async function syncCanvasWidget(
         mergedConfig.widgetId = widget.id
         mergedConfig.businessId = business.id
 
-        // Also update code file so default data matches live business
-        try {
-            const componentCode = generateReviewficComponentCode(mergedConfig)
-            const files = await framer.getCodeFiles()
-            const file = files.find((f) => f.name === "Reviewfic.tsx" || f.name === "Reviewfic")
-            if (file) {
-                await file.setFileContent(componentCode)
-            }
-        } catch (codeErr) {
-            console.warn("[Reviewfic] Could not update code file during sync:", codeErr)
-        }
+        // Code file defaults remain stable; live canvas instance updates via node controls below
 
         const isBadge = isBadgeLayout(mergedConfig.layout)
         const targetWidth = isBadge ? "420px" : "1100px"

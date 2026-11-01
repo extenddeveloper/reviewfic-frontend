@@ -5283,7 +5283,6 @@ button.cf-btn-tp-sync:disabled {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    padding: 16px;
     box-sizing: border-box;
 }
 
@@ -7220,7 +7219,7 @@ button.cf-btn-tp-sync:disabled {
     overflow: hidden !important;
 }
 
-.content.cf-content-blurred > *:not(.cf-tab-blur-overlay):not(.cf-notice) {
+.content.cf-content-blurred>*:not(.cf-tab-blur-overlay):not(.cf-notice) {
     filter: blur(8px);
     -webkit-filter: blur(8px);
     opacity: 0.35;
