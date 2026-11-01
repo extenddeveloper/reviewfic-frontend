@@ -2023,31 +2023,28 @@ export function App() {
 
                                     <div className="cf-cms-card">
                                         <div className="cf-cms-card-header">
-                                            <span className="cf-cms-badge">
-                                                <IconDatabase size={11} />
-                                                <span>Framer CMS</span>
-                                            </span>
-                                            <span className="cf-cms-count-pill">{activeReviews.length} reviews ready</span>
+                                            <div className="cf-cms-title-group">
+                                                <IconDatabase size={14} className="cf-cms-icon" />
+                                                <span className="cf-cms-title">Framer CMS Collection</span>
+                                            </div>
+                                            <span className="cf-cms-count-pill">{activeReviews.length} reviews</span>
                                         </div>
-                                        <div className="cf-cms-body">
-                                            <h4 className="cf-cms-title">Direct CMS Synchronization</h4>
-                                            <p className="cf-cms-desc">
-                                                Automatically create and sync a Framer CMS Collection with all active reviews.
-                                            </p>
-                                        </div>
+                                        <p className="cf-cms-desc">
+                                            Sync active reviews directly into a Framer CMS Collection or export formatted CSV.
+                                        </p>
                                         <div className="cf-cms-buttons-row">
                                             <button
                                                 type="button"
-                                                className="cf-btn-cms-sync"
+                                                className="primary-cta cf-btn-cms-sync"
                                                 onClick={handleSyncCMS}
                                                 disabled={isSyncingCMS || activeReviews.length === 0}
                                             >
-                                                <IconDatabase size={14} />
-                                                <span>{isSyncingCMS ? "Syncing to Framer CMS..." : "Sync to Framer CMS Collection"}</span>
+                                                <IconDatabase size={13} />
+                                                <span>{isSyncingCMS ? "Syncing Collection..." : "Sync to Framer CMS"}</span>
                                             </button>
                                             <button
                                                 type="button"
-                                                className="cf-btn-cms-secondary"
+                                                className="secondary-cta cf-btn-cms-secondary"
                                                 onClick={handleExportFramerCMSCSV}
                                                 disabled={activeReviews.length === 0}
                                             >
