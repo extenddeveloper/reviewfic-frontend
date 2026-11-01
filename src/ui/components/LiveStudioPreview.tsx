@@ -383,12 +383,15 @@ export function LiveStudioPreview({
                     <div className="vr-header-left">
                         <span className="vr-rating">{stats.averageRating}</span>
                         <div className="vr-header-meta">
-                            {renderStars(stats.averageRating, 15)}
+                            <div className="vr-stars-row">
+                                {renderStars(stats.averageRating, 15)}
+                            </div>
                             <span className="vr-count">Based on {stats.totalReviews}+ verified reviews</span>
                         </div>
                     </div>
 
-                    <div className="vr-chips">
+                    <div className="vr-header-right">
+                        <div className="vr-chips">
                         {config.googleEnabled && stats.googleCount > 0 && (
                             <span className="vr-chip">
                                 <IconGoogle size={12} />
@@ -412,7 +415,8 @@ export function LiveStudioPreview({
                         >
                             Write a Review ↗
                         </a>
-                    )}
+                        )}
+                    </div>
                 </div>
             )}
 

@@ -842,7 +842,7 @@ export function generateReviewsForBusiness(businessName: string, category = "Bus
             text: templates[i % templates.length].replace(/\{name\}/g, cleanName),
             verified: true,
             originalUrl: "https://maps.google.com",
-            pinned: i === 0,
+            pinned: false,
         }))
     }
 

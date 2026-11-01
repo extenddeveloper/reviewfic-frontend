@@ -54,7 +54,7 @@ export async function fetchGooglePlacesPredictions(query: string): Promise<Googl
 /**
  * Fetch full place details and real reviews from Reviewfic backend
  */
-export async function fetchGooglePlaceDetails(placeId: string): Promise<{
+export async function fetchGooglePlaceDetails(placeId: string, forceRefresh = false): Promise<{
     name: string
     address: string
     rating: number
@@ -65,7 +65,8 @@ export async function fetchGooglePlaceDetails(placeId: string): Promise<{
     if (!placeId) return null
 
     try {
-        const res = await fetch(`${BACKEND_API_BASE}/places/details?place_id=${encodeURIComponent(placeId)}`, {
+        const url = `${BACKEND_API_BASE}/places/details?place_id=${encodeURIComponent(placeId)}${forceRefresh ? '&refresh=1' : ''}`
+        const res = await fetch(url, {
             headers: { Accept: "application/json" },
         })
 
@@ -85,7 +86,7 @@ export async function fetchGooglePlaceDetails(placeId: string): Promise<{
             text: r.text || "",
             verified: true,
             originalUrl: r.review_url || r.author_url || p.maps_url || "https://maps.google.com",
-            pinned: idx === 0,
+            pinned: false,
         }))
 
         return {
@@ -133,7 +134,7 @@ export async function fetchTrustpilotLiveReviews(domain: string, limit = 20): Pr
             text: r.text || r.title || "",
             verified: Boolean(r.verified),
             originalUrl: r.sourceUrl || `https://www.trustpilot.com/review/${domain}`,
-            pinned: idx === 0,
+            pinned: false,
         }))
 
         return {

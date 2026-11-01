@@ -126,7 +126,7 @@ export function generateReviewsForTrustpilot(domain: string, count = 24): Review
             text: template(brand),
             verified: true,
             originalUrl: `https://www.trustpilot.com/review/${cleanDomain || "company.com"}`,
-            pinned: i === 0,
+            pinned: false,
         }
     })
 }

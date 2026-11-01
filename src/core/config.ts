@@ -259,7 +259,7 @@ export function getActiveReviews(config: ReviewConfig): ReviewItem[] {
     const pinnedSet = new Set(pinnedIds)
     list = list.map((r) => ({
         ...r,
-        pinned: pinnedSet.has(r.id) || Boolean(r.pinned),
+        pinned: pinnedIds.length > 0 ? pinnedSet.has(r.id) : Boolean(r.pinned),
     }))
 
     // Sort: Pinned first (preserving pin priority), then by chosen sortOrder

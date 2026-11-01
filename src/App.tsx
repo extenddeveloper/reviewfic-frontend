@@ -523,6 +523,9 @@ export function App() {
             const bPinned = pinnedReviewIds.includes(b.id)
             if (aPinned && !bPinned) return -1
             if (!aPinned && bPinned) return 1
+            if (aPinned && bPinned) {
+                return pinnedReviewIds.indexOf(a.id) - pinnedReviewIds.indexOf(b.id)
+            }
             return 0
         })
     }, [candidateReviews, pinnedReviewIds, curateRatingFilter, curateSearchQuery])
