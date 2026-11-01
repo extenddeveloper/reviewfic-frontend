@@ -1984,30 +1984,34 @@ export function App() {
                                     subtitle="Import, export & sync reviews"
                                     icon={<IconDatabase size={15} />}
                                 >
-                                    <div className="cf-csv-buttons-row">
+                                    <label className="cf-csv-upload-box">
+                                        <input
+                                            type="file"
+                                            accept=".csv"
+                                            className="cf-csv-file-input"
+                                            onChange={handleFileUploadCSV}
+                                        />
+                                        <IconUpload size={18} className="cf-csv-upload-icon" />
+                                        <span className="cf-csv-upload-title">Upload Reviews (.csv)</span>
+                                        <span className="cf-csv-upload-hint">Drag & drop or click to browse</span>
+                                    </label>
+
+                                    <div className="cf-csv-actions-grid">
                                         <button
                                             type="button"
                                             className="cf-btn-csv-action"
                                             onClick={handleExportCSV}
                                             disabled={activeReviews.length === 0}
+                                            title="Download all active reviews as CSV"
                                         >
                                             <IconDownload size={13} />
                                             <span>Export CSV ({activeReviews.length})</span>
                                         </button>
-                                        <label className="cf-btn-csv-action file-label">
-                                            <IconUpload size={13} />
-                                            <span>Upload CSV</span>
-                                            <input
-                                                type="file"
-                                                accept=".csv"
-                                                className="cf-hidden-file-input"
-                                                onChange={handleFileUploadCSV}
-                                            />
-                                        </label>
                                         <button
                                             type="button"
                                             className="cf-btn-csv-action"
                                             onClick={handleDownloadSampleCSV}
+                                            title="Download sample CSV template"
                                         >
                                             <IconFileText size={13} />
                                             <span>Sample CSV</span>
@@ -2017,31 +2021,46 @@ export function App() {
                                     {csvSuccess && <div className="cf-alert-msg success">{csvSuccess}</div>}
                                     {csvError && <div className="cf-alert-msg error">{csvError}</div>}
 
-                                    <div className="cf-cms-buttons-row">
-                                        <button
-                                            type="button"
-                                            className="cf-btn-cms-sync"
-                                            onClick={handleSyncCMS}
-                                            disabled={isSyncingCMS || activeReviews.length === 0}
-                                        >
-                                            <IconDatabase size={14} />
-                                            <span>Sync to Framer CMS Collection</span>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="cf-btn-cms-secondary"
-                                            onClick={handleExportFramerCMSCSV}
-                                            disabled={activeReviews.length === 0}
-                                        >
-                                            <IconDownload size={13} />
-                                            <span>Export for Framer CMS (.csv)</span>
-                                        </button>
-                                    </div>
-                                    {cmsSyncMsg && (
-                                        <div className={`cf-alert-msg ${cmsSyncMsg.ok ? "success" : "error"}`}>
-                                            <span>{cmsSyncMsg.text}</span>
+                                    <div className="cf-cms-card">
+                                        <div className="cf-cms-card-header">
+                                            <span className="cf-cms-badge">
+                                                <IconDatabase size={11} />
+                                                <span>Framer CMS</span>
+                                            </span>
+                                            <span className="cf-cms-count-pill">{activeReviews.length} reviews ready</span>
                                         </div>
-                                    )}
+                                        <div className="cf-cms-body">
+                                            <h4 className="cf-cms-title">Direct CMS Synchronization</h4>
+                                            <p className="cf-cms-desc">
+                                                Automatically create and sync a Framer CMS Collection with all active reviews.
+                                            </p>
+                                        </div>
+                                        <div className="cf-cms-buttons-row">
+                                            <button
+                                                type="button"
+                                                className="cf-btn-cms-sync"
+                                                onClick={handleSyncCMS}
+                                                disabled={isSyncingCMS || activeReviews.length === 0}
+                                            >
+                                                <IconDatabase size={14} />
+                                                <span>{isSyncingCMS ? "Syncing to Framer CMS..." : "Sync to Framer CMS Collection"}</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="cf-btn-cms-secondary"
+                                                onClick={handleExportFramerCMSCSV}
+                                                disabled={activeReviews.length === 0}
+                                            >
+                                                <IconDownload size={13} />
+                                                <span>Export for Framer CMS (.csv)</span>
+                                            </button>
+                                        </div>
+                                        {cmsSyncMsg && (
+                                            <div className={`cf-alert-msg ${cmsSyncMsg.ok ? "success" : "error"}`}>
+                                                <span>{cmsSyncMsg.text}</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </Section>
                             </>
                         )}

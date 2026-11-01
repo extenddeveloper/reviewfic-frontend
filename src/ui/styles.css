@@ -3440,27 +3440,42 @@ button.cf-btn-text-action:hover {
     margin-bottom: 12px;
 }
 
+.cf-csv-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 12px;
+}
+
 button.cf-btn-csv-action {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     gap: 6px !important;
-    padding: 8px 12px !important;
-    background: var(--cf-bg-secondary) !important;
+    padding: 9px 10px !important;
+    background: var(--cf-control) !important;
     border: 1px solid var(--cf-border) !important;
-    border-radius: var(--cf-radius-md) !important;
-    color: var(--cf-text-primary) !important;
+    border-radius: var(--cf-radius-sm) !important;
+    color: var(--cf-text-secondary) !important;
     font-size: 11.5px !important;
-    font-weight: 600 !important;
+    font-weight: 500 !important;
     cursor: pointer !important;
     transition: all 0.15s ease !important;
     width: 100% !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
 }
 
-button.cf-btn-csv-action:hover {
-    background: var(--cf-bg-hover) !important;
-    border-color: var(--cf-accent) !important;
-    color: var(--cf-accent) !important;
+button.cf-btn-csv-action:hover:not(:disabled) {
+    background: var(--cf-control-hover) !important;
+    border-color: var(--cf-border-hover) !important;
+    color: var(--cf-text) !important;
+}
+
+button.cf-btn-csv-action:disabled {
+    opacity: 0.45 !important;
+    cursor: not-allowed !important;
 }
 
 .cf-csv-upload-box {
@@ -3469,20 +3484,26 @@ button.cf-btn-csv-action:hover {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 5px;
     padding: 16px 14px;
-    background: var(--cf-bg-tertiary);
-    border: 1.5px dashed var(--cf-border-hover);
-    border-radius: var(--cf-radius-md);
+    background: var(--cf-control);
+    border: 1.5px dashed var(--cf-border);
+    border-radius: var(--cf-radius-sm);
     cursor: pointer;
     text-align: center;
     transition: all 0.2s ease;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+    box-sizing: border-box;
 }
 
 .cf-csv-upload-box:hover {
-    border-color: var(--cf-accent);
-    background: var(--cf-bg-hover);
+    border-color: var(--Secondary-Default, #5271ff);
+    background: rgba(82, 113, 255, 0.05);
+}
+
+.cf-csv-upload-icon {
+    color: var(--Secondary-Default, #5271ff);
+    margin-bottom: 2px;
 }
 
 .cf-csv-file-input {
@@ -3492,17 +3513,18 @@ button.cf-btn-csv-action:hover {
     cursor: pointer;
     width: 100%;
     height: 100%;
+    z-index: 2;
 }
 
 .cf-csv-upload-title {
     font-size: 12px;
     font-weight: 600;
-    color: var(--cf-text-primary);
+    color: var(--cf-text);
 }
 
 .cf-csv-upload-hint {
     font-size: 10.5px;
-    color: var(--cf-text-muted);
+    color: var(--cf-text-secondary);
 }
 
 .cf-csv-paste-wrap {
@@ -3540,12 +3562,13 @@ button.cf-btn-csv-action:hover {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    padding: 16px;
-    background: linear-gradient(135deg, rgba(0, 153, 255, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%);
-    border: 1px solid rgba(0, 153, 255, 0.22);
-    border-radius: var(--cf-radius-lg);
+    padding: 14px;
+    background: rgba(0, 153, 255, 0.05);
+    border: 1px solid rgba(0, 153, 255, 0.2);
+    border-radius: var(--cf-radius-sm);
     position: relative;
     overflow: hidden;
+    margin-top: 4px;
 }
 
 .cf-cms-card-header {
@@ -3575,15 +3598,21 @@ button.cf-btn-csv-action:hover {
     color: var(--cf-text-secondary);
 }
 
+.cf-cms-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
 .cf-cms-title {
-    font-size: 13.5px;
+    font-size: 13px;
     font-weight: 700;
     color: var(--cf-text-primary);
     margin: 0;
 }
 
 .cf-cms-desc {
-    font-size: 11.5px;
+    font-size: 11px;
     line-height: 1.45;
     color: var(--cf-text-muted);
     margin: 0;
