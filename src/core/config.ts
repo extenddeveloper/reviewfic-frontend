@@ -190,7 +190,7 @@ export function getCandidateReviews(config: ReviewConfig, business?: ConnectedBu
             if (hasGoogleReviews) {
                 gList = effectiveGoogleReviews
             } else if (hasGoogleConn) {
-                gList = generateReviewsForBusiness(effectiveGoogleName, "Business", effectiveGoogleMapsUrl)
+                gList = []
             }
         }
 
@@ -322,7 +322,7 @@ export function createDefaultBusiness(
         googleMapsUrl: hasGoogle ? (googleData?.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(gName)}`) : "",
         googleRating: hasGoogle ? (googleData?.rating ?? 4.9) : 0,
         googleReviewCount: hasGoogle ? (googleData?.reviewCount ?? 156) : 0,
-        googleReviews: hasGoogle ? (googleData?.reviews || generateReviewsForBusiness(gName)) : [],
+        googleReviews: hasGoogle ? (googleData?.reviews || []) : [],
         googleEnabled: hasGoogle,
 
         trustpilotDomain: cleanTpDomain,

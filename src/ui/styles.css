@@ -1119,8 +1119,8 @@ button.cf-layout-preset-card.active .cf-layout-preset-label {
 /* Segmented Buttons (Source Filter and Segment Grids) */
 .cf-segmented-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
     width: 100%;
 }
 
@@ -1131,7 +1131,8 @@ button.cf-layout-preset-card.active .cf-layout-preset-label {
     align-items: center !important;
     justify-content: center !important;
     gap: 6px !important;
-    padding: 8px 10px !important;
+    padding: 9px 10px !important;
+    min-height: 38px !important;
     background: var(--cf-control) !important;
     border: 1px solid var(--cf-border) !important;
     border-radius: var(--cf-radius-sm) !important;
@@ -1140,6 +1141,7 @@ button.cf-layout-preset-card.active .cf-layout-preset-label {
     font-weight: 500 !important;
     cursor: pointer !important;
     text-align: center !important;
+    white-space: nowrap !important;
     transition: all 0.15s ease !important;
 }
 
@@ -5602,6 +5604,7 @@ button.cf-btn-tp-sync:disabled {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
 }
 
 .cf-manage-card-info {
@@ -5651,7 +5654,8 @@ button.cf-btn-tp-sync:disabled {
 .cf-manage-card-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    flex-shrink: 0;
 }
 
 .cf-manage-btn {
@@ -5667,6 +5671,17 @@ button.cf-btn-tp-sync:disabled {
     color: var(--cf-text);
     box-sizing: border-box;
     transition: background-color 0.15s ease;
+}
+
+.cf-manage-btn.cf-manage-icon-btn {
+    width: 28px !important;
+    height: 28px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 6px !important;
+    flex-shrink: 0 !important;
 }
 
 .cf-manage-btn:hover:not(:disabled) {

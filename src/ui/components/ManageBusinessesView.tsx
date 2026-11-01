@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { ConnectedBusiness } from "../../core/types"
 import { parseTrustpilotInput } from "../../core/trustpilot"
-import { IconPlus, IconTrash } from "../icons"
+import { IconPlus, IconTrash, IconEdit, IconX } from "../icons"
 import { DeleteBusinessModal } from "./DeleteBusinessModal"
 
 interface ManageBusinessesViewProps {
@@ -84,27 +84,29 @@ export function ManageBusinessesView({
                                     {isEditing ? (
                                         <button
                                             type="button"
-                                            className="cf-manage-btn"
+                                            className="cf-manage-btn cf-manage-icon-btn"
                                             onClick={() => setEditingBizId(null)}
+                                            title="Close editor"
                                         >
-                                            Close
+                                            <IconX size={13} />
                                         </button>
                                     ) : (
                                         <button
                                             type="button"
-                                            className="cf-manage-btn"
+                                            className="cf-manage-btn cf-manage-icon-btn"
                                             onClick={() => handleStartEdit(biz)}
+                                            title="Edit business"
                                         >
-                                            Edit
+                                            <IconEdit size={14} />
                                         </button>
                                     )}
                                     <button
                                         type="button"
-                                        className="cf-manage-btn danger"
+                                        className="cf-manage-btn danger cf-manage-icon-btn"
                                         onClick={() => setDeleteTarget(biz)}
                                         title="Remove business"
                                     >
-                                        Remove
+                                        <IconTrash size={14} />
                                     </button>
                                 </div>
                             </div>

@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react"
 import { ConnectedBusiness, ReviewItem } from "../../core/types"
 import { createDefaultBusiness } from "../../core/config"
-import { searchGooglePlaces, parseGoogleMapsInput, generateReviewsForBusiness, GooglePlaceResult } from "../../core/google-places"
+import { searchGooglePlaces, parseGoogleMapsInput, GooglePlaceResult } from "../../core/google-places"
 import { resolveTrustpilotProfile, generateReviewsForTrustpilot, parseTrustpilotInput } from "../../core/trustpilot"
 import { fetchGooglePlacesPredictions, fetchGooglePlaceDetails, fetchTrustpilotLiveReviews } from "../../core/api-client"
 import { IconGoogle, IconTrustpilot, IconStar, IconCheck, IconSearch, IconRefresh } from "../icons"
@@ -76,7 +76,7 @@ export function ConnectReviewsView({ onComplete, onCancel, initialBusiness }: Co
                 mapsUrl: parsed.mapsUrl || val,
                 rating: 4.9,
                 reviewCount: 156,
-                reviews: generateReviewsForBusiness(placeName),
+                reviews: [],
             })
             setIsChangingGoogle(false)
             setGoogleResults([])
@@ -118,9 +118,8 @@ export function ConnectReviewsView({ onComplete, onCancel, initialBusiness }: Co
             } catch {}
         }
 
-        if (!reviews.length) {
-            reviews = generateReviewsForBusiness(place.name, place.category, address)
-        }
+        // Use real reviews without dummy fallback
+        if (!reviews) reviews = []
 
         setConnectedGoogle({
             name: place.name,

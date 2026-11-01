@@ -101,7 +101,7 @@ export function hydrateBusiness(b: ConnectedBusiness): ConnectedBusiness {
 
     const googleReviews = hasGoogleReviews
         ? b.googleReviews
-        : (b.googleBusinessName ? generateReviewsForBusiness(b.googleBusinessName, "Business", b.googleMapsUrl) : [])
+        : []
 
     const trustpilotReviews = hasTpReviews
         ? b.trustpilotReviews
