@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 import { ConnectedBusiness, ReviewItem } from "../../core/types"
 import { createDefaultBusiness } from "../../core/config"
 import { searchGooglePlaces, parseGoogleMapsInput, GooglePlaceResult } from "../../core/google-places"
@@ -59,11 +59,83 @@ export function ConnectReviewsView({ onComplete, onCancel, initialBusiness }: Co
     )
     const [isChangingTp, setIsChangingTp] = useState(!initialBusiness?.trustpilotDomain)
 
-    // Handle Google search
+    // Debounce timer, cache, and request-id refs to minimize backend/SerpApi requests
+    const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const queryCacheRef = useRef<Map<string, GooglePlaceResult[]>>(new Map())
+    const requestIdRef = useRef<number>(0)
+
+    useEffect(() => {
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current)
+            }
+        }
+    }, [])
+
+    // Core search dispatcher with caching and race-condition prevention
+    const executeGoogleSearch = useCallback(async (queryStr: string, bypassCache = false) => {
+        const clean = (queryStr || "").trim()
+        if (!clean || clean.length < 3) {
+            setGoogleResults([])
+            setIsSearchingGoogle(false)
+            return
+        }
+
+        const cacheKey = clean.toLowerCase()
+        if (!bypassCache && queryCacheRef.current.has(cacheKey)) {
+            setGoogleResults(queryCacheRef.current.get(cacheKey) || [])
+            setIsSearchingGoogle(false)
+            return
+        }
+
+        const currentRequestId = ++requestIdRef.current
+        setIsSearchingGoogle(true)
+
+        try {
+            const backendResults = await fetchGooglePlacesPredictions(clean)
+            if (requestIdRef.current !== currentRequestId) return
+
+            let finalResults: GooglePlaceResult[] = []
+            if (backendResults !== null && backendResults.length > 0) {
+                finalResults = backendResults
+            } else {
+                finalResults = await searchGooglePlaces(clean)
+                if (requestIdRef.current !== currentRequestId) return
+            }
+
+            queryCacheRef.current.set(cacheKey, finalResults)
+            setGoogleResults(finalResults)
+        } catch {
+            if (requestIdRef.current !== currentRequestId) return
+            try {
+                const fallback = await searchGooglePlaces(clean)
+                if (requestIdRef.current !== currentRequestId) return
+                queryCacheRef.current.set(cacheKey, fallback)
+                setGoogleResults(fallback)
+            } catch {
+                if (requestIdRef.current === currentRequestId) {
+                    setGoogleResults([])
+                }
+            }
+        } finally {
+            if (requestIdRef.current === currentRequestId) {
+                setIsSearchingGoogle(false)
+            }
+        }
+    }, [])
+
+    // Handle Google search with 450ms debounce and minimum 3-character threshold
     const handleGoogleSearch = useCallback((val: string) => {
         setGoogleQuery(val)
+
+        // Clear existing debounce timer
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current)
+        }
+
         if (!val.trim()) {
             setGoogleResults([])
+            setIsSearchingGoogle(false)
             return
         }
 
@@ -80,25 +152,30 @@ export function ConnectReviewsView({ onComplete, onCancel, initialBusiness }: Co
             })
             setIsChangingGoogle(false)
             setGoogleResults([])
+            setIsSearchingGoogle(false)
             return
         }
 
-        setIsSearchingGoogle(true)
-        fetchGooglePlacesPredictions(val)
-            .then(async (backendResults) => {
-                if (backendResults !== null && backendResults.length > 0) {
-                    setGoogleResults(backendResults)
-                } else {
-                    const fallback = await searchGooglePlaces(val)
-                    setGoogleResults(fallback)
-                }
-            })
-            .catch(async () => {
-                const fallback = await searchGooglePlaces(val)
-                setGoogleResults(fallback)
-            })
-            .finally(() => setIsSearchingGoogle(false))
-    }, [])
+        // Wait until at least 3 characters are typed before querying
+        if (val.trim().length < 3) {
+            setGoogleResults([])
+            setIsSearchingGoogle(false)
+            return
+        }
+
+        // Return from cache immediately if available
+        const cacheKey = val.trim().toLowerCase()
+        if (queryCacheRef.current.has(cacheKey)) {
+            setGoogleResults(queryCacheRef.current.get(cacheKey) || [])
+            setIsSearchingGoogle(false)
+            return
+        }
+
+        // Debounce network request by 450ms
+        searchTimeoutRef.current = setTimeout(() => {
+            void executeGoogleSearch(val)
+        }, 450)
+    }, [executeGoogleSearch])
 
     const handleSelectGooglePlace = async (place: GooglePlaceResult) => {
         let reviews = place.reviews?.length ? place.reviews : []
@@ -303,6 +380,15 @@ export function ConnectReviewsView({ onComplete, onCancel, initialBusiness }: Co
                                     placeholder="e.g. Nike House of Innovation Paris (or Maps URL)"
                                     value={googleQuery}
                                     onChange={(e) => handleGoogleSearch(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            e.preventDefault()
+                                            if (searchTimeoutRef.current) {
+                                                clearTimeout(searchTimeoutRef.current)
+                                            }
+                                            void executeGoogleSearch(googleQuery)
+                                        }
+                                    }}
                                 />
                                 {isSearchingGoogle && (
                                     <div className="cf-connect-loading-spinner" />

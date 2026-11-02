@@ -1,12 +1,14 @@
 import React, { useState } from "react"
 import { ConnectedBusiness } from "../../core/types"
 import { parseTrustpilotInput } from "../../core/trustpilot"
-import { IconPlus, IconTrash, IconEdit, IconX } from "../icons"
+import { IconPlus, IconTrash, IconEdit, IconX, IconCrown } from "../icons"
 import { DeleteBusinessModal } from "./DeleteBusinessModal"
 
 interface ManageBusinessesViewProps {
     businesses: ConnectedBusiness[]
     activeBusinessId: string
+    canAddBusiness?: boolean
+    isProUser?: boolean
     onBack: () => void
     onAddBusiness: () => void
     onUpdateBusiness: (updated: ConnectedBusiness) => void
@@ -16,6 +18,8 @@ interface ManageBusinessesViewProps {
 export function ManageBusinessesView({
     businesses,
     activeBusinessId,
+    canAddBusiness = true,
+    isProUser = true,
     onBack,
     onAddBusiness,
     onUpdateBusiness,
@@ -60,7 +64,9 @@ export function ManageBusinessesView({
             <div className="cf-manage-header">
                 <h2 className="cf-manage-title">Your businesses</h2>
                 <p className="cf-manage-subtitle">
-                    Each business has its own Google & Trustpilot profiles, reviews and widgets.
+                    {!canAddBusiness
+                        ? "Free trial includes 1 connected business. Upgrade to Pro to connect unlimited businesses."
+                        : "Each business has its own Google & Trustpilot profiles, reviews and widgets."}
                 </p>
             </div>
 
@@ -173,11 +179,17 @@ export function ManageBusinessesView({
                 {/* Add a business dashed button */}
                 <button
                     type="button"
-                    className="cf-manage-add-dashed-box"
+                    className={`cf-manage-add-dashed-box ${!canAddBusiness ? "is-pro-gated" : ""}`}
                     onClick={onAddBusiness}
+                    title={!canAddBusiness ? "Trial limit reached (1 business). Upgrade to Pro for unlimited businesses" : "Add a business"}
                 >
-                    <IconPlus size={15} />
+                    {!canAddBusiness ? <IconCrown size={14} /> : <IconPlus size={15} />}
                     <span>Add a business</span>
+                    {!canAddBusiness && (
+                        <span className="cf-manage-pro-pill">
+                            <IconCrown size={10} /> PRO
+                        </span>
+                    )}
                 </button>
             </div>
 

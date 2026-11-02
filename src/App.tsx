@@ -231,6 +231,18 @@ export function App() {
         )
     }, [hasActiveAccess, paymentFlow.planDetails])
 
+    const isProUser = useMemo(() => {
+        return Boolean(
+            hasActiveAccess &&
+            !isTrialActive &&
+            paymentFlow.planDetails &&
+            paymentFlow.planDetails.plan !== "trial"
+        )
+    }, [hasActiveAccess, isTrialActive, paymentFlow.planDetails])
+
+    // Trial and non-Pro users are allowed 1 connected business. Pro users get unlimited businesses.
+    const canAddBusiness = isProUser || businesses.length < 1
+
     const isProTabLocked = !isProfileOpen && tab !== "home" && !hasActiveAccess
 
     const handleTabClick = useCallback(
@@ -749,6 +761,15 @@ export function App() {
 
     // Handlers for Onboarding / Connect Reviews
     const handleInitialBusinessConnected = (business: ConnectedBusiness) => {
+        const isExisting = businesses.some((b) => b.id === business.id)
+        if (!isExisting && !canAddBusiness) {
+            showNotice("Free trial is limited to 1 connected business. Upgrade to Pro for unlimited businesses!", "warning")
+            setForceShowPlans((prev) => prev + 1)
+            setIsProfileOpen(true)
+            setProfileView("subscription")
+            return
+        }
+
         const nextBusinesses = [business, ...businesses.filter((b) => b.id !== business.id)]
         const defaultWidget = createDefaultWidget(business.id, `${business.name} Showcase`, "carousel", "elevated")
         const nextWidgets = [defaultWidget, ...widgets]
@@ -1143,6 +1164,14 @@ export function App() {
 
     // Show Add Business flow if explicitly triggered
     if (isAddingBusiness) {
+        if (!canAddBusiness) {
+            setIsAddingBusiness(false)
+            showNotice("Free trial is limited to 1 connected business. Upgrade to Pro for unlimited businesses!", "warning")
+            setForceShowPlans((prev) => prev + 1)
+            setIsProfileOpen(true)
+            setProfileView("subscription")
+            return null
+        }
         return (
             <div className={`app ${resolvedTheme}`}>
                 <main className="content">
@@ -1163,8 +1192,17 @@ export function App() {
                     <ManageBusinessesView
                         businesses={businesses}
                         activeBusinessId={activeBusinessId}
+                        canAddBusiness={canAddBusiness}
+                        isProUser={isProUser}
                         onBack={() => setIsManagingBusinesses(false)}
                         onAddBusiness={() => {
+                            if (!canAddBusiness) {
+                                showNotice("Free trial is limited to 1 connected business. Upgrade to Pro for unlimited businesses!", "warning")
+                                setForceShowPlans((prev) => prev + 1)
+                                setIsProfileOpen(true)
+                                setProfileView("subscription")
+                                return
+                            }
                             setIsManagingBusinesses(false)
                             setIsAddingBusiness(true)
                         }}
@@ -2086,9 +2124,20 @@ export function App() {
                             <BusinessesListView
                                 businesses={businesses}
                                 activeBusinessId={activeBusinessId}
+                                canAddBusiness={canAddBusiness}
+                                isProUser={isProUser}
                                 onSelectBusiness={handleSelectBusiness}
                                 onManageBusinesses={() => setIsManagingBusinesses(true)}
-                                onAddBusiness={() => setIsAddingBusiness(true)}
+                                onAddBusiness={() => {
+                                    if (!canAddBusiness) {
+                                        showNotice("Free trial is limited to 1 connected business. Upgrade to Pro for unlimited businesses!", "warning")
+                                        setForceShowPlans((prev) => prev + 1)
+                                        setIsProfileOpen(true)
+                                        setProfileView("subscription")
+                                        return
+                                    }
+                                    setIsAddingBusiness(true)
+                                }}
                                 onSyncBusiness={handleSyncBusiness}
                             />
                         )}

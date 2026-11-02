@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react"
 import { formatLastSync } from "../../core/config"
 import { ConnectedBusiness } from "../../core/types"
-import { IconGoogle, IconTrustpilot, IconRefresh, IconPlus } from "../icons"
+import { IconGoogle, IconTrustpilot, IconRefresh, IconPlus, IconCrown } from "../icons"
 
 interface BusinessesListViewProps {
     businesses: ConnectedBusiness[]
     activeBusinessId: string
+    canAddBusiness?: boolean
+    isProUser?: boolean
     onSelectBusiness: (biz: ConnectedBusiness) => void
     onManageBusinesses: () => void
     onAddBusiness: () => void
@@ -15,6 +17,8 @@ interface BusinessesListViewProps {
 export function BusinessesListView({
     businesses,
     activeBusinessId,
+    canAddBusiness = true,
+    isProUser = true,
     onSelectBusiness,
     onManageBusinesses,
     onAddBusiness,
@@ -32,7 +36,9 @@ export function BusinessesListView({
                 <div className="cf-biz-header-text">
                     <h2 className="cf-biz-title">Your businesses</h2>
                     <p className="cf-biz-subtitle">
-                        Open one to build a widget from its reviews. Each keeps its own reviews, curation and rating.
+                        {!canAddBusiness
+                            ? "Free trial includes 1 connected business. Upgrade to Pro to connect unlimited businesses."
+                            : "Open one to build a widget from its reviews. Each keeps its own reviews, curation and rating."}
                     </p>
                 </div>
                 <div className="cf-biz-header-actions">
@@ -45,11 +51,13 @@ export function BusinessesListView({
                     </button>
                     <button
                         type="button"
-                        className="primary-cta cf-biz-head-btn"
+                        className={`primary-cta cf-biz-head-btn ${!canAddBusiness ? "cf-biz-head-btn-pro" : ""}`}
                         onClick={onAddBusiness}
+                        title={!canAddBusiness ? "Trial limit reached (1 business). Upgrade to Pro for unlimited businesses" : "Add a business"}
                     >
-                        <IconPlus size={13} />
+                        {!canAddBusiness ? <IconCrown size={12} /> : <IconPlus size={13} />}
                         <span>Add a business</span>
+                        {!canAddBusiness && <span className="cf-biz-pro-tag">PRO</span>}
                     </button>
                 </div>
             </div>
