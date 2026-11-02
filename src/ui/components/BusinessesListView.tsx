@@ -51,7 +51,7 @@ export function BusinessesListView({
                     </button>
                     <button
                         type="button"
-                        className={`primary-cta cf-biz-head-btn ${!canAddBusiness ? "cf-biz-head-btn-pro" : ""}`}
+                        className="primary-cta cf-biz-head-btn"
                         onClick={onAddBusiness}
                         title={!canAddBusiness ? "Trial limit reached (1 business). Upgrade to Pro for unlimited businesses" : "Add a business"}
                     >

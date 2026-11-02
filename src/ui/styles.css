@@ -5338,11 +5338,6 @@ button.cf-btn-tp-sync:disabled {
     height: 13px !important;
 }
 
-.cf-biz-header-actions .cf-biz-head-btn.cf-biz-head-btn-pro {
-    background: #0099FF !important;
-    color: #ffffff !important;
-}
-
 .cf-biz-pro-tag {
     display: inline-flex;
     align-items: center;
