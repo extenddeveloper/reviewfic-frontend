@@ -95,7 +95,7 @@ export function PaymentModal({
             Please check your internet connection and try again. If the problem persists, disable any ad-blockers or privacy extensions and reload the plugin.
           </p>
           <div className="framefic-payment-button payment-cancel-btn-wrap">
-            <button type="button" className="payment-cancel primary-cta payment-cancel-full" onClick={onClose}>
+            <button type="button" className="primary-cta payment-cancel-full buy-now-button" onClick={onClose}>
               Close
             </button>
           </div>

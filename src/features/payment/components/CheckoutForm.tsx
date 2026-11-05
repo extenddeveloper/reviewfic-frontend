@@ -121,7 +121,7 @@ export function CheckoutForm({
         return
       }
 
-      if (paymentIntent?.status === "succeeded") {
+      if (paymentIntent?.status === "succeeded" || paymentIntent?.status === "processing") {
         try {
           const siteInfo = await getSiteInfo()
           await verifyPayment({
@@ -213,12 +213,28 @@ export function CheckoutForm({
         </div>
       )}
       <div className="framefic-payment-button">
-        <button type="button" className="payment-cancel" onClick={onClose} disabled={isSubmittingPayment}>
+        <button
+          type="button"
+          className="secondary-cta payment-cancel"
+          onClick={onClose}
+          disabled={isSubmittingPayment}
+        >
           Cancel
         </button>
 
-        <button type="submit" className="primary-cta buy-now-button" disabled={isSubmittingPayment}>
-          {isSubmittingPayment ? "Processing..." : "Pay Now"}
+        <button
+          type="submit"
+          className="primary-cta buy-now-button"
+          disabled={isSubmittingPayment}
+        >
+          {isSubmittingPayment ? (
+            <>
+              <div className="payment-btn-spinner" />
+              <span>Processing...</span>
+            </>
+          ) : (
+            <span>Pay Now</span>
+          )}
         </button>
       </div>
     </form>
