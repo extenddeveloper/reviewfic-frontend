@@ -299,8 +299,9 @@ html[data-user-theme="light"] body .payment-cancel:hover:not(:disabled) {
 
 .framefic-coupon-toggle {
   display: flex;
-  justify-content: flex-start;
-  align-self: flex-start;
+  justify-content: center;
+  align-self: center;
+  width: 100%;
   background: none;
   border: none;
   color: #5271FF;
@@ -308,6 +309,11 @@ html[data-user-theme="light"] body .payment-cancel:hover:not(:disabled) {
   cursor: pointer;
   padding: 0;
   text-decoration: underline;
+  transition: color 0.15s ease;
+}
+
+.framefic-coupon-toggle:hover {
+  color: #708aff;
 }
 
 /* Success Modal */
